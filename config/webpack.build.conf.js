@@ -27,6 +27,7 @@ const buildWebpackConfig = merge(baseWebpackConfig, {
 
   plugins: [
     new CleanWebpackPlugin({
+      cleanOnceBeforeBuildPatterns: ["**/*", "!.git/**"],
       verbose: true,
       dry: false
     }),
