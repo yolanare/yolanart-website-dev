@@ -13,3 +13,4 @@ démarrage *[221013]*
   - [ ] utiliser un fichier externe
   - [ ] réfléchir à une nouvelle arborescence
   - [ ] rajouter des nouveaux projets
+  - [ ] réparer les vidéos décédées
