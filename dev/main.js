@@ -15,6 +15,7 @@ import './main.scss'
 
 //- Variables -
 var doc = document.documentElement,
+    pageMainURL,
     isMini = undefined,
     touchDevice = (navigator.maxTouchPoints || 'ontouchstart' in document.documentElement),
     container = document.getElementById('container'),
@@ -35,9 +36,12 @@ function checkWinSize() { if(window.innerWidth > 727) { isMini = false; } else {
 checkWinSize(); window.addEventListener('resize', checkWinSize);
 
 function getPageID() {
-    pathDir = ((window.location.pathname).replace(/\/[^/]*$/, '')).replace(/^\//, '');
-    //if(window.location.pathname == '/' || window.location.pathname == '/index.html') { pathDir = 'home'; } // server hosted solution, doesn't work when going local file
-    if(pathDir != 'projects' || pathDir.match(/([^\/]+$)/)[0] != 'projects') { pathDir = 'home'; } else { pathDir = 'projects'; } // hardcoded solution, idc it works
+    //pathDir = ((window.location.pathname).replace(/\/[^/]*$/, '')).replace(/^\//, '');
+    var pageURL = (window.location.href).replace(/\/[^/]*$/, '');
+    pathDir = pageURL.match(/([^\/]+$)/)[0];
+    pageMainURL = pageURL.replace("/projects", '');
+    //if(window.location.pathname == '/' || window.location.pathname == '/index.html') { pathDir = 'home'; }
+    if(pathDir != 'projects') { pathDir = 'home'; } // hardcoded solution, idc it works
     console.log(pathDir);
     return pathDir;
 } var pathDir = getPageID();
@@ -1304,7 +1308,7 @@ function init() {
                 if(lLinkID == 'home') { lLink = ''; } else { lLink = lLinkID + '/'; } // if "home" go to "", else "page/"
                 console.log({fullPath : pathDir + '/' + lLink,
                              pathDir : pathDir, lLink : lLink, lLinkID : lLinkID});
-                if(histbr == false) { swup.loadPage({ url: '/' + lLink }); } // go to ^
+                if(histbr == false) { swup.loadPage({ url: pageMainURL + '/' + lLink }); } // go to ^
                 boom('0');
             } else {
                 boom('-c');
