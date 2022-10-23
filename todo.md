@@ -1,0 +1,13 @@
+démarrage *[221013]*
+- [X] *2210151750* utiliser un bundler (babel + webpack)
+- [X] *2210231600* site fonctionnel déployé
+  - [X] *2210172030* dependencies
+  - [X] *2210172300* virer les implicit globals
+  - [ ] ~~build fonctionnel~~ Security Error: "May not load data from file:///" donc je vais aller me faire foutre, ça marche que sur serveur :(
+- [ ] n'avoir qu'une seule page : logo fullscreen et avoir en dessous la liste des projets
+- [ ] permettre de fermer les fiches de projets en retournant en arrière dans l'historique
+- [ ] optimiser l'interface des fiches de projets sur mobile
+- [ ] refaire l'organisation des projets :
+  - [ ] utiliser un fichier externe
+  - [ ] réfléchir à une nouvelle arborescence
+  - [ ] rajouter des nouveaux projets

@@ -1,0 +1,24 @@
+# Node
+node_modules
+package-lock.json
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Special
+.gulp
+.idea
+.vscode
+Thumbs.db
+Desktop.ini
+.DS_Store*
+ehthumbs.db
+Icon?
+
+# Yolanart Public
+_old
+dev/assets/medias
+#yolanare.github.io
