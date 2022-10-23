@@ -9,6 +9,7 @@ démarrage *[221013]*
 - [ ] n'avoir qu'une seule page : logo fullscreen et avoir en dessous la liste des projets
 - [ ] permettre de fermer les fiches de projets en retournant en arrière dans l'historique
 - [ ] optimiser l'interface des fiches de projets sur mobile
+- [ ] utiliser des unités en "em" et "rem" au lieu de "px"
 - [ ] refaire l'organisation des projets :
   - [ ] utiliser un fichier externe
   - [ ] réfléchir à une nouvelle arborescence
