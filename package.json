@@ -10,12 +10,9 @@
     "not dead"
   ],
   "scripts": {
-    "d": "webpack-dev-server --config ./config/webpack.dev.conf.js",
-    "do": "webpack-dev-server --config ./config/webpack.dev.conf.js --open",
-    "dev": "npm run d",
-    "dev-o": "npm run do",
-    "b": "webpack --config ./config/webpack.build.conf.js",
-    "build": "npm run b"
+    "dev": "webpack-dev-server --config ./config/webpack.dev.conf.js",
+    "dev-o": "webpack-dev-server --config ./config/webpack.dev.conf.js --open",
+    "build": "webpack --config ./config/webpack.build.conf.js"
   },
   "devDependencies": {
     "@babel/core": "^7.18.10",
