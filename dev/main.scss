@@ -173,15 +173,16 @@ nav {
       left: 0.05em;
       font-size: 3vw;
       color: var(--y-r1);
-      transform: rotateZ(0.1deg);
-      transition: top 0.7s cubic-bezier(0.1, 0.6, 0, 1),
-        left 0.7s cubic-bezier(0.1, 0.6, 0, 1);
+      transform: rotateZ(-0.1deg);
+      transition: top 0.55s cubic-bezier(0.1, 0.6, 0, 0.825),
+        left 0.8s cubic-bezier(0.1, 0.6, 0, 1),
+        transform 0.9s ease;
     }
 
     &.hover span {
       top: -0.45em;
       left: 0.185em;
-      transform: rotateZ(0.2deg);
+      transform: rotateZ(-0.2deg);
     }
   }
 }
@@ -401,7 +402,7 @@ svg#y > g:hover {
   transform: scale(1.05);
   transition-duration: 0.4s;
 }
-svg#y > g:active {
+svg#y > g:active:hover {
   transform: scale(0.9);
   transition: 0.35s cubic-bezier(0.1, 0.7, 0, 1);
 }

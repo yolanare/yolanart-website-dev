@@ -1205,6 +1205,7 @@ function init() {
                     <span>yolan'<br>portfolio</span>
                 </div>
                 <svg id="y" viewBox="0 0 25 25">
+                    <rect id="tracker" style="opacity:0; pointer-events:none;" stroke-width="0" x="3.8" y="0.2" width="17.4" height="24.6"></rect>
                     <g link="home">
                         <g id="float">
                             <g>
@@ -1232,17 +1233,19 @@ function init() {
 
         // header pin
         const navYgH = document.querySelector("svg#y g[link='home']"),
+              navYTracker = document.querySelector("svg#y #tracker"),
               navHeader = document.querySelector("#ymenu-c .header");
         function headerPin() {
-            const svgyPos = navYgH.getBoundingClientRect();
+            const svgyPos = navYTracker.getBoundingClientRect();
             navHeader.style.top = svgyPos.top + scrollbarMain.scroll().position.y +"px";
             navHeader.style.left = svgyPos.right +"px";
         }
         function headerPinUpdateLoop() {
-            for (let i = 0; i < 8; i++) {
+            for (let i = 0; i < 20; i++) {
                 setTimeout(() => {
                     headerPin();
-                }, 125 * i);
+                    console.log(30*i);
+                }, 30 * i);
             }
         }
         navYgH.addEventListener('mouseover', () => {
@@ -1379,7 +1382,7 @@ function init() {
                 boomC.setAttribute('r', nlCR);
                 if(l != null) {
                     l.addEventListener('mouseup', () => { boomRemove(); });
-                    l.addEventListener('mouseout', () => { boomRemove(); });
+                    l.addEventListener('mouseleave', () => { boomRemove(); });
                 } else { boomRemove(); }
             }, 10);
         }
