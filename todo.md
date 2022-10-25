@@ -1,14 +1,14 @@
 démarrage *[221013]*
-- [X] ***2210151750*** utiliser un bundler (babel + webpack)
-- [X] ***2210231600*** site fonctionnel déployé
-  - [X] ***2210172030*** dependencies
-  - [X] ***2210172300*** virer les implicit globals
-  - [X] ***2210231545*** build fonctionnel sur serveur
+- [X] ***2210151750*** - utiliser un bundler (babel + webpack)
+- [X] ***2210231600*** - site fonctionnel déployé
+  - [X] ***2210172030*** - dependencies
+  - [X] ***2210172300*** - virer les implicit globals
+  - [X] ***2210231545*** - build fonctionnel sur serveur
   - [ ] ~~build fonctionnel en local~~ Security Error: "May not load data from file:///" donc je vais aller me faire foutre ça marche pas en local :(
-- [X] ***2210231725*** déployer sur l'url publique yolan.art
-- [X] ***2210251615*** n'avoir qu'une seule page : logo fullscreen et avoir en dessous la liste des projets
-- [X] ***2210251650*** petit texte attaché au logo pour dire que c'est mon portfolio
-- [X] ***2210251700*** y-navboom qui reste au maintient du clique
+- [X] ***2210231725*** - déployer sur l'url publique yolan.art
+- [X] ***2210251615*** - n'avoir qu'une seule page : logo fullscreen et avoir en dessous la liste des projets
+- [X] ***2210251650*** - petit texte attaché au logo pour dire que c'est mon portfolio
+- [X] ***2210251700*** - y-navboom qui reste au maintient du clique
 - [ ] permettre de fermer les fiches de projets en retournant en arrière dans l'historique
 - [ ] optimiser l'interface des fiches de projets sur mobile
 - [ ] utiliser des unités en "em" et "rem" au lieu de "px"
