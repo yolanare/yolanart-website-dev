@@ -1272,9 +1272,9 @@ function init() {
         }, 300);
         setTimeout(() => {
             removePreSpawn('.transition-y.pre-spawn');
+            headerPin();
             setTimeout(() => {
                 removePreSpawn('.header');
-                headerPinUpdateLoop();
             }, 400);
         }, 550);
 
