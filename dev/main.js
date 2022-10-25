@@ -1244,7 +1244,6 @@ function init() {
             for (let i = 0; i < 20; i++) {
                 setTimeout(() => {
                     headerPin();
-                    console.log(30*i);
                 }, 30 * i);
             }
         }
