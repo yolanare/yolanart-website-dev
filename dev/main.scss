@@ -7,6 +7,7 @@
   --y-b1: rgb(29, 31, 32);
   --y-b2: rgb(40, 42, 45);
   --y-g1: rgb(204, 206, 208); /*rgba(128, 128, 128, 0.3) on --y-w1*/
+  --y-r1: rgb(239, 59, 102);
 
   --shearY-p: -6deg;
   --shearY-a: 5deg;
@@ -19,8 +20,8 @@
   --m-b: calc((15vw + 15vh) / 2);
 
   --ynav-m-space: 21vw;
-  --ynav-padding: 10vh;
-  --content-top: clamp(150px, 3vw, 430px); /*not used bc of compatibility issues*/
+  --ynav-padding: 5vh;
+  --content-top: 66vh;
 }
 ::selection {
   color: inherit;
@@ -47,12 +48,14 @@ body {
   transition: opacity 0.4s 0.1s ease,
               margin-top 0.8s cubic-bezier(0.4, 0.7, 0, 1);
 }
-html.is-animating .transition-y {
+html.is-animating .transition-y,
+.transition-y.pre-spawn {
   opacity: 0;
   transition: opacity 0.4s cubic-bezier(0.4, 0.85, 0, 1),
               margin-top 0.4s cubic-bezier(0.45, 0.7, 0, 1);
 }
-html.is-animating.is-rendering .transition-y {
+html.is-animating.is-rendering .transition-y,
+.transition-y.pre-spawn {
   margin-top: calc((10vw + 30vh) / 2);
 }
 
@@ -131,7 +134,8 @@ nav {
   align-items: center;
   position: absolute;
   width: 100%;
-  height: calc(100% - (var(--ynav-padding) * 2));
+  ///height: calc(100% - (var(--ynav-padding) * 2));
+  height: var(--content-top);
   padding: var(--ynav-padding) 0;
   transition: height 0.65s cubic-bezier(0.4, 0.75, 0, 1);
   pointer-events: none;
@@ -140,12 +144,46 @@ nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  ///position: relative;
   width: 100%;
   height: 100%;
-}
-#ymenu-c > * {
-  pointer-events: all;
+
+  &>* {
+    pointer-events: all;
+  }
+
+  .header {
+    position: absolute;
+    z-index: -5;
+    font-family: "Plus Jakarta Sans", "Montserrat", sans-serif;
+    font-weight: 300;
+    line-height: 0.85;
+    opacity: 1;
+    transition: opacity 4s cubic-bezier(0.7, 0.9, 0, 1);
+    user-select: none;
+    pointer-events: none;
+
+    &.pre-spawn {
+      opacity: 0;
+    }
+
+    span {
+      position: absolute;
+      top: -0.25em;
+      left: 0.05em;
+      font-size: 3vw;
+      color: var(--y-r1);
+      transform: rotateZ(0.1deg);
+      transition: top 0.7s cubic-bezier(0.1, 0.6, 0, 1),
+        left 0.7s cubic-bezier(0.1, 0.6, 0, 1);
+    }
+
+    &.hover span {
+      top: -0.45em;
+      left: 0.185em;
+      transform: rotateZ(0.2deg);
+    }
+  }
 }
 svg#y {
   position: relative;
@@ -185,51 +223,69 @@ html:not([page2="home"]) svg#y {
   }
 }
 
-/* (temporary) Y SPAWN ANIMATION */
-svg#y g {
-  stroke-width: 0;
-}
-svg#y g[link] {
-  cursor: pointer;
-}
-svg#y g[id] {
-  transform: translate(0);
-}
+/* Y SPAWN ANIMATION */
+svg#y {
+  g {
+    stroke-width: 0;
+  }
 
-svg#y g#float {
-  transition: transform 0.7s cubic-bezier(0.4, 0.8, 0, 1);
-}
-svg#y g#main {
-  transition: transform 0.65s cubic-bezier(0.5, 0.8, 0, 1);
-}
+  g[link] {
+    cursor: pointer;
+  }
 
-svg#y g[id] > g {
-  transform: rotateZ(0);
-  transform-origin: center;
-}
-svg#y g#float > g {
-  transition: transform 0.7s 0.1s cubic-bezier(0.2, 0.7, 0, 1);
-}
-svg#y g#main > g {
-  transition: transform 0.3s cubic-bezier(0, 0.55, 0, 1);
-}
+  g[id] {
+    transform: translate(0);
 
-svg#y g[id] path {
-  fill: var(--y-b1);
-}
-svg#y g[id] polygon {
-  fill: var(--y-w1);
-}
-svg#y > g:hover path,
-svg#y > g:active path {
-  fill: var(--y-b2);
-}
-svg#y > g:hover polygon {
-  fill: var(--y-w2);
-}
-svg#y > g:active polygon {
-  fill: var(--y-g1);
-  transition: fill 0.5s cubic-bezier(0.1, 0.6, 0, 1);
+    &>g {
+      transform: rotateZ(0);
+      transform-origin: center;
+    }
+
+    path {
+      fill: var(--y-b1);
+    }
+
+    polygon {
+      fill: var(--y-w1);
+    }
+
+    /* &#float polygon { // V5
+            fill: var(--y-b1);
+        } */
+
+    &#float {
+      transition: transform 0.7s cubic-bezier(0.4, 0.8, 0, 1);
+
+      &>g {
+        transition: transform 0.7s 0.1s cubic-bezier(0.2, 0.7, 0, 1);
+      }
+    }
+
+    &#main {
+      transition: transform 0.65s cubic-bezier(0.5, 0.8, 0, 1);
+
+      &>g {
+        transition: transform 0.3s cubic-bezier(0, 0.55, 0, 1);
+      }
+    }
+  }
+
+  &>g {
+
+    &:hover path,
+    &:active:hover path {
+      fill: var(--y-b2);
+    }
+
+    &:hover polygon {
+      fill: var(--y-w2);
+    }
+
+    &:active:hover polygon {
+      fill: var(--y-g1);
+      transition: fill 0.5s cubic-bezier(0.1, 0.6, 0, 1);
+    }
+  }
 }
 /*svg#y g[id]:hover polygon,
 svg#y g[id]:hover path {
@@ -450,7 +506,7 @@ html[page2="home"] #ym-txt-c2 {
 
 /*- Y NAV BOOM -*/
 div[id^='ynav-boom'] {
-  z-index: 0;
+  z-index: -1;
   position: fixed;
   width: 100vw;
   height: 100vh;
@@ -467,7 +523,7 @@ div[id^='ynav-boom'] {
   height: 100%;
 }
 #ynav-boom circle {
-  opacity: 0.55;
+  opacity: 0.4;
   fill: var(--y-w1);
 }
 #ynav-boom-c circle {
@@ -485,8 +541,8 @@ div[id^='ynav-boom'] {
 #content-container {
   position: absolute;
   width: 100%;
-  top: calc(290px + (10vh * 2));
-  top: calc(clamp(150px, 3vw, 430px) + (10vh * 2)); /*10vh = var(--ynav-padding) / for compatibility*/
+  top: calc(290px + (var(--ynav-padding) * 2));
+  top: calc(var(--content-top) + (var(--ynav-padding) * 2));
   left: 0;
   animation: c-opacity-in 1.2s cubic-bezier(0.35, 0.4, 0, 1);
 }
@@ -516,7 +572,7 @@ html[page2="about"] main#swup.transition-op {
   user-select: none;
 }
 .about-c#who {
-  min-height: calc(100vh - ((1.5vw + 5vh) / 2) - (clamp(150px, 3vw, 430px) + (10vh * 2)));
+  min-height: calc(100vh - ((1.5vw + 5vh) / 2) - (var(--content-top) + (10vh * 2)));
 }
 .about-c#who > .wrapper {
   display: flex;
@@ -834,7 +890,7 @@ div[accordion-content] {
 .acclist-item:last-child > .acclist-in-c {
   transform: scale(1.01) translate3d(0px, -1px, 0px);
 }
-.acclist-item:last-child .acclist-in {
+.acclist-item:last-child .acclist-content {
   overflow: hidden;
 }
 .acclist-btn {
@@ -2506,6 +2562,13 @@ I am going to "remove" the about page, it is useless in my case
 a button somewhere in a corner to link my twitter is a 1000 times better than a page just for it lol
 - */
 
-nav a#a[link="about"] {
+/* - 20221013
+Decision to make the portfolio more straightforward.
+
+Everything will be on one page, to simplify everything.
+So I'm removing nav buttons, reworking the website around the "projects" page and having everything neat and simple.
+- */
+
+nav a[link] {
   display: none;
 }

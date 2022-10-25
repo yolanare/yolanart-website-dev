@@ -9,7 +9,6 @@ import Swup from '../node_modules/swup/dist/swup.js';
 import SwupScrollPlugin from '../node_modules/@swup/scroll-plugin/dist/SwupScrollPlugin.js';
 
 import './index.html'
-import './projects/index.html'
 import './main.scss'
 
 
@@ -36,13 +35,12 @@ function checkWinSize() { if(window.innerWidth > 727) { isMini = false; } else {
 checkWinSize(); window.addEventListener('resize', checkWinSize);
 
 function getPageID() {
-    //pathDir = ((window.location.pathname).replace(/\/[^/]*$/, '')).replace(/^\//, '');
     var pageURL = (window.location.href).replace(/\/[^/]*$/, '');
-    pathDir = pageURL.match(/([^\/]+$)/)[0];
     pageMainURL = pageURL.replace("/projects", '');
+    //pathDir = pageURL.match(/([^\/]+$)/)[0];
     //if(window.location.pathname == '/' || window.location.pathname == '/index.html') { pathDir = 'home'; }
-    if(pathDir != 'projects') { pathDir = 'home'; } // hardcoded solution, idc it works
-    console.log(pathDir);
+    //if(pathDir != 'projects') { pathDir = 'home'; } // hardcoded solution, idc it works
+    pathDir = "projects"
     return pathDir;
 } var pathDir = getPageID();
 
@@ -90,7 +88,7 @@ function ppDescSamples(type, url, title) {
     }
     return el;
 }
-var srcP = '../assets/medias/projects/';
+var srcP = './assets/medias/projects/';
 
 var projectsDesc = {
 // --- SAMPLES
@@ -1083,7 +1081,7 @@ function openProjectCardPopup(ev, p, item) {
             });
             image.src = highResUrl;
         };
-        loadHighResImage(ppProj.querySelector('.pp-img'), '../assets/medias/projects/'+ iID(item) +'/'+ p.id +'.'+ (projectsDesc[p.id].imgExt || 'jpg'));
+        loadHighResImage(ppProj.querySelector('.pp-img'), './assets/medias/projects/'+ iID(item) +'/'+ p.id +'.'+ (projectsDesc[p.id].imgExt || 'jpg'));
     }
 
     // Cursor Close on BG hover
@@ -1203,6 +1201,9 @@ function init() {
         nav.style.zIndex = '0';
         nav.innerHTML = `
             <div id="ymenu-c">
+                <div class="header pre-spawn">
+                    <span>yolan'<br>portfolio</span>
+                </div>
                 <svg id="y" viewBox="0 0 25 25">
                     <g link="home">
                         <g id="float">
@@ -1229,10 +1230,35 @@ function init() {
             <div id="ynav-boom"></div>
         `;
 
+        // header pin
+        const navYgH = document.querySelector("svg#y g[link='home']"),
+              navHeader = document.querySelector("#ymenu-c .header");
+        function headerPin() {
+            const svgyPos = navYgH.getBoundingClientRect();
+            navHeader.style.top = svgyPos.top + scrollbarMain.scroll().position.y +"px";
+            navHeader.style.left = svgyPos.right +"px";
+        }
+        function headerPinUpdateLoop() {
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    headerPin();
+                }, 125 * i);
+            }
+        }
+        navYgH.addEventListener('mouseover', () => {
+            navHeader.classList.add('hover');
+        });
+        navYgH.addEventListener('mouseout', () => {
+            navHeader.classList.remove('hover');
+        });
+        window.addEventListener('resize', headerPinUpdateLoop);
+
         //- SPAWN ANIMATION
         function removePreSpawn(path) {
             document.querySelectorAll(path).forEach((e) => { e.classList.remove('pre-spawn'); })
         }
+
+        document.querySelectorAll(".transition-y").forEach((e) => { e.classList.add("pre-spawn"); })
 
         setTimeout(() => {
             removePreSpawn('nav');
@@ -1242,9 +1268,15 @@ function init() {
                 removePreSpawn('#ym-txt-c');
             }, 225);
         }, 300);
+        setTimeout(() => {
+            removePreSpawn('.transition-y.pre-spawn');
+            setTimeout(() => {
+                removePreSpawn('.header');
+                headerPinUpdateLoop();
+            }, 400);
+        }, 550);
 
-
-        function yNavBoom(ev, histbr, l) {
+        function yNavBoom(ev, histbr, l) { // old
             if(histbr == true) { ev = getPageID(); }
             if(l == null) { l = nav.querySelector('*[link='+ ev +']'); }
             var lLinkID = l.getAttribute('link'), lLink;
@@ -1290,7 +1322,9 @@ function init() {
                     if(!ynavbc) { ynavbc = document.createElement('div'); ynavbc.id = 'ynav-boom-c';
                         document.querySelector('#content-container').parentNode.appendChild(ynavbc); }
                     ynavbc.appendChild(boom); cTr = ['1.2s cubic-bezier(0.3, 0.7, 0, 1)', 1500];
-                } else { document.querySelector('#ynav-boom').appendChild(boom); cTr = ['1s cubic-bezier(0.4, 0.7, 0, 1)', 1300]; }
+                } else {
+                    document.querySelector('#ynav-boom').appendChild(boom); cTr = ['1s cubic-bezier(0.4, 0.7, 0, 1)', 1300];
+                }
 
                 setTimeout(function() {
                     boomC.style.transition = 'r '+ cTr[0] +', opacity '+ cTr[1] +'ms ease-in-out';
@@ -1304,23 +1338,62 @@ function init() {
             }
 
             if(doc.getAttribute('page') != lLinkID) {
-                doc.setAttribute('page', lLinkID); // set page class
-                if(lLinkID == 'home') { lLink = ''; } else { lLink = lLinkID + '/'; } // if "home" go to "", else "page/"
-                console.log({fullPath : pathDir + '/' + lLink,
-                             pathDir : pathDir, lLink : lLink, lLinkID : lLinkID});
-                if(histbr == false) { swup.loadPage({ url: pageMainURL + '/' + lLink }); } // go to ^
+                ///doc.setAttribute('page', lLinkID); // set page class
+                ///if(lLinkID == 'home') { lLink = ''; } else { lLink = lLinkID + '/'; } // if "home" go to "", else "page/"
+                ///if(histbr == false) { swup.loadPage({ url: pageMainURL + '/' + lLink }); } // go to ^
                 boom('0');
             } else {
-                boom('-c');
+                boom('0');
             }
         }
-        nav.querySelectorAll('*[link]').forEach((l) => { l.addEventListener('click', function(ev) { yNavBoom(ev, false, l)})});
-        swup.on('popState', function() { yNavBoom(null, true, null); });
+
+        function yNavBoomHold(ev, l) {
+            const pageW = doc.clientWidth, pageH = doc.clientHeight,
+                  curX = ev.clientX, curY = ev.clientY,
+                  bcX = (curX / 100), bcY = (curY / 100),
+                  bcRW = (curX > (pageW / 2)) ? pageW - (pageW - curX) : pageW - curX,
+                  bcRH = (curY < (pageH / 2)) ? pageH - curY : pageH - (pageH - curY);
+
+            var boom = document.createElement('div');
+            boom.classList.add('ynav-boom');
+            boom.innerHTML = `
+                <svg id="boom" viewBox="0 0 `+ (pageW / 100) +` `+ (pageH / 100) +`">
+                    <circle cx="`+ bcX +`" cy="`+ bcY +`" r="0"></circle>
+                </svg>
+            `;
+            var boomC = boom.querySelector('circle'),
+                cTr = ['1s cubic-bezier(0.375, 0.7, 0, 1)', 1300];
+
+            document.querySelector('#ynav-boom').appendChild(boom);
+
+            function boomRemove() {
+                boomC.style.opacity = '0';
+                setTimeout(function() {
+                    boom.remove();
+                }, cTr[1]);
+            }
+
+            setTimeout(function() {
+                boomC.style.transition = 'r '+ cTr[0] +', opacity '+ cTr[1] +'ms ease-in-out';
+                const nlCR = (Math.round(((bcRW)**2 + (bcRH)**2)**(1/2)) / 100) + 0.1;
+                boomC.setAttribute('r', nlCR);
+                if(l != null) {
+                    l.addEventListener('mouseup', () => { boomRemove(); });
+                    l.addEventListener('mouseout', () => { boomRemove(); });
+                } else { boomRemove(); }
+            }, 10);
+        }
+
+        ///nav.querySelectorAll('*[link]').forEach((l) => { l.addEventListener('mousedown', function(ev) { yNavBoom(ev, false, l)})}); // old
+        nav.querySelectorAll('g[link="home"]').forEach((l) => {
+            l.addEventListener('mousedown', function(ev) { yNavBoomHold(ev, l)});
+        });
+        ///swup.on('popState', function() { yNavBoom(null, true, null); });
     }
 
     //var navSvgY = nav.querySelector('svg#y');
     if(pathDir != 'home') {
-        nav.setAttribute('style', 'height: 290px; height: calc(clamp(150px, 3vw, 430px) * 1);') // var(--content-top) / hard coded bc of compatibility
+        ///nav.setAttribute('style', 'height: 290px; height: calc(clamp(150px, 3vw, 430px) * 1);') // var(--content-top) / hard coded bc of compatibility
         //navSvgY.setAttribute('style', 'max-width: 150px; max-width: calc(clamp(9999px, 100vw, 9999px) * 1); height: 115%;');
     } else {
         nav.setAttribute('style', '');
@@ -1336,12 +1409,11 @@ function init() {
         pHashOpenAccItem();
 
         ppSUHeight();
-        window.addEventListener('resize', resizeAccC);
-        window.addEventListener('resize', ppSUHeight);
-    } else {
-        window.removeEventListener('resize', resizeAccC)
-        window.removeEventListener('resize', ppSUHeight)
     }
+    window.addEventListener('resize', () => {
+        resizeAccC();
+        ppSUHeight();
+    });
 }
 init();
 swup.on('contentReplaced', init);
