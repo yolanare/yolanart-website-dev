@@ -87,12 +87,12 @@ html.is-animating .transition-op {
 .os-scrollbar {
   transform: scaleY(1.01) translateX(1px);
   padding: 0 !important;
-  mix-blend-mode: exclusion !important;
-  filter: grayscale(1);
+  mix-blend-mode: difference !important;
   box-sizing: initial !important;
   transition: opacity 0.9s cubic-bezier(0.2, 0.85, 0, 1),
               transform 0.4s cubic-bezier(0.4, 0.6, 0, 1),
-              visibility 0.7s, top 0.3s, right 0.3s, bottom 0.3s, left 0.3s !important;
+              visibility 0.7s, top 0.3s, right 0.3s, bottom 0.3s, left 0.3s,
+              backdrop-filter 0.8s cubic-bezier(0.15, 0.8, 0, 1) !important;
   animation: os-opacity-in 0.8s ease;
 }
 .os-scrollbar.os-scrollbar-auto-hidden,
@@ -101,7 +101,8 @@ html.is-changing .os-scrollbar {
   transform: scaleY(1.01) translateX(100%);
   transition: opacity 0.4s 0.15s cubic-bezier(0.6, 0.6, 0, 1),
               transform 0.6s 75ms cubic-bezier(0.4, 0.25, 0, 1),
-              visibility 0.8s, top 0.3s, right 0.3s, bottom 0.3s, left 0.3s !important;
+              visibility 0.8s, top 0.3s, right 0.3s, bottom 0.3s, left 0.3s,
+              backdrop-filter 0.5s !important;
 }
 .os-scrollbar-track {
   border-radius: 0 !important;
@@ -115,17 +116,31 @@ html.is-changing .os-scrollbar {
 .os-scrollbar.active .os-scrollbar-track {
   background-color: rgba(236, 239, 242, 0.1) !important;
 }
-.os-scrollbar-handle:hover,
-.os-scrollbar-handle.active {
-  opacity: 0.85 !important;
+.os-scrollbar-handle:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
 }
 .os-scrollbar-handle.active {
-  background-color: rgb(200, 200, 200) !important;
+  background-color: rgba(255, 255, 255, 0.35) !important;
 }
 .os-viewport.disabled {
   overflow: hidden !important;
 }
-
+@supports (backdrop-filter: invert(1)) {
+  .os-scrollbar {
+    mix-blend-mode: normal !important;
+    backdrop-filter: grayscale(0) contrast(1);
+  }
+  .os-scrollbar-handle {
+    background-color: transparent !important;
+    backdrop-filter: invert(1) grayscale(1) contrast(3);
+  }
+  .os-scrollbar.active .os-scrollbar-track {
+    background-color: transparent !important;
+  }
+  .os-scrollbar.active {
+    backdrop-filter: grayscale(1) contrast(0.85);
+  }
+}
 
 /*--/ NAV /--*/
 nav {
@@ -2349,7 +2364,8 @@ noscript .ERROR {
           transition: background-color 0.8s cubic-bezier(0.15, 0.8, 0, 1),
                       opacity 0.8s cubic-bezier(0.15, 0.8, 0, 1),
                       transform 0s,
-                      height 0.4s cubic-bezier(0, 0.6, 0, 1) !important;
+                      height 0.4s cubic-bezier(0, 0.6, 0, 1),
+                      backdrop-filter 0.8s cubic-bezier(0.3, 0.8, 0, 1) !important;
   }
 
 
