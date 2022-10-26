@@ -9,7 +9,8 @@ démarrage *[221013]*
 - [X] ***2210251615*** - n'avoir qu'une seule page : logo fullscreen et avoir en dessous la liste des projets
 - [X] ***2210251650*** - petit texte attaché au logo pour dire que c'est mon portfolio
 - [X] ***2210251700*** - y-navboom qui reste au maintient du clique
-- [ ] optimiser la création et suppression des ynavboom (changer le svg-circle pour une div border-radius ; supprimer les booms par salve et non individuellement)
+- [ ] optimiser la création des ynavboom (changer le svg-circle pour une div border-radius)
+- [ ] optimiser la suppression des ynavboom (supprimer les booms par salve et non individuellement)
 - [X] ***2210261445*** - redesign scrollbar (plus fin, effet d'inversion monochrome)
 - [ ] corriger la scrollbar n'ayant pas d'animation d'apparition slide in depuis le côté quand la souris est déjà dans la zone de scroll
 - [ ] permettre de fermer les fiches de projets en retournant en arrière dans l'historique
