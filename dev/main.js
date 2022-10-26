@@ -1202,7 +1202,7 @@ function init() {
         nav.innerHTML = `
             <div id="ymenu-c">
                 <div class="header pre-spawn">
-                    <span>yolan'<br>portfolio</span>
+                    <span>yolan’<br>portfolio</span>
                 </div>
                 <svg id="y" viewBox="0 0 25 25">
                     <rect id="tracker" style="opacity:0; pointer-events:none;" stroke-width="0" x="3.8" y="0.2" width="17.4" height="24.6"></rect>
