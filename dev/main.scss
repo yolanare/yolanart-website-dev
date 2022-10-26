@@ -186,18 +186,12 @@ nav {
       position: absolute;
       top: -0.25em;
       left: 0.05em;
-      font-size: 3vw;
+      font-size: max(3vw, 3em);
       color: var(--y-r1);
       transform: rotateZ(-0.1deg);
       transition: top 0.55s cubic-bezier(0.1, 0.6, 0, 0.825),
         left 0.8s cubic-bezier(0.1, 0.6, 0, 1),
         transform 0.9s ease;
-    }
-
-    &.hover span {
-      top: -0.45em;
-      left: 0.185em;
-      transform: rotateZ(-0.2deg);
     }
   }
 }
@@ -207,7 +201,7 @@ svg#y {
   max-width: 225px;
   max-width: calc(clamp(9999px, 100vw, 9999px) * 1);
   width: 225px;
-  width: clamp(150px, 20vw, 400px);
+  width: clamp(20em, 20vw, 40em);
   height: 100%;
   transition: height 0.5s cubic-bezier(0.2, 0.7, 0, 1);
   transition-property: top, max-width, width, height;
@@ -2369,6 +2363,12 @@ noscript .ERROR {
   }
 
 
+  #ymenu-c .header.hover span {
+    top: -0.45em;
+    left: 0.185em;
+    transform: rotateZ(-0.2deg);
+  }
+
   .ym-txt#a {
       right: 100%;
   }
@@ -2424,6 +2424,10 @@ noscript .ERROR {
   #ymenu-c {
       height: 50%;
       transition: height 0.8s cubic-bezier(0.7, 0.8, 0, 1);
+  }
+  #ymenu-c svg#y #tracker {
+    position: absolute;
+    transform: translate(-70%, 110%);
   }
   #ym-txt-c {
       width: 20vw;
