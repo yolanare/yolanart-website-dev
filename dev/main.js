@@ -1311,8 +1311,9 @@ function init() {
             }
 
             setTimeout(function() {
-                boomCircle.style.transition = 'width '+ cTr[0] +', height '+ cTr[0] +', opacity '+ cTr[1] +'ms ease-in-out';
+                boomCircle.style.transition = 'width '+ cTr[0] +', height '+ cTr[0] +', background-color 0.65s 0.125s cubic-bezier(0.5, 0.7, 0, 1), opacity '+ cTr[1] +'ms ease-in-out';
                 boomCircle.style.setProperty('--boom-size', circleDiameter +'px');
+                boomCircle.style.backgroundColor = 'var(--y-w1)';
                 if(el != null) {
                     el.addEventListener('mouseup', () => { boomRemove(); });
                     el.addEventListener('mouseleave', () => { boomRemove(); });
