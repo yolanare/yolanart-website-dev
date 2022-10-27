@@ -46,9 +46,7 @@ function getPageID() {
 
 function cleanURL(s) {
     s = s || null;
-    if(!s) { history.replaceState({}, '', window.location.pathname);
-    } else { history.replaceState({}, '', window.location.hash.split(s)[0]);
-    }
+    history.replaceState({}, '', (!s) ? window.location.pathname : window.location.hash.split(s)[0]);
 }
 
 function float(str) { return parseFloat(str.toFixed(2)) }
@@ -687,8 +685,7 @@ function openAccItem(h) {
         thisItem = this.closest('[level]');
         var t2 = thisItem.querySelector('.acclist-item[level="2"]'); // t2: when thisItem is lv1, selects lv2 too
         if(thisItem.closest('[level="1"]').getAttribute('state') != 'closing' || thisItem.getAttribute('level') == "1") {
-            if(t2 && ['opening', 'opened'].includes(t2.getAttribute('state'))) { history.replaceState({}, '', '#'+ iID(t2));
-            } else { history.replaceState({}, '', '#'+ iID(thisItem)); }
+            history.replaceState({}, '', (t2 && ['opening', 'opened'].includes(t2.getAttribute('state'))) ? '#'+ iID(t2) : '#'+ iID(thisItem))
         }
     } else { thisItem = h; hash = true; }
     var itemLv = thisItem.getAttribute('level');
@@ -826,7 +823,11 @@ function pHashOpenAccItem() {
 
 function openProjectCardPopup(ev, p, item) {
     p.classList.add('focus');
-    cleanURL('?'); history.replaceState({}, '', window.location.hash +'?'+ p.id);
+    cleanURL('?'); history.pushState({}, '', window.location.hash +'?'+ p.id);
+
+    setTimeout(() => {
+        window.addEventListener('hashchange', closeProjectCardPopup, { once:true });
+    }, 10);
 
     if(!container.querySelector("#content-container ~ [project-popup]")) {
         // creates project popup container if not already ready
@@ -846,6 +847,7 @@ function openProjectCardPopup(ev, p, item) {
 
     function closeProjectCardPopup() {
         cleanURL('?');
+        window.removeEventListener('hashchange', closeProjectCardPopup, { once:true });
         swup.off('animationOutStart', closeProjectCardPopupAuto);
         if(document.querySelectorAll('div[project-popup] > .project-popup').length <= 1) { setScrMain(null, 'move'); }
         var allFocused = document.querySelectorAll('div[accordion-scroll] .focus');

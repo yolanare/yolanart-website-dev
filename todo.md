@@ -16,7 +16,7 @@ démarrage *[2022.10.13]*
 - [ ] refonte visuelle
 - [ ] optimiser l'interface des fiches de projets sur mobile
 - [ ] utiliser des unités en "em" et "rem" au lieu de "px"
-- [ ] permettre de fermer les fiches de projets en retournant en arrière dans l'historique
+- [X] ***10.27-13h40*** - permettre de fermer les fiches de projets en retournant en arrière dans l'historique
 - [ ] refaire l'organisation des projets :
   - [ ] utiliser un fichier externe
   - [ ] réfléchir à une nouvelle arborescence
