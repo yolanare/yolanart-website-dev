@@ -6,15 +6,15 @@ démarrage *[2022.10.13]*
   - [X] ***10.23-15h45*** - build fonctionnel sur serveur
   - [ ] ~~build fonctionnel en local~~ Security Error: "May not load data from file:///" donc je vais aller me faire foutre ça marche pas en local :(
 - [X] ***10.23-17h25*** - déployer sur l'url publique yolan.art
-- [X] ***10.25-16h15*** - n'avoir qu'une seule page : logo fullscreen et avoir en dessous la liste des projets
+- [X] ***10.25-16h15*** - n'avoir qu'une seule page : logo fullscreen et avoir en-dessous la liste des projets
 - [X] ***10.25-16h50*** - petit texte attaché au logo pour dire que c'est mon portfolio
 - [X] ***10.25-17h00*** - y-navboom qui reste au maintient du clique
-- [X] ***10.27-12h50*** - optimiser la création des ynavboom (changer le svg-circle pour une div border-radius)
+- [X] ***10.27-12h50*** - optimiser la création des ynavboom (changer le svg-circle pour une div border-radius) (raisons de performances)
 - [ ] ***[later]*** ~~optimiser la suppression des ynavboom (supprimer les booms par salve et non individuellement)~~
 - [X] ***10.26-14h45*** - redesign scrollbar (plus fin, effet d'inversion monochrome)
 - [ ] ***[later]*** ~~corriger la scrollbar n'ayant pas d'animation d'apparition slide in depuis le côté quand la souris est déjà dans la zone de scroll~~
 - [ ] refonte visuelle
-- [ ] optimiser l'interface des fiches de projets sur mobile
+- [ ] optimiser l'interface des fiches de projet sur mobile
 - [ ] utiliser des unités en "em" et "rem" au lieu de "px"
 - [X] ***10.27-13h40*** - permettre de fermer les fiches de projets en retournant en arrière dans l'historique
 - [ ] refaire l'organisation des projets :
