@@ -17,6 +17,7 @@ démarrage *[2022.10.13]*
 - [ ] optimiser l'interface des fiches de projet sur mobile
 - [ ] utiliser des unités en "em" et "rem" au lieu de "px"
 - [X] ***10.27-13h40*** - permettre de fermer les fiches de projets en retournant en arrière dans l'historique
+- [ ] rajouter des boutons de réseaux sociaux dans la zone landing (instagram, twitter, github) (le faire de manière à pouvoir en rajouter plus tard)
 - [ ] refaire l'organisation des projets :
   - [ ] utiliser un fichier externe
   - [ ] réfléchir à une nouvelle arborescence
