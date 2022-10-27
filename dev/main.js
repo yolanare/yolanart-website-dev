@@ -51,6 +51,8 @@ function cleanURL(s) {
     }
 }
 
+function float(str) { return parseFloat(str.toFixed(2)) }
+
 var o1 = [null, 33], OScrHDelay = 200; if(!isMini) { o1 = [true, 33]; OScrHDelay = 800; };
 
 var scrollbarMain;
@@ -1228,7 +1230,7 @@ function init() {
                     </div>
                 </div>
             </div>
-            <div id="ynav-boom"></div>
+            <div id="ynav-boom-container"></div>
         `;
 
         // header pin
@@ -1278,110 +1280,40 @@ function init() {
             }, 400);
         }, 550);
 
-        function yNavBoom(ev, histbr, l) { // old
-            if(histbr == true) { ev = getPageID(); }
-            if(l == null) { l = nav.querySelector('*[link='+ ev +']'); }
-            var lLinkID = l.getAttribute('link'), lLink;
+        function yNavBoomHold(ev, el) {
+            const containerW2 = doc.clientWidth / 2, containerH2 = doc.clientHeight / 2, // get container center (viewport for now)
+                  originX = ev.clientX, originY = ev.clientY, // get origin
+                  // get farthest corner from origin
+                  cornerX = Math.abs(originX - ((originX > containerW2) ? 0 : doc.clientWidth)),
+                  cornerY = Math.abs(originY - ((originY > containerH2) ? 0 : doc.clientHeight)),
+                  // use Pythagoras to get circle parameters
+                  circleDiameter = float(Math.sqrt(cornerX**2 + cornerY**2) + 5) * 2, // get diameter + add 5px to be sure it fills the whole container
+                  circleRotate = float(Math.atan(cornerX/cornerY)*180/Math.PI) * -1; // get angle to match middle of the circle div edge
+                  //console.table({containerW2,containerH2, originX,originY, cornerX,cornerY, circleDiameter,circleRotate}) // debug values
 
-            function boom(h) {
-                var pageW = doc.clientWidth,
-                    pageH = doc.clientHeight;
+            const cTr = ['1s cubic-bezier(0.375, 0.7, 0, 1)', 1300];
 
-                if(histbr == false) { // normal
-                    var curX = ev.clientX,
-                        curY = ev.clientY,
-                        bcX = (curX / 100),
-                        bcY = (curY / 100),
-                        bcRW = pageW - curX,
-                        bcRH = pageH - (pageH - curY);
-                    if(curX > (pageW / 2)) { bcRW = pageW - (pageW - curX); }
-                    if(curY < (pageH / 2)) { bcRH = pageH - curY; }
-                } else { // history browsing
-                    var bcEl = l,
-                        bcElRect = bcEl.getBoundingClientRect(),
-                        bcElX = bcElRect.left + (bcElRect.width / 2),
-                        bcElY = bcElRect.top + (bcElRect.height / 2),
-                        bcX = (Math.round(bcElX) / 100),
-                        bcY = (Math.round(bcElY) / 100),
-                        bcRW = pageW - (bcElX),
-                        bcRH = pageH - (pageH - bcElY);
-                    if(bcElX > (pageW / 2)) { bcRW = pageW - (pageW - bcElX); }
-                    if(bcElY < (pageH / 2)) { bcRH = pageH - (bcElY); }
-                }
-
-                var boom = document.createElement('div');
-                boom.classList.add('ynav-boom');
-                boom.innerHTML = `
-                    <svg id="boom" viewBox="0 0 `+ (pageW / 100) +` `+ (pageH / 100) +`">
-                        <circle cx="`+ bcX +`" cy="`+ bcY +`" r="0"></circle>
-                    </svg>
-                `;
-                var boomC = boom.querySelector('circle'),
-                    cTr;
-
-                if(h == '-c') {
-                    var ynavbc = document.querySelector('#ynav-boom-c');
-                    if(!ynavbc) { ynavbc = document.createElement('div'); ynavbc.id = 'ynav-boom-c';
-                        document.querySelector('#content-container').parentNode.appendChild(ynavbc); }
-                    ynavbc.appendChild(boom); cTr = ['1.2s cubic-bezier(0.3, 0.7, 0, 1)', 1500];
-                } else {
-                    document.querySelector('#ynav-boom').appendChild(boom); cTr = ['1s cubic-bezier(0.4, 0.7, 0, 1)', 1300];
-                }
-
-                setTimeout(function() {
-                    boomC.style.transition = 'r '+ cTr[0] +', opacity '+ cTr[1] +'ms ease-in-out';
-                    const nlCR = (Math.round(((bcRW)**2 + (bcRH)**2)**(1/2)) / 100) + 0.1;
-                    boomC.setAttribute('r', nlCR);
-                    boomC.style.opacity = '0';
-                    setTimeout(function() {
-                        boom.remove();
-                    }, cTr[1]);
-                }, 10);
-            }
-
-            if(doc.getAttribute('page') != lLinkID) {
-                ///doc.setAttribute('page', lLinkID); // set page class
-                ///if(lLinkID == 'home') { lLink = ''; } else { lLink = lLinkID + '/'; } // if "home" go to "", else "page/"
-                ///if(histbr == false) { swup.loadPage({ url: pageMainURL + '/' + lLink }); } // go to ^
-                boom('0');
-            } else {
-                boom('0');
-            }
-        }
-
-        function yNavBoomHold(ev, l) {
-            const pageW = doc.clientWidth, pageH = doc.clientHeight,
-                  curX = ev.clientX, curY = ev.clientY,
-                  bcX = (curX / 100), bcY = (curY / 100),
-                  bcRW = (curX > (pageW / 2)) ? pageW - (pageW - curX) : pageW - curX,
-                  bcRH = (curY < (pageH / 2)) ? pageH - curY : pageH - (pageH - curY);
-
-            var boom = document.createElement('div');
-            boom.classList.add('ynav-boom');
-            boom.innerHTML = `
-                <svg id="boom" viewBox="0 0 `+ (pageW / 100) +` `+ (pageH / 100) +`">
-                    <circle cx="`+ bcX +`" cy="`+ bcY +`" r="0"></circle>
-                </svg>
-            `;
-            var boomC = boom.querySelector('circle'),
-                cTr = ['1s cubic-bezier(0.375, 0.7, 0, 1)', 1300];
-
-            document.querySelector('#ynav-boom').appendChild(boom);
+            var boom = document.createElement('div'),
+                boomCircle = document.createElement('div');
+            boom.classList.add('ynav-boom'); boomCircle.classList.add('circle');
+            boom.style.setProperty('--boom-rotate', circleRotate +'deg');
+            boom.style.setProperty('--boom-x', originX +'px');
+            boom.style.setProperty('--boom-y', originY +'px');
+            document.querySelector('nav #ynav-boom-container').appendChild(boom); boom.appendChild(boomCircle);
 
             function boomRemove() {
-                boomC.style.opacity = '0';
+                boomCircle.style.opacity = '0';
                 setTimeout(function() {
                     boom.remove();
                 }, cTr[1]);
             }
 
             setTimeout(function() {
-                boomC.style.transition = 'r '+ cTr[0] +', opacity '+ cTr[1] +'ms ease-in-out';
-                const nlCR = (Math.round(((bcRW)**2 + (bcRH)**2)**(1/2)) / 100) + 0.1;
-                boomC.setAttribute('r', nlCR);
-                if(l != null) {
-                    l.addEventListener('mouseup', () => { boomRemove(); });
-                    l.addEventListener('mouseleave', () => { boomRemove(); });
+                boomCircle.style.transition = 'width '+ cTr[0] +', height '+ cTr[0] +', opacity '+ cTr[1] +'ms ease-in-out';
+                boomCircle.style.setProperty('--boom-size', circleDiameter +'px');
+                if(el != null) {
+                    el.addEventListener('mouseup', () => { boomRemove(); });
+                    el.addEventListener('mouseleave', () => { boomRemove(); });
                 } else { boomRemove(); }
             }, 10);
         }
