@@ -8,19 +8,32 @@ import '../node_modules/overlayscrollbars/js/OverlayScrollbars.js';
 import Swup from '../node_modules/swup/dist/swup.js';
 import SwupScrollPlugin from '../node_modules/@swup/scroll-plugin/dist/SwupScrollPlugin.js';
 
+import * as Prj from './assets/js/projects.js';
 import './index.html'
 import './main.scss'
 
 
-//- Variables -
+//- VARIABLES -
 var doc = document.documentElement,
-    pageMainURL,
-    isMini = undefined,
+    ///pageMainURL,
+    isMini, // boolean if viewport small or not
     touchDevice = (navigator.maxTouchPoints || 'ontouchstart' in document.documentElement),
     container = document.getElementById('container'),
     language = 'en';
 if (/^fr\b/.test(navigator.language)) { language = 'fr'; }
 
+const deg2rad = Math.PI/180, rad2deg = 180/Math.PI;
+
+// PROJECTS
+const pData = Prj.projectsData,
+      mData = Prj.categoriesData,
+      pDataDefault = Prj.projectsDataSample.default,
+      mDataDefault = Prj.categoriesDataSample.default,
+      pCategories = Prj.categories,
+      pContexts = Prj.contexts,
+      pFilters = Prj.filters;
+
+// SWUP
 const swup = new Swup({
     animateHistoryBrowsing: true,
     plugins: [new SwupScrollPlugin({
@@ -30,643 +43,33 @@ const swup = new Swup({
     })]
 });
 
-//- Scripts -
-function checkWinSize() { if(window.innerWidth > 727) { isMini = false; } else { isMini = true; }};
-checkWinSize(); window.addEventListener('resize', checkWinSize);
+//- REUSABLE SCRIPTS -
+// check if browser is chromium based
+if(!!window.chrome) { document.querySelector("html").classList.add("isChr"); }
 
+// check the viewport size, set boolean "isMini" if vp goes small
+function checkWinSize() { isMini = (window.innerWidth > 727); };
+checkWinSize(); window.addEventListener("resize", checkWinSize);
+
+// get page filename // disabled because one page
 function getPageID() {
-    var pageURL = (window.location.href).replace(/\/[^/]*$/, '');
-    pageMainURL = pageURL.replace("/projects", '');
-    //pathDir = pageURL.match(/([^\/]+$)/)[0];
+    ///var pageURL = (window.location.href).replace(/\/[^/]*$/, '');
+    ///pageMainURL = pageURL.replace("/projects", '');
+    ///pathDir = pageURL.match(/([^\/]+$)/)[0];
     //if(window.location.pathname == '/' || window.location.pathname == '/index.html') { pathDir = 'home'; }
-    //if(pathDir != 'projects') { pathDir = 'home'; } // hardcoded solution, idc it works
-    pathDir = "projects"
-    return pathDir;
+    ///if(pathDir != 'projects') { pathDir = 'home'; } // hardcoded solution, idc it works
+    ///return pathDir;
+    return "projects";
 } var pathDir = getPageID();
 
-function cleanURL(s) {
-    s = s || null;
-    history.replaceState({}, '', (!s) ? window.location.pathname : window.location.hash.split(s)[0]);
+// clean hash, and if specified clean after separator
+function cleanURL(sep) {
+    sep = sep || null;
+    history.replaceState({}, "", (!sep) ? window.location.pathname : window.location.hash.split(sep)[0]);
 }
 
+// convert variable to float and round to 0.01
 function float(str) { return parseFloat(str.toFixed(2)) }
-
-var o1 = [null, 33], OScrHDelay = 200; if(!isMini) { o1 = [true, 33]; OScrHDelay = 800; };
-
-var scrollbarMain;
-document.addEventListener('DOMContentLoaded', function() {
-    scrollbarMain = OverlayScrollbars(document.querySelector('[scroll-main]'), {
-        autoUpdate : o1[0],
-        autoUpdateInterval : o1[1],
-        overflowBehavior : {
-            x : 'hidden',
-            y : 'scroll'
-        },
-        scrollbars : {
-            autoHide : 'move',
-            autoHideDelay : OScrHDelay
-        },
-        callbacks : {
-            onScroll : scrollAccordion
-        }
-    });
-});
-
-if(!!window.chrome) { document.querySelector('html').classList.add('isChr'); }
-
-
-// PROJECTS DESCRIPTIONS
-function ppDescSamples(type, url, title) {
-    var el;
-    if(type == 'img') {
-        el = `<div class="pp-img"><div><div><img loading="eager" src="`+ url +`"/></div></div>
-                <div class="pp-img-desc">`+ title +`</div></div>`
-    } else if(type == 'link') {
-        el = `<div class="pp-btn-c"><a class="pp-btn" href="`+ url +`" target="_blank"><span>`+ title +`
-                <svg viewBox="0 0 32 32"><path d="M21.5,20.5v4h-14v-14h4c1.7,0,3-1.3,3-3l-10,0v20h20l0-10C22.8,17.5,21.5,18.8,21.5,20.5z"/><path d="M14.5,17.5L14.5,17.5c-0.6-0.6-0.6-1.5,0-2.1l8.9-8.9l2.1,2.1l-8.9,8.9C16,18.1,15.1,18.1,14.5,17.5z M24.5,7.5h-7l0-3h10v10l-3,0V7.5z"/>
-                </svg></span></a></div>`
-    }
-    return el;
-}
-var srcP = './assets/medias/projects/';
-
-var projectsDesc = {
-// --- SAMPLES
-    desc_sample : {
-        desc : {
-            test : `
-                <h2>BigTitle</h2>
-
-                <h3>LilTitle</h3>
-
-                <p>Text</p>
-
-                <p>Paragraph
-                <br>Paragraph
-                <br>Paragraph</p>
-
-                ppDescSamples('img', 'src', 'Image')
-
-                ppDescSamples('link', 'somewhereontheweb', 'Link')
-            `,
-        }
-    },
-
-// ARTWORKS
-    'sch_t_iv' : {
-        type : 'img', suType : 'img',
-        year : '2020', month : '01', tag: 'perso',
-        subtitle : ``,
-        desc : {
-            fr : `
-                <h2>EXPÉRIMENTATION</h2>
-                <p>Création d'une sensation de mouvement avec du contraste et des formes vectorielles en utilisant Adobe Illustrator.</p>
-                <h2>INTERPRÉTATION</h2>
-                <p>Les formes se croisent et s’empilent, elles alternent l’utilisation du noir et du blanc. Il n’y a aucune autre teinte.</p>
-            `,
-            en : `
-                <h2>EXPERIMENTATION</h2>
-                <p>Creating an impression of movement with contrast and vectors using Adobe Illustrator.</p>
-                <h2>INTERPRETATION</h2>
-                <p>The shapes overlap and stack, alternating the use of black and white. There are no other shades.</p>
-            `,
-        }
-    },
-    'sch_t_pm' : {
-        type : 'img', suType : 'img',
-        year : '2019', month : '10', tag: 'sch',
-        subtitle : `What are we going to do with the dove?`,
-        desc : {
-            fr : `
-                <h2>SUJET</h2>
-                <p>Le sujet consiste en l'incrustation d'une peinture sur un support mural afin de créer entre eux un lien spécifique.</p>
-                <h2>INSPIRATION</h2>
-                <p>L'œuvre “The Armoured Dove” de Banksy, un célèbre street-artiste britannique, m’a inspiré dans la réalisation de ce projet.</p>
-                `+ ppDescSamples('img', srcP + 'artworks/sch_t_pm/05 colombe Banksy.jpg', '"The Armoured Dove", Banksy (2005)') +`
-                <p>Sa colombe a été peinte en 2005 sur un mur séparant Israël et la Palestine. Pour lui ce mur est une tentative absurde pour mettre fin au conflit. La colombe étant un symbole de pureté et de paix, Banksy l'a totalement exposée à la violence. Un pointeur vise son cœur.</p>
-                <h2>L’ABANDONNÉE</h2>
-                <p>Dans mon projet, j’ai choisi de faire de même en l’abandonnant dans un lieu sale et délaissé.
-                <br>Je n’avais pas de lieu de ce genre donc j’ai peint la colombe à l’aquarelle sur une feuille, et je l’ai incrustée numériquement sur un mur.</p>
-                `+ ppDescSamples('img', srcP + 'artworks/sch_t_pm/01 colombe originale.jpg', 'Colombe peinte à l\'aquarelle') +`
-                <p>Puis j’ai incrusté une cage posée devant elle. Elle est coincée dans cet endroit. Paniquée, le bec ouvert et les ailes écartées. Les couleurs sont très ternes et sombres afin de donner une impression de détresse.</p>
-            `,
-            en : `
-                <h2>TOPIC</h2>
-                <p>The aim is to create a specific link between a painting and a wall support.</p>
-                <h2>INSPIRATION</h2>
-                <p>The work "The Armoured Dove" by Banksy, a famous British street-artist, inspired me to make this project.</p>
-                `+ ppDescSamples('img', srcP + 'artworks/sch_t_pm/05 colombe Banksy.jpg', '"The Armoured Dove", Banksy (2005)') +`
-                <p>His dove was painted in 2005 on a wall separating Israel and Palestine. For him, this wall is an absurd attempt to end the conflict. The dove being a symbol of purity and peace, Banksy has totally exposed it to violence. A pointer is aiming at its heart.</p>
-                <h2>THE FORSAKEN ONE</h2>
-                <p>In my project, I chose to do likewise by abandoning it in a dirty and neglected place.
-                <br>I didn't know where to find such a place so I painted the dove on paper and digitally overlaid it on a wall.</p>
-                `+ ppDescSamples('img', srcP + 'artworks/sch_t_pm/01 colombe originale.jpg', 'Painted dove with watercolours') +`
-                <p>Then I put a cage in front of it. It is trapped in this place. Panicked, the beak open and the wings spread. The colours are very dull and dark to give an impression of despair.</p>
-            `,
-        }
-    },
-    'stargazing_a' : {
-        type : 'img', suType : 'img',
-        year : '2018', month : '10', tag: 'rs',
-        subtitle : `Disrupting the stars when they sleep.`,
-        desc : {
-            fr : `
-                <h2>CONTEXTE</h2>
-                <p>"STARGAZING" est un projet de film avec la boîte de production de mon ami aspirant réalisateur. C’était initialement une affiche pour une campagne de financement participatif.</p>
-                <p>Cependant, on a préféré se focaliser sur nos études et d'autres projets, donc il n'a pas encore abouti.</p>
-                <h2>COMPOSITION</h2>
-                <p>La scène a été composée numériquement sur Photoshop : le ciel, la voiture, le personnage, le brouillard, la lumière et l’herbe sont tous sur des calques différents.</p>
-                <p>La lumière du véhicule éblouit et crée un halo autour du personnage, le mettant en valeur.</p>
-            `,
-            en : `
-                <h2>CONTEXT</h2>
-                <p>"STARGAZING" is a movie idea with my aspiring filmmaker friend. It was originally a poster for a crowdfunding campaign.</p>
-                <p>However, we preferred to focus on our studies and other projects, so it hasn't yet happened.</p>
-                <h2>COMPOSITION</h2>
-                <p>The scenery was digitally composed in Photoshop: the sky, the car, the character, the fog, the light and the grass are all on different layers.</p>
-                <p>The lights of the vehicle dazzle and create a halo around the character, highlighting him.</p>
-            `,
-        }
-    },
-    'y_in_b' : {
-        type : 'img', suType : 'img',
-        year : '2018', month : '09', tag: 'perso',
-        subtitle : `Right in front of the only light`,
-        desc : {
-            fr : `
-                <h2>JEU DE LUMIÈRE</h2>
-                <p>L’unique source de lumière permet un grand contraste avec la noirceur plate de l’arrière-plan et le relief des éléments de la scène.</p>
-                <p>J’ai disposé un Y en carton sur un support et avec le flash de mon smartphone j'ai fait apparaître le plus de détails possibles.</p>
-            `,
-            en : `
-                <h2>LIGHT PLAY</h2>
-                <p>The single light source provides a strong contrast between the flat blackness of the background and the sharpness of the scene elements.</p>
-                <p>I placed a Y-shaped cardboard statue on a surface and with the flash of my smartphone I tried to bring up as much details as possible.</p>
-            `,
-        }
-    },
-    'fut_met' : {
-        type : 'img', suType : 'img',
-        year : '2017', month : '06', tag: 'perso',
-        subtitle : `From what kind of place is it coming from?`,
-        desc : {
-            fr : `
-                <h2>IMAGINATION</h2>
-                <p>Notre ignorance du fin fond de l’espace m’a donné envie d’imaginer une météorite venant d’une autre civilisation. Elle file à toute vitesse vers le spectateur depuis un endroit inconnu.</p>
-                <h2>CONTEXTE</h2>
-                <p>C’est l'un de mes premiers projets graphiques et aussi l'un de mes favoris.</p>
-                <h2>DIFFUSION</h2>
-                <p>J'ai eu la surprise de découvrir qu'un auteur du nom de Pierre-Jérôme Delage avait réutilisé ma météorite pour illustrer son article "À qui appartiennent les météorites ?" !</p>
-                `+ ppDescSamples('link', 'https://droitetsf.hypotheses.org/78', 'ACCÉDER À L\'ARTICLE') +`
-            `,
-            en : `
-                <h2>IMAGINATION</h2>
-                <p>Our lack of knowledge of the far reaches of space made me want to imagine a meteorite coming from another civilization. It is rushing towards the viewer from an unknown place.</p>
-                <h2>CONTEXT</h2>
-                <p>This is one of my first graphic project and also one of my favourites.</p>
-                <h2>DISPLAY</h2>
-                <p>I was surprised to find out that an author named Pierre-Jérôme Delage had illustrated his article "Who do meteorites belong to?" (title translated) with my meteorite !</p>
-                `+ ppDescSamples('link', 'https://droitetsf.hypotheses.org/78', 'ACCESS ARTICLE') +`
-            `,
-        }
-    },
-    'destr_casque' : {
-        type : 'img', suType : 'img',
-        year : '2016', month : '12', tag: 'fun',
-        subtitle : `Breaking it even more. Why wouldn't I?`,
-        desc : {
-            fr : `
-                <h2>CONTEXTE</h2>
-                <p>Pour honorer le bon temps passé avec un casque audio de la marque Logitech qui était tombé en panne et que j'affectionnais tout particulièrement, j’ai décidé de me filmer le détruisant à coup de marteau.</p>
-                <p>J’ai publié cette vidéo sur YouTube dont j’ai fait la miniature ci-contre.</p>
-            `,
-            en : `
-                <h2>CONTEXT</h2>
-                <p>To commemorate the good times spent with a Logitech headset that had broken down and that I was particularly fond of, I decided to film myself destroying it with a hammer.</p>
-                <p>I posted this video on YouTube and made the thumbnail shown here.</p>
-            `,
-        }
-    },
-
-// 3D RENDERS
-    'mc_factory92' : {
-        type : 'vid', suType : 'interact',
-        year : '2021', month : '01', tag: 'c',
-        url : 'jN7L44_-igk', format : '1:1',
-        subtitle : ``,
-        desc : {
-            fr : `
-                <h2>CONTEXTE</h2>
-                <p>La structure est une construction faite sur Minecraft par un ami du nom de Browlin.
-                <br>J'ai réalisé la présentation.</p>
-                <h2>AMBIANCE</h2>
-                <p>L’ambiance d’usine plutôt orange rouille est contrastée par l’énergie bleue qui s’échappe des réacteurs.</p>
-                <h2>DIFFUSION</h2>
-                `+ ppDescSamples('link', 'https://twitter.com/Browlin__/status/1356267490083557376', 'PARTAGÉ SUR TWITTER') +`
-            `,
-            en : `
-                <h2>CONTEXT</h2>
-                <p>This structure is a Minecraft build made by a friend named Browlin.
-                <br>I only did the presentation.</p>
-                <h2>AMBIANCE</h2>
-                <p>The rather rusty orange factory atmosphere is contrasted by the blue energy escaping from the reactors.</p>
-                <h2>DISPLAY</h2>
-                `+ ppDescSamples('link', 'https://twitter.com/Browlin__/status/1356267490083557376', 'SHARED ON TWITTER') +`
-            `,
-        }
-    },
-    'mc_cyber_district1' : {
-        type : 'img', suType : 'img',
-        year : '2019', month : '08', tag: 'ppm',
-        subtitle : ``,
-        desc : {
-            fr : `
-                <h2>CONTEXTE</h2>
-                <p>La structure est une construction faite sur Minecraft par la Pamplemousse (équipe de joueurs).
-                <br>J'ai réalisé la présentation avec un ami.</p>
-                <h2>UN QUARTIER LUMINEUX</h2>
-                <p>Les couleurs vives des faisceaux lumineux et des panneaux d'affichages se mélangent et se diffusent dans le ciel sombre.</p>
-                <h2>DIFFUSION</h2>
-                `+ ppDescSamples('link', 'https://twitter.com/PamplemousseBT/status/1167110044867072000', 'PARTAGÉ SUR TWITTER') +`
-            `,
-            en : `
-                <h2>CONTEXT</h2>
-                <p>This structure is a Minecraft build made by the Pamplemousse (building team on the game).
-                <br>I and a friend did the presentation.</p>
-                <h2>A LUMINOUS DISTRICT</h2>
-                <p>The vibrant colours of the light beams and billboards blend and spread into the dark sky.</p>
-                <h2>DISPLAY</h2>
-                `+ ppDescSamples('link', 'https://twitter.com/PamplemousseBT/status/1167110044867072000', 'SHARED ON TWITTER') +`
-            `,
-        }
-    },
-    'mc_cyber_district2' : {
-        type : 'img', suType : 'img',
-        year : '2019', month : '08', tag: 'ppm',
-        subtitle : ``,
-        desc : {
-            fr : `
-                <h2>CONTEXTE</h2>
-                <p>La structure est une construction faite sur Minecraft par la Pamplemousse (équipe de joueurs).
-                <br>J'ai réalisé la présentation avec un ami.</p>
-                <h2>DENSITÉ</h2>
-                <p>Ce plan large a pour but de mettre en valeur le grand nombre de détails de cette structure.</p>
-                <h2>DIFFUSION</h2>
-                `+ ppDescSamples('link', 'https://twitter.com/PamplemousseBT/status/1167110044867072000', 'PARTAGÉ SUR TWITTER') +`
-            `,
-            en : `
-                <h2>CONTEXT</h2>
-                <p>This structure is a Minecraft build made by the Pamplemousse (building team on the game).
-                <br>I and a friend did the presentation.</p>
-                <h2>DENSITY</h2>
-                <p>This wide shot's aim is to highlight the great number of details of this structure.</p>
-                <h2>DISPLAY</h2>
-                `+ ppDescSamples('link', 'https://twitter.com/PamplemousseBT/status/1167110044867072000', 'SHARED ON TWITTER') +`
-            `,
-        }
-    },
-    'sch_1_wc' : {
-        type : 'vid', suType : 'interact',
-        year : '2019', month : '03-06', tag: 'sch',
-        url : 'Cg0DBZRAbqU', format : '1:1',
-        subtitle : `As the days passes, everything's staying the same...`,
-        desc : {
-            fr : `
-                <h2>SUJET</h2>
-                <p>Le sujet était de représenter la ville sans évoquer ses plus gros clichés.</p>
-                <p>J’ai choisi de représenter son manque de personnalité en mettant en avant sa hauteur et sa répétitivité depuis le point de vue d’un piéton à travers le temps.</p>
-                <h2>CRÉATION</h2>
-                <p>En m’aidant du logiciel Cinema 4D, je l’ai entièrement créée en 3D.</p>
-                `+ ppDescSamples('img', srcP + 'renders/sch_1_wc/02 pts de vues 3D.jpg', 'Vues de la scène en 3D sur 4 axes différents') +`
-
-                <p>Puis j’ai placé la caméra dans un carrefour.
-                <br>J’ai modifié beaucoup de paramètres pour donner une impression vertigineuse : le point de fuite est déplacé dans le croisement des bâtiments et le champ de vision est étiré.</p>
-                `+ ppDescSamples('img', srcP + 'renders/sch_1_wc/01 camera 3D.jpg', 'Paramètres de la caméra') +`
-
-                <p>J’ai simulé le déroulement du cycle jour/nuit et j’ai fait le rendu des images en vidéo.</p>
-                <h2>POST-PRODUCTION</h2>
-                <p>Sur VEGAS Pro, j’ai ajouté de nombreux effets pour polir le timelapse : de la brume, du grain, et surtout des effets lumineux pour le soleil. Le lever et le coucher sont plus colorés. J’ai simulé l’éblouissement en ajustant le contraste et le vignettage.</p>
-                `+ ppDescSamples('img', srcP + 'renders/sch_1_wc/04 montage en gros.jpg', 'Montage des effets vidéos') +`
-            `,
-            en : `
-                <h2>TOPIC</h2>
-                <p>The aim was to represent the city without bringing up its biggest clichés.</p>
-                <p>I chose to depict its lack of character by emphasizing its height and repetitiveness from the point of view of a pedestrian across time.</p>
-                <h2>CREATION</h2>
-                <p>I created it entirely in 3D using Cinema 4D.</p>
-                `+ ppDescSamples('img', srcP + 'renders/sch_1_wc/02 pts de vues 3D.jpg', 'Scene overview on 4 different axes') +`
-
-                <p>Then I placed the camera in an intersection.
-                <br>I adjusted a lot of the camera settings to give it a dizzying effect: the vanishing point is shifted in the crossing of the buildings in the sky and the field of view is stretched.</p>
-                `+ ppDescSamples('img', srcP + 'renders/sch_1_wc/01 camera 3D.jpg', 'Camera settings') +`
-
-                <p>I added a day/night cycle and rendered the frames in a video.</p>
-                <h2>POST-PRODUCTION</h2>
-                <p>On VEGAS Pro, I added many effects to refine the timelapse: haze, grain, and especially light effects for the sun. The sunrise and sunset are more colorful. I tried to fake the sun glare by adjusting the contrast and other effects.</p>
-                `+ ppDescSamples('img', srcP + 'renders/sch_1_wc/04 montage en gros.jpg', 'Video effects') +`
-            `,
-        }
-    },
-
-// MOTION DESIGN
-    'pub_sc_lc' : {
-        type : 'vid', suType : 'interact',
-        year : '2021', month : '02-04', tag: 'sc',
-        url : '66QpHMgmXLM', format : '16:9',
-        subtitle : ``,
-        desc : {
-            fr : `
-                <h2>CONTEXTE</h2>
-                <p>Après avoir obtenu mon baccalauréat, je me suis porté volontaire dans une mission de Service Civique que l'association Unis-Cité proposait : "Les Connectés".</p>
-                <p>Elle consistait à parcourir tout le département du Cantal afin d'aller à la rencontre des personnes ayant besoin d'aide pour devenir autonomes avec les outils informatiques (clavier, souris, applications...).</p>
-                <p>
-                <br>Nous avons réalisé des vidéos pour chaque lieu public dans lesquels on intervenait afin qu'ils les diffusent sur leurs réseaux sociaux.</p>
-                <h2>PERSONNALISATION</h2>
-                <p>Les vidéos ont été personnalisées en fonction de nos interventions dans chaque lieu : en atelier individuel ou collectif, avec ou sans inscription.</p>
-                <h2>MONTAGE</h2>
-                <p>C'est la première fois que je bossais sur un projet de ce genre en tant que "directeur" improvisé et monteur.</p>
-                <p>La voix-off que vous entendez dans cette vidéo est la mienne.</p>
-            `,
-            en : `
-                <h2>CONTEXT</h2>
-                <p>After obtaining my baccalauréat, I volunteered in "Les Connectés" (~ "The Connected"), a Service Civique mission of the association Unis-Cité.</p>
-                <p>It consisted in going across the Cantal department in France to meet people who needed help learning how to use computer tools (keyboard, mouse, applications...).</p>
-                <p>
-                <br>We made videos for each places in which we were intervening so that they could broadcast them on their social networks.</p>
-                <h2>PERSONALIZATION</h2>
-                <p>The videos were customised to fit our interventions in each place: as individual or group sessions, with or without registration.</p>
-                <h2>EDITING</h2>
-                <p>It was my first time working on a project of this kind as an improvised "director" and editor.</p>
-                <p>The voice-over you hear in this video is my voice.</p>
-            `,
-        }
-    },
-    'i_rs_b' : {
-        type : 'vid', suType : 'interact',
-        year : '2018', month : '09', tag: 'rs',
-        url : 'XOnAthClcEI', format : '16:9',
-        subtitle : `Synthwave into the darkest place of space!`,
-        desc : {
-            fr : `
-                <h2>CONTEXTE</h2>
-                <p>Cette animation a été réalisée pour essayer le logo de la future boîte de production d'un ami.</p>
-                <h2>AMBIANCE</h2>
-                <p>Le but était de réaliser une introduction, style Synthwave/années 80s avec le quadrillage typique, les néons, les étoiles, les glitchs...</p>
-                <p>J'ai ajouté des effets sonores pour amplifier l'ambiance.</p>
-                <p>
-                <br>Cependant, le rendu final est un peu trop sombre et pesant.</p>
-            `,
-            en : `
-                <h2>CONTEXT</h2>
-                <p>This animation was made to experiment with the logo of my friend's future film production company.</p>
-                <h2>AMBIANCE</h2>
-                <p>The goal was to take inspiration from the Synthwave/80s style with the typical grid, neons, stars, glitches...</p>
-                <p>I also added some sound effects to intensify the atmosphere.</p>
-                <p>
-                <br>But the final result is a little too dark and heavy.</p>
-            `,
-        }
-    },
-    'i_jfm' : {
-        type : 'vid', suType : 'interact',
-        year : '2017', month : '12', tag: 'c',
-        url : 'Gyho58zddwg', format : '16:9',
-        subtitle : ``,
-        desc : {
-            fr : `
-                <h2>CONTEXTE</h2>
-                <p>Un ami m'avait demandé lors de la réalisation d'une vidéo promotionnelle pour JordanneFM d'animer leur logo. Par la suite, JordanneFM l'a utilisé pour ses émissions.</p>
-            `,
-            en : `
-                <h2>CONTEXT</h2>
-                <p>While a friend was making a promotional video for JordanneFM, he asked me to animate their logo. Afterwards, JordanneFM used it for some of their videos.</p>
-            `,
-        }
-    },
-    'i_y2' : {
-        type : 'vid', suType : 'interact',
-        year : '2017', month : '09', tag: 'perso',
-        url : 'UkL4zVUw27Y', format : '16:9',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'i_inex' : {
-        type : 'vid', suType : 'interact',
-        year : '2017', month : '03', tag: 'c',
-        url : '46MrLGy5Xb8', format : '16:9',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'i_yc' : {
-        type : 'vid', suType : 'interact',
-        year : '2017', month : '01', tag: 'perso',
-        url : 'PR0fVAGbHIQ', format : '16:9',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-
-// BRANDINGS
-// -- YT
-    'b_l1_rs' : {
-        type : 'img', suType : 'img', imgExt : 'png',
-        year : '2018', month : '06', tag: 'rs',
-        subtitle : ``,
-        desc : {
-            fr : `
-                <h2>CONTEXTE</h2>
-                <p>"RETROSATURN" est la boîte de production de mon ami aspirant réalisateur.</p>
-                <h2>CONCEPTION</h2>
-                <p>Nous avons conçu ce logo ensemble afin d'obtenir quelque chose d'orienté années 80s.</p>
-                <p>Il y a énormément de détails, comme l’irrégularité des couleurs et intensités des néons, la texture et la dynamique du mot "SATURN", le grain...</p>
-            `,
-            en : `
-                <h2>CONTEXTE</h2>
-                <p>"RETROSATURN" is the company of my aspiring filmmaker friend.</p>
-                <h2>CONCEPTION</h2>
-                <p>We designed this logo together to get a 80s feel to it.</p>
-                <p>There are a lot of details, like the irregular color and intensity of the neon lights, the texture and dynamism of the word "SATURN", the grain...</p>
-            `,
-        }
-    },
-    'b_l2_rs' : {
-        type : 'img', suType : 'img', imgExt : 'png',
-        year : '2019', month : '01', tag: 'rs',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'b_b1_rs' : {
-        type : 'img', suType : 'img',
-        year : '2018', month : '09', tag: 'rs',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'b_l1_caloucath' : {
-        type : 'img', suType : 'img', imgExt : 'png',
-        year : '2017', month : '07', tag: 'c',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'b_b1_caloucath' : {
-        type : 'img', suType : 'img',
-        year : '2017', month : '05', tag: 'c',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'b_b2_caloucath' : {
-        type : 'img', suType : 'img',
-        year : '2017', month : '09', tag: 'c',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'b_l1_ppm' : {
-        type : 'img', suType : 'img', imgExt : 'png',
-        year : '2018', month : '10', tag: 'ppm',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'b_b1_ppm' : {
-        type : 'img', suType : 'img',
-        year : '2019', month : '04', tag: 'ppm',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'b_b1_mattmovie' : {
-        type : 'img', suType : 'img',
-        year : '2016', month : '11', tag: 'c',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'b_b2_mattmovie' : {
-        type : 'img', suType : 'img',
-        year : '2017', month : '02', tag: 'c',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-
-// -- STANDALONES
-    'b_l1_jethro' : {
-        type : 'img', suType : 'img', imgExt : 'png', white : true,
-        year : '2018', month : '12', tag: 'c',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'b_l1_wzr' : {
-        type : 'img', suType : 'img', imgExt : 'png',
-        year : '2017', month : '09', tag: 'c',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'b_l1_nensho' : {
-        type : 'img', suType : 'img', imgExt : 'png',
-        year : '2017', month : '05', tag: 'c',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'b_b1_rezartilo' : {
-        type : 'img', suType : 'img',
-        year : '2017', month : '01', tag: 'c',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'b_b1_killex' : {
-        type : 'img', suType : 'img',
-        year : '2016', month : '03', tag: 'c',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-
-// POSTERS
-    'pdf_apc_hpi' : {
-        type : 'pdf', suType : 'interact',
-        url : '1J0SOaGtPElDcgNwxXx55vr_E_ah3cZDc',
-        year : '2019', month : '11', tag: 'c',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-    'pdf_apc_wvhp' : {
-        type : 'pdf', suType : 'interact',
-        url : '1bCm600IXEowAT_jnyQLQcYP05QcAATYr',
-        year : '2019', month : '08', tag: 'c',
-        subtitle : ``,
-        desc : {
-            fr : ``,
-            en : ``,
-        }
-    },
-
-// WEBSITES
-    'w_vh' : {
-        type : 'web', suType : 'interact',
-        url : 'https://valentinhebert.com', format : 'fill',
-        year : '2020.10-2021', month : '01', tag: 'c',
-        subtitle : ``,
-        desc : {
-            fr : `
-                <h2>CONTEXTE</h2>
-                <p>Ce site Internet fait partie des tout premiers que j’ai créés.</p>
-            `,
-            en : `
-                <h2>CONTEXT</h2>
-                <p>This website is one of the very first I have created.</p>
-            `,
-        }
-    },
-};
-
 
 function addClassAll(path, c) {
     var elems = document.querySelectorAll(path);
@@ -677,105 +80,218 @@ function removeClassAll(path, c) {
     if(elems) { elems.forEach(function(el) { el.classList.remove(c); }); }
 }
 
-function iID(i) { return i.getAttribute('i-id'); }
+// apply function at the end of a css transition of an element (no propagation, option to do it only once)
+function addEvTrEnd(elem, func, property, once) {
+    var isNotAlready = true,
+        property = property ? property : false, // default: false
+        once = once ? once : true; // once? / default: true
 
+    if(!property) { // will check for all css properties
+        elem.addEventListener("transitionend", () => { func(); }, { once : once });
+    } else { // will check only for specified css property
+        elem.addEventListener("transitionend", (ev) => { if(ev.propertyName == property) { func(); }}, { once : once });
+    }
+
+    trEndAlready.forEach(e => { isNotAlready &= (e == elem) ? false : true; }); // check if already checking for trEnd
+    if(isNotAlready) {
+        trEndAlready.push(elem);
+        elem.childNodes.forEach((el) => { el.addEventListener("transitionend", (ev) => { ev.stopPropagation(); })});
+    }
+} var trEndAlready = [];
+
+
+//- Scripts -
+// OVERLAY SCROLLBARS
+var scrollbarMain,
+    o1 = [null, 33], OScrHDelay = 200; if(!isMini) { o1 = [true, 33]; OScrHDelay = 800; };
+document.addEventListener("DOMContentLoaded", function() {
+    scrollbarMain = OverlayScrollbars(document.querySelector("[scroll-main]"), {
+        autoUpdate : o1[0],
+        autoUpdateInterval : o1[1],
+        overflowBehavior : {
+            x : "hidden",
+            y : "scroll"
+        },
+        scrollbars : {
+            autoHide : "move",
+            autoHideDelay : OScrHDelay
+        },
+        callbacks : {
+            onScroll : scrollAccordion
+        }
+    });
+});
+
+// create accordion menu buttons with the database, as well as the hidden projects cards
+function createProjectsMenu() {
+    var accItems = ``, accContent = ``;
+
+    Object.entries(mData).forEach(categoryData => {
+        const categoryName = categoryData[0], category = categoryData[1];
+
+        // CATEGORIES
+        // set up all category buttons
+        accItems += `
+            <section i-id="${categoryName}" class="acc-s acclist-item" level="1">
+                <div class="acclist-in-c">
+                    <div class="acclist-in">
+                        <div class="acclist-btn lv1">
+                            <div class="acclist-title">
+                                ${(category.icon) ? category.icon : mDataDefault.icon}
+                                <span class="acclist-t-span">${(category.title) ? category.title : mDataDefault.title}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        `
+
+        // CARDS
+        var accCards = ``;
+        Object.entries(Prj.projectsData).forEach(projectData => {
+            const projectName = projectData[0], PROJECT = projectData[1];
+
+            if(((PROJECT.category) ? PROJECT.category : pDataDefault.category) == categoryName) { // look in every project if category matches, for each category
+                // set up all project cards
+                accCards += `
+                    <div id="${projectName}" class="al-card">
+                        <div class="thumbnail-c">
+                            <img class="thumb" ${
+                                (PROJECT.needBG) ? "style=\"background-color: "+ ((PROJECT.needBG != true) ? PROJECT.needBG : "var(--y-b2)") +";\"" : "" // put a background color if needed
+                            } src="./assets/medias/projects/low/${projectName}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"/>
+                        </div>
+                        <div class="p-title-c${(PROJECT.titleHide) ? " hide" : ""}">
+                            <div class="p-title">
+                                <span>${(!PROJECT.titleShort)
+                                    ? ((PROJECT.title) ? PROJECT.title : pDataDefault.title)
+                                    : PROJECT.titleShort
+                                }</span>
+                            </div>
+                        </div>
+                    </div>
+                `
+            }
+        });
+        // put all cards in container
+        accContent += `
+            <div i-id="${categoryName}" class="acccontent-c">
+                <div class="acclist-content">
+                    <div class="al-grid">
+                    ${accCards}
+                    </div>
+                </div>
+            </div>
+        `
+    });
+
+    // create
+    document.querySelector("[accordion-content]").innerHTML = accContent;
+    document.querySelector("[accordion-scroll]").innerHTML = accItems;
+}
+
+// shortcut to get "i-id" attribute from an elements
+function iID(i) { return i.getAttribute("i-id"); }
+
+// open category and generate real projects cards, will close other categories as well
 function openAccItem(h) {
     var thisItem, lv1, lv1ID, hash = false;
     if(h.type) {
-        thisItem = this.closest('[level]');
-        var t2 = thisItem.querySelector('.acclist-item[level="2"]'); // t2: when thisItem is lv1, selects lv2 too
-        if(thisItem.closest('[level="1"]').getAttribute('state') != 'closing' || thisItem.getAttribute('level') == "1") {
-            history.replaceState({}, '', (t2 && ['opening', 'opened'].includes(t2.getAttribute('state'))) ? '#'+ iID(t2) : '#'+ iID(thisItem))
+        thisItem = this.closest("[level]");
+        var t2 = thisItem.querySelector(".acclist-item[level='2']"); // t2: when thisItem is lv1, selects lv2 too
+        if(thisItem.closest("[level='1']").getAttribute("state") != "closing" || thisItem.getAttribute("level") == "1") {
+            history.replaceState({}, "", (t2 && ["opening", "opened"].includes(t2.getAttribute("state"))) ? "#"+ iID(t2) : "#"+ iID(thisItem))
         }
     } else { thisItem = h; hash = true; }
-    var itemLv = thisItem.getAttribute('level');
-    if(itemLv == '2') { lv1 = thisItem.closest('.acclist-item[level="1"]'), lv1ID = iID(lv1); }
+    var itemLv = thisItem.getAttribute("level");
+    if(itemLv == "2") { lv1 = thisItem.closest(".acclist-item[level='1']"), lv1ID = iID(lv1); }
 
-    function finalState(i) {
-            if(i.getAttribute('state') == 'opening') {
-                i.setAttribute('state', 'opened');
-            } else if(i.getAttribute('state') == 'closing') {
-                i.setAttribute('state', 'closed');
-                i.querySelector('.acclist-content').remove();
+    function finalState(i) { // dictates what happens when finishing the transition for opening or closing
+            if(i.getAttribute("state") == "opening") {
+                i.setAttribute("state", "opened");
+            } else if(i.getAttribute("state") == "closing") {
+                i.setAttribute("state", "closed");
+                i.querySelector(".acclist-content").remove();
             }
     }
 
-    if(['closing', 'closed'].includes(thisItem.getAttribute('state'))) {
-        thisItem.setAttribute('state', 'opening');
-        if(!hash) { // ACC ITEM AUTO SCROLL-TO
+    // opening sequence start
+    if(["closing", "closed"].includes(thisItem.getAttribute("state"))) {
+        thisItem.setAttribute("state", "opening");
+        if(!hash) { // will scroll to category/project automatically
 
-            var thisItemPrev = thisItem.previousElementSibling,
-                accAngle = window.innerWidth * Math.tan(6 * Math.PI / 180),
+            var thisItemPrev = thisItem.previousElementSibling, // previous menu button
+                accAngle = window.innerWidth * Math.tan(6 * deg2rad), // offset for the skew
                 tItemAnchor, sibCsH = 0, sibb = [];
-            const prevSiblings = (elem) => { // (https://attacomsian.com/blog)
-                let sibs = [];
-                while(elem = elem.previousElementSibling) { sibs.push(elem); }
+
+            const prevSiblings = (elem) => { // get previous siblings of an element
+                let sibs = []; while(elem = elem.previousElementSibling) { sibs.push(elem); }
                 return sibs;
             };
-
             if(thisItemPrev) {
-                tItemAnchor = thisItemPrev.querySelector('.acclist-btn').getBoundingClientRect().bottom;
-
-                if(!thisItemPrev.querySelector('.acclist-content')) {
+                tItemAnchor = thisItemPrev.querySelector(".acclist-btn").getBoundingClientRect().bottom; // if there's a button above the focused one, use its "bottom" position as anchor
+                if(!thisItemPrev.querySelector(".acclist-content")) { // if there are multiple previous siblings, will offset their height for the final scroll-to
                     const sibs = prevSiblings(thisItem);
                     sibs.forEach(sib => {
-                        var sibC = sib.querySelector('.acclist-content');
+                        var sibC = sib.querySelector(".acclist-content");
                         if(sibC) { sibCsH += sibC.offsetHeight; sibb.push(sib) }
                     });
                 }
-            } else { tItemAnchor = thisItem.querySelector('.acclist-btn').getBoundingClientRect().top; accAngle = 0; }
+            } else { tItemAnchor = thisItem.querySelector(".acclist-btn").getBoundingClientRect().top; accAngle = 0; }
 
-            scrollbarMain.scrollStop().scroll({ y : scrollbarMain.scroll().position.y + ((tItemAnchor - sibCsH) - accAngle) }, 700, 'easeInOutCubic');
+            // scroll to category
+            scrollbarMain.scrollStop().scroll({ y : scrollbarMain.scroll().position.y + ((tItemAnchor - sibCsH) - accAngle) }, 700, "easeInOutCubic");
         }
-        var accCHidden = document.querySelector('*[accordion-content][level="'+ itemLv +'"] [i-id="'+ iID(thisItem) +'"] > .acclist-content'),
-            otherAccItems = document.querySelectorAll('.acclist-item:not([i-id="'+ iID(thisItem) +'"])');
-        otherAccItems.forEach((itemOther) => {
-            if(['opening', 'opened'].includes(itemOther.getAttribute('state'))) {
-                if(itemOther.getAttribute('level') == itemLv) {
-                    itemOther.setAttribute('state', 'closing');
+        var accCHidden = document.querySelector("*[accordion-content][level='"+ itemLv +"'] [i-id='"+ iID(thisItem) +"'] > .acclist-content"), // get hidden/fake elements, will be copied later
+            otherAccItems = document.querySelectorAll(".acclist-item:not([i-id='"+ iID(thisItem) +"'])");
+        otherAccItems.forEach((itemOther) => { // close every other category if opened
+            if(["opening", "opened"].includes(itemOther.getAttribute("state"))) {
+                if(itemOther.getAttribute("level") == itemLv) {
+                    itemOther.setAttribute("state", "closing");
                 }
-                if(itemLv == '2') {
-                    thisItem.closest('.acclist-content').style.height = document.querySelector('*[accordion-content][level="1"] [i-id="'+ lv1ID +'"] > .acclist-content').offsetHeight +'px';
+                if(itemLv == "2") { // same thing but for levels lower
+                    thisItem.closest(".acclist-content").style.height = document.querySelector("*[accordion-content][level='1'] [i-id='"+ lv1ID +"'] > .acclist-content").offsetHeight.offsetHeight +"px";
                 }
             }
         })
 
-        var itemc = thisItem.querySelector('.acclist-content');
+        var itemc = thisItem.querySelector(".acclist-content");
         if(itemc == null) {
-            var accCReal = accCHidden.cloneNode(true);
-            accCReal.style.height = accCHidden.offsetHeight +'px';
-            if(itemLv == '2') { setTimeout(() => { thisItem.closest('.acclist-content').style.height = document.querySelector('*[accordion-content][level="1"] [i-id="'+ lv1ID +'"] > .acclist-content').offsetHeight + accCHidden.offsetHeight +'px'; }, 100); }
-            accCReal.classList.add('clos');
-            accCReal.addEventListener('transitionend', (ev) => { if(ev.propertyName == 'height') { finalState(thisItem); }});
-            accCReal.childNodes.forEach((el) => { el.addEventListener('transitionend', (ev) => { ev.stopPropagation(); })});
-            thisItem.querySelector('.acclist-in').appendChild(accCReal);
+            var accCReal = accCHidden.cloneNode(true); // copy hidden project cards
+            accCReal.style.height = accCHidden.offsetHeight +"px"; // get the height for the cool transition
+            if(itemLv == "2") { setTimeout(() => { thisItem.closest(".acclist-content").style.height = document.querySelector("*[accordion-content][level='1'] [i-id='"+ lv1ID +"'] > .acclist-content").offsetHeight.offsetHeight + accCHidden.offsetHeight +"px"; }, 100); }
+            accCReal.classList.add("clos");
+            addEvTrEnd(accCReal, () => { finalState(thisItem); }, "height"); // will finish transition when transitionend event of "height" triggered
+            thisItem.querySelector(".acclist-in").appendChild(accCReal); // generate/paste project cards
 
-            var accBtnLv2 = accCReal.querySelectorAll('.acclist-btn');
-            if(accBtnLv2 != null) { accBtnLv2.forEach((ibtn2) => { ibtn2.addEventListener('click', openAccItem); }) }
+            var accBtnLv2 = accCReal.querySelectorAll(".acclist-btn");
+            if(accBtnLv2 != null) { accBtnLv2.forEach((ibtn2) => { ibtn2.addEventListener("click", openAccItem); }) }
 
-            setTimeout(() => { thisItem.querySelectorAll('.al-card').forEach((card) => { card.addEventListener('click', (ev) => { openProjectCardPopup(ev, card, thisItem); })}); }, 1);
-            setTimeout(() => { accCReal.classList.remove('clos'); }, 100);
+            setTimeout(() => { thisItem.querySelectorAll(".al-card").forEach((card) => { card.addEventListener("click", (ev) => { openProjectCardPopup(ev, card, thisItem); })}); }, 1);
+            setTimeout(() => { accCReal.classList.remove("clos"); }, 100); // start transition (with a bit of delay to be sure everything is computed correctly)
         }
         else {
-            if(itemLv == '2') { thisItem.closest('.acclist-content').style.height = document.querySelector('*[accordion-content][level="1"] [i-id="'+ lv1ID +'"] > .acclist-content').offsetHeight + accCHidden.offsetHeight +'px'; }
+            if(itemLv == "2") { thisItem.closest(".acclist-content").style.height = document.querySelector("*[accordion-content][level='1'] [i-id='"+ lv1ID +"'] > .acclist-content").offsetHeight.offsetHeight + accCHidden.offsetHeight +"px"; }
         }
-    } else if(['opening', 'opened'].includes(thisItem.getAttribute('state'))) { // already opened
-        thisItem.setAttribute('state', 'closing');
-        if(itemLv == '2') {
-            thisItem.closest('.acclist-content').style.height = document.querySelector('*[accordion-content][level="1"] [i-id="'+ lv1ID +'"] > .acclist-content').offsetHeight +'px';
+
+    // closing sequence start
+    } else if(["opening", "opened"].includes(thisItem.getAttribute("state"))) { // already opened
+        thisItem.setAttribute("state", "closing");
+        if(itemLv == "2") {
+            thisItem.closest(".acclist-content").style.height = document.querySelector("*[accordion-content][level='1'] [i-id='"+ lv1ID +"'] > .acclist-content").offsetHeight.offsetHeight +"px";
             if(thisItem.closest('[level="1"]').getAttribute('state') != 'closing') { history.replaceState({}, '', '#'+ lv1ID); }
         } else {
             cleanURL();
         }
     }
 }
-function pHashOpenAccItem() {
-    var urlHash = window.location.hash.substring(1);
-    if(urlHash) {
-        var urlHashAcc = urlHash.split('?')[0];
-        var urlHashP = urlHash.split('?')[1];
-        var i = document.querySelector('[accordion-scroll] .acclist-item[i-id="' + urlHashAcc +'"]'),
+function pHashOpenAccItem() { // will scroll automatically to category/project if present in url at load
+    var urlHash = window.location.hash.substring(1); // get full hash (category and project)
+    if(urlHash) { // if there's some kind of hash in there
+        var urlHashAcc = urlHash.split('?')[0]; // category
+        var urlHashP = urlHash.split('?')[1]; // project
+        var i = document.querySelector('[accordion-scroll] .acclist-item[i-id="' + urlHashAcc +'"]'), // get corresponding category item
             k = 900;
+
         function open(item, p) {
             p = p || false;
             setTimeout(() => {
@@ -783,14 +299,12 @@ function pHashOpenAccItem() {
                 k = 400;
 
                 // OPEN PROJECT
-                if(urlHashP && p) {
+                if(urlHashP && p) { // open project if exists
                     if(document.querySelector('[accordion-content] [i-id="' + urlHashAcc +'"] #'+ urlHashP)) {
                         setTimeout(() => {
                             openProjectCardPopup("", document.querySelector('[accordion-scroll] [i-id] .al-card#'+ urlHashP), i);
                         }, 900);
-                    } else {
-                        cleanURL('?');
-                    }
+                    } else { cleanURL('?'); } // then what the f* did you put in the url
                 }
             }, k);
         }
@@ -802,153 +316,200 @@ function pHashOpenAccItem() {
             }, dd + d);
         }
 
-        // SCROLL TO ACC ITEM
-        if(urlHashAcc) {
-            if(document.querySelector('[accordion-scroll] [i-id="'+ urlHashAcc +'"]') || document.querySelector('[accordion-content][level="2"] [i-id="'+ urlHashAcc +'"]')) {
-                if(!i) { // lv2
-                    open(document.querySelector('.acclist-item[i-id="'+ iID(document.querySelector('[accordion-content][level="1"] [i-id="'+ urlHashAcc +'"]').parentNode.closest('[i-id]')) +'"]')); // opens lv1
-                    setTimeout(() => {
-                        i = document.querySelector('[accordion-scroll] [i-id="'+ urlHashAcc +'"]');
-                        open(i, true);
-                        scrollToI(i, 0);
-                    }, k);
-                } else { // normal
+        // SCROLL TO CATEGORY ITEM
+        if(urlHashAcc) { // category hash exists ?
+            if(i) { // category button exists ? so it is level 1
+                open(i, true);
+                scrollToI(i, k);
+            } else if(document.querySelector('[accordion-content][level="2"] [i-id="'+ urlHashAcc +'"]')) { // level 2 category button exists ?
+                open(document.querySelector('.acclist-item[i-id="'+ iID(document.querySelector('[accordion-content][level="1"] [i-id="'+ urlHashAcc +'"]')
+                        .parentNode.closest('[i-id]')) +'"]')); // open level 1
+                setTimeout(() => {
+                    i = document.querySelector('[accordion-scroll] [i-id="'+ urlHashAcc +'"]');
                     open(i, true);
-                    scrollToI(i, k);
-                }
-            } else { cleanURL(); }
+                    scrollToI(i, 0);
+                }, k);
+            } else { cleanURL(); } // then what the f* did you put in the url
         }
-    } else { cleanURL(); }
+    } else { cleanURL(); } // then what the f* did you put in the url
 }
 
 function openProjectCardPopup(ev, p, item) {
-    p.classList.add('focus');
-    cleanURL('?'); history.pushState({}, '', window.location.hash +'?'+ p.id);
+    p.classList.add("focus"); // focus project card
+    cleanURL("?"); history.pushState({}, "", window.location.hash +"?"+ p.id);
 
+    // close project popup on history back event (cool for mobile user and grandmas <3)
     setTimeout(() => {
-        window.addEventListener('hashchange', closeProjectCardPopup, { once:true });
+        window.addEventListener("hashchange", closeProjectCardPopup, { once:true });
     }, 10);
 
+    // create project popup container if not already ready
     if(!container.querySelector("#content-container ~ [project-popup]")) {
-        // creates project popup container if not already ready
-        var ppContainer = document.createElement('div');
-        ppContainer.setAttribute('project-popup', '');
-        container.querySelector('#content-container').parentElement.appendChild(ppContainer);
+        var ppContainer = document.createElement("div");
+        ppContainer.setAttribute("project-popup", "");
+        container.querySelector("#content-container").parentElement.appendChild(ppContainer);
     }
 
-    function setScrMain(pe, ah) {
-        var viewport = scrollbarMain.getElements('viewport'), ahD = OScrHDelay;
-        if(pe) { viewport.classList.add('disabled'); ahD = 0; } else { viewport.classList.remove('disabled'); }
-        scrollbarMain.getElements('scrollbarVertical.handle').style.pointerEvents = pe;
-        scrollbarMain.options('scrollbars.autoHide', ah);
-        scrollbarMain.options('scrollbars.autoHideDelay', ahD);
+    function setScrMain(pe, ah) { // change parameters for scrollbarMain
+        var viewport = scrollbarMain.getElements("viewport"), ahD = OScrHDelay;
+        if(pe) { viewport.classList.add("disabled"); ahD = 0; } else { viewport.classList.remove("disabled"); }
+        scrollbarMain.getElements("scrollbarVertical.handle").style.pointerEvents = pe;
+        scrollbarMain.options("scrollbars.autoHide", ah);
+        scrollbarMain.options("scrollbars.autoHideDelay", ahD);
     }
-    setScrMain('none', 'scroll');
+    setScrMain("none", "scroll"); // hide for project popup, no need
 
-    function closeProjectCardPopup() {
-        cleanURL('?');
-        window.removeEventListener('hashchange', closeProjectCardPopup, { once:true });
-        swup.off('animationOutStart', closeProjectCardPopupAuto);
-        if(document.querySelectorAll('div[project-popup] > .project-popup').length <= 1) { setScrMain(null, 'move'); }
-        var allFocused = document.querySelectorAll('div[accordion-scroll] .focus');
-        if(allFocused) { allFocused.forEach((f) => { f.classList.remove('focus'); })}
-        ppBG.style.opacity = '0';
-        projectPopup.style.pointerEvents= 'none';
-        projectPopup.classList.add('out');
-        closeFake.classList.add('quit');
+    function closeProjectCardPopup() { // close project popup, bunch of magic happening here
+        cleanURL("?");
+
+        // remove event listeners
+        window.removeEventListener("hashchange", closeProjectCardPopup, { once:true });
+        swup.off("animationOutStart", closeProjectCardPopupAuto);
+
+        // enable back scrollbarMain
+        if(document.querySelectorAll("div[project-popup] > .project-popup").length <= 1) { setScrMain(null, "move"); }
+
+        // remove focus from every project card to be clean
+        var allFocused = document.querySelectorAll("div[accordion-scroll] .focus");
+        if(allFocused) { allFocused.forEach((f) => { f.classList.remove("focus"); })}
+
+        // effects tied to the project popup, ease of life
+        ppBG.style.opacity = "0";
+        projectPopup.style.pointerEvents= "none";
+        projectPopup.classList.add("out");
+        closeFake.classList.add("quit");
         hideCurClose();
-        setTimeout(() => { closeFake.classList.add('hid'); }, 1);
+        setTimeout(() => { closeFake.classList.add("hid"); }, 1);
+
+        // final remove
         setTimeout(() => { projectPopup.scrollbarPP.destroy(); projectPopup.remove(); }, 1000);
     }
-    function closeProjectCardPopupAuto() {
+
+    function closeProjectCardPopupAuto() { // if needed to close project popup unexpectedly
         if(projectPopup) { closeProjectCardPopup();
-            var descimg = ppDesc.querySelector('.pp-img.focus');
-            if(descimg) { closeppdImgView(null, descimg, descimg.querySelector('img'), document.querySelector('div[project-popup]').querySelector('.ppd-imgview')); }
+            var descimg = ppDesc.querySelector(".pp-img.focus");
+            if(descimg) { closeppdImgView(null, descimg, descimg.querySelector("img"), document.querySelector("div[project-popup]").querySelector(".ppd-imgview")); }
         }
     }
 
-    var projectPopup = document.createElement('div');
-    projectPopup.classList.add('project-popup');
-    projectPopup.classList.add('pre');
-    document.querySelector('div[project-popup]').appendChild(projectPopup);
+    // project popup
+    var projectPopup = document.createElement("div");
+    projectPopup.classList.add("project-popup");
+    projectPopup.classList.add("pre");
+    document.querySelector("div[project-popup]").appendChild(projectPopup);
 
-    var proj, pTag, pTitle, formatSU, pWebLink = ``, suInteract = ``,
-    pSpan = p.querySelector('.p-title > span');
+    var proj, // project to show in main section
+        pWebLink = ``, suInteract = ``,
+    pSpan = p.querySelector(".p-title > span");
+    const PROJECT = pData[p.id]; // get this project informations from data-base
+          PROJECT.desc = (!PROJECT.desc) ? {} : PROJECT.desc; // fix "TypeError PROJECT.desc undefined" when check if "desc.[lang]" exists
 
-    if(projectsDesc[p.id].type == 'img') {
-        var imgMiniSRC = p.querySelector('.thumb').getAttribute('src'),
-            w = '';
-        if(projectsDesc[p.id].white == true) { w = ' white'; }
+    // FORMAT
+    const urlID = ((PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id),
+          embedURL = ((PROJECT.embed) ? PROJECT.embed : pDataDefault.embed),
+          embedFormat = ((PROJECT.format) ? PROJECT.format : pDataDefault.format);
+
+    var formatU, formatSU;
+    if(embedFormat == "1:1" || embedFormat == "fill") {
+        formatU = "80.1vh";
+    }
+    else {
+        formatSU = (embedFormat == "16:9") ? "56.25" : embedFormat;
+        formatU = formatSU + "%";
+        formatSU = "calc((var(--pp-popup-c-size) * 1vw * var(--pp-sgrid) / 100 - var(--pp-sgrid-gap)) * "+ formatSU +" / 100);"
+    }
+
+    // TYPE
+    if(PROJECT.type == "img") {
+        const imgMiniSRC = p.querySelector(".thumb").getAttribute("src");
+
         proj = `
-            <div style="width:100%;height:100%;"><img class="pp-img`+ w +`" src="`+ imgMiniSRC +`" style="background-image: url(`+ imgMiniSRC +`);"></img></div>
+            <div style="width:100%;height:100%;"><img class="pp-img" src="${imgMiniSRC}" style="${
+                (PROJECT.needBG) ? "background-color: "+ ((PROJECT.needBG != true) ? PROJECT.needBG : "var(--y-b2)") +"; " : "" // put a background color if needed
+            }background-image: url(${imgMiniSRC});"></img></div>
         `;
-    } else if(['vid', 'web'].includes(projectsDesc[p.id].type)) {
-        var format = projectsDesc[p.id].format, formatU, iframe;
+    }
 
-        if(format == '1:1' || format == 'fill') { formatU = '80.1vh'; }
-        else {
-            if(format == '16:9') { formatSU = '56.25';
-            } else { formatSU = format; }
-            formatU = formatSU + '%';
-            formatSU = 'calc((var(--pp-popup-c-size) * 1vw * var(--pp-sgrid) / 100 - var(--pp-sgrid-gap)) * '+ formatSU +' / 100);'
+    else {
+        var iframe;
+
+        if(PROJECT.type == "yt") {
+            iframe = `<iframe width="1280" height="720" src="https://www.youtube.com/embed/${urlID}?rel=0&color=white&loop=1&playlist=${urlID}" frameborder="0" allowfullscreen></iframe>`
         }
 
-        if(projectsDesc[p.id].type == 'vid') {
-            iframe = `<iframe width="1280" height="720" src="https://www.youtube.com/embed/`+ projectsDesc[p.id].url +`?rel=0&color=white&loop=1&playlist=`+ projectsDesc[p.id].url +`" frameborder="0" allowfullscreen></iframe>`
-        } else if(projectsDesc[p.id].type == 'web') {
-            iframe = `<iframe src="`+ projectsDesc[p.id].url +`" width="1920px" height="1080px" frameborder="0"></iframe>`
-            //var accessLang; if(language == 'fr') { accessLang = 'ACCÉDER AU SITE'; } else { accessLang = 'ACCESS WEBSITE'; }
-            pWebLink = ppDescSamples('link', projectsDesc[p.id].url, 'WEBSITE');
+        if(PROJECT.type == "embed") {
+            iframe = `<iframe src="${urlID}" width="1920px" height="1080px" frameborder="0"></iframe>`
+            pWebLink = Prj.projectTemplate('link', embedURL, ((language == "fr") ? "ACCÉDER AU SITE" : "ACCESS WEBSITE"));
         }
+
         proj = `
             <div id="player-c">
-                <div id="player" style="padding-bottom: `+ formatU +`;">
-                `+ iframe +`
+                <div id="player" style="padding-bottom: ${formatU};">
+                    ${iframe}
                 </div>
             </div>
         `;
-    } else if(projectsDesc[p.id].type == 'pdf') {
+    }
+
+    if(PROJECT.type == 'g_pdf') {
         proj = `
             <div id="pdf-reader">
-                <iframe class="pp-pdf" src="https://drive.google.com/file/d/`+ projectsDesc[p.id].url +`/preview" width="100%" height="100%" frameborder="0"></iframe>
+                <iframe class="pp-pdf" src="https://drive.google.com/file/d/${urlID}/preview" width="100%" height="100%" frameborder="0"></iframe>
             </div>
         `;
     }
-    if(projectsDesc[p.id].tag == 'perso') { pTag = 'Personnal Project';
-    } else if(projectsDesc[p.id].tag == 'fun') { pTag = 'Fun';
-    } else if(projectsDesc[p.id].tag == 'rs') { pTag = 'RetroSaturn';
-    } else if(projectsDesc[p.id].tag == 'sch') { pTag = 'School Project';
-    } else if(projectsDesc[p.id].tag == 'sc') { pTag = 'Service Civique';
-    } else if(projectsDesc[p.id].tag == 'c') { pTag = 'Commission';
-    } else if(projectsDesc[p.id].tag == 'ppm') { pTag = 'PPM Commission';
+
+    // CONTEXT formatting
+    var pContextsEl = ``, pFiltersEl = ``;
+    if(PROJECT.context) {
+        PROJECT.context.split("|").forEach(context => {
+            var c = pContexts.en.format[context];
+            if(!c) { c = context.toUpperCase(); } // if does not correspond to any existing, take current value
+            pContextsEl += `<span class="context">${c}</span>`;
+        });
     }
-    if(projectsDesc[p.id].suType == 'interact') {
-        var suInSVG = `<svg viewBox="0 0 32 32"><polygon points="13.4,7.2 16,4.6 27.5,16 16.1,27.4 13.4,24.8 20.5,17.7 4.5,17.7 4.5,14.3 20.5,14.3"/></svg>`;
+
+    // FILTER formatting
+    if(PROJECT.filter) {
+        PROJECT.filter.split("|").forEach(filter => {
+            var f = pFilters.en.format[filter];
+            if(!f) { f = filter.toUpperCase(); } // if does not correspond to any existing, take current value
+            pFiltersEl += `<span class="filter-${filter}">${f}</span>`;
+        });
+    }
+
+    if(((PROJECT.interact) ? PROJECT.interact : pDataDefault.interact) == 'off') {
+        const suInSVG = `<svg viewBox="0 0 32 32"><polygon points="13.4,7.2 16,4.6 27.5,16 16.1,27.4 13.4,24.8 20.5,17.7 4.5,17.7 4.5,14.3 20.5,14.3"/></svg>`;
         suInteract = suInSVG + `<div><span>MAXIMIZE</span><span>CLOSE</span></div>` + suInSVG;
     }
-    if(pSpan.hasAttribute('long-title')) { pTitle = pSpan.getAttribute('long-title');
-    } else { pTitle = pSpan.innerText; }
     projectPopup.innerHTML = `
         <div class="pp-bg" style="opacity:0;"></div>
-        <div class="pp-popup-c" pp-suType=`+ projectsDesc[p.id].suType +`>
+        <div class="pp-popup-c" pp-interact=${((PROJECT.interact) ? PROJECT.interact : pDataDefault.interact)}>
             <div class="pp-sectiongrid">
                 <section class="pp-project">
-                    <div class="pp-proj">`
-                        + proj +`
+                    <div class="pp-proj">
+                        ${proj}
                     </div>
-                    <div class="pp-scaleup" style="height: `+ formatSU +`">`+ suInteract +`</div>
+                    <div class="pp-scaleup" style="height: ${formatSU}">${suInteract}</div>
                 </section>
                 <section class="pp-desc" scroll>
                     <div class="pp-title-c">
                         <div class="pp-title">
-                            <span id="big">`+ pTitle +`</span>
+                            <span id="big">${
+                                ((PROJECT).title ? (PROJECT).title : pDataDefault.title) // get title from project card
+                            }</span>
                             <div class="pp-t-pills">
-                                <span id="date">`+ projectsDesc[p.id].year +`.`+ projectsDesc[p.id].month +`</span>
-                                <span id="tag">`+ pTag +`</span>
+                                <div class="tags-space">
+                                    <div id="contexts">${pContextsEl}</div>
+                                    <div id="date"><span>${((PROJECT.date) ? PROJECT.date : pDataDefault.date)}</span></div>
+                                </div>
+                                <div class="tags-line">
+                                    <div id="filters">${pFiltersEl}</div>
+                                </div>
                             </div>
                         </div>
-                        <div class="pp-subt">
-                            <span class="pp-subtitle">`+ projectsDesc[p.id].subtitle +`</span>
+                        <div class="pp-title-under">
+                            <span class="pp-subtitle">${((PROJECT.subtitle) ? PROJECT.subtitle : pDataDefault.subtitle)}</span>
                             <div class="pp-langswitcher-c">
                                 <div class="pp-langswitcher">
                                     <span l="fr">FR</span><span l="en">EN</span>
@@ -982,8 +543,7 @@ function openProjectCardPopup(ev, p, item) {
         ppProj = projectPopup.querySelector('.pp-project'),
         pplBtn = projectPopup.querySelectorAll('.pp-langswitcher > span'),
         ppDesc = projectPopup.querySelector('.pp-desc'),
-        ppDesctxt = ppDesc.querySelector('.pp-desctxt'),
-        ppOScr;
+        ppDesctxt = ppDesc.querySelector('.pp-desctxt');
 
 
     function closeppdImgView(ev, descimg, descimgImg, imgView) {
@@ -1037,24 +597,24 @@ function openProjectCardPopup(ev, p, item) {
     }
     function ppDesctxtPrint() {
         ppDesctxtAnimateOut(ppDesc.querySelectorAll('.pp-desctxt > .pp-desctxt-in'));
+
         var ppDesctxtin = document.createElement('div');
-        ppDesctxtin.classList.add('pp-desctxt-in');
-        ppDesctxtin.classList.add('pre');
+        ppDesctxtin.classList.add('pp-desctxt-in'); ppDesctxtin.classList.add('pre');
         ppDesctxt.appendChild(ppDesctxtin);
+
         setTimeout(() => {
-            var d;
             if(language == 'fr') {
-                d = projectsDesc[p.id].desc.fr;
-                if(!d || d == '') { ppDesctxtin.innerHTML = '<p class="no">Pas de description disponible.</p>'; } else { ppDesctxtin.innerHTML = d; }
+                ppDesctxtin.innerHTML = ((PROJECT.desc.fr) ? PROJECT.desc.fr : '<p class="no">Pas de description disponible.</p>');
             } else {
-                d = projectsDesc[p.id].desc.en;
-                if(!d || d == '') { ppDesctxtin.innerHTML = '<p class="no">No description available.</p>'; } else { ppDesctxtin.innerHTML = d; }
+                ppDesctxtin.innerHTML = ((PROJECT.desc.en) ? PROJECT.desc.en : '<p class="no">No description available.</p>');
             }
             ppDImgViewCreate();
             ppDesctxtAnimateSpawn(ppDesctxtin);
         }, 1);
-    } ppDesctxtPrint();
+    }
+    ppDesctxtPrint();
 
+    // lang switching
     pplBtn.forEach(lbtn => { if(lbtn.getAttribute('l') == language) { lbtn.classList.add('focus'); } });
     projectPopup.querySelector('.pp-langswitcher-c').addEventListener('click', function() {
         pplBtn.forEach(l => { l.classList.toggle('focus'); });
@@ -1064,8 +624,8 @@ function openProjectCardPopup(ev, p, item) {
         }, 1);
     })
 
-    if(isMini) { ppOScr =  { autoHide : 'move', autoHideDelay : OScrHDelay }
-    } else { ppOScr =  { autoHide : 'leave', autoHideDelay : 0 } }
+    // scrollbar settings
+    const ppOScr = ((isMini) ? { autoHide : 'move', autoHideDelay : OScrHDelay } : { autoHide : 'leave', autoHideDelay : 0 });
     projectPopup.scrollbarPP = OverlayScrollbars(ppDesc, {
         autoUpdate : o1[0],
         overflowBehavior : {
@@ -1075,8 +635,9 @@ function openProjectCardPopup(ev, p, item) {
         scrollbars : ppOScr
     });
 
-    if(projectsDesc[p.id].type == 'img') {
-        // Load Higher Res Picture (https://stackoverflow.com/a/54123157)
+    // Load higher resolution picture
+    if(PROJECT.type == 'img') {
+        // (https://stackoverflow.com/a/54123157)
         function loadHighResImage(elem, highResUrl) {
             let image = new Image();
             image.addEventListener('load', function() {
@@ -1085,7 +646,7 @@ function openProjectCardPopup(ev, p, item) {
             });
             image.src = highResUrl;
         };
-        loadHighResImage(ppProj.querySelector('.pp-img'), './assets/medias/projects/'+ iID(item) +'/'+ p.id +'.'+ (projectsDesc[p.id].imgExt || 'jpg'));
+        loadHighResImage(ppProj.querySelector('.pp-img'), './assets/medias/projects/high/'+ p.id +'_high.'+ ((PROJECT.ext) ? PROJECT.ext : pDataDefault.ext));
     }
 
     // Cursor Close on BG hover
@@ -1338,6 +899,8 @@ function init() {
     }
 
     if(pathDir == 'projects') {
+        createProjectsMenu();
+
         // open acc items
         document.querySelectorAll('.acclist-item').forEach((item) => {
             item.setAttribute('state', 'closed');
