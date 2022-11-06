@@ -64,7 +64,7 @@ pagesGlob.forEach(pagePath => {
     PAGES.push(split); // 0=path ; 1=file ; 2=publicPath
   }
 })
-console.info(PAGES.length, "pages", PAGES, "\n");
+console.info(PAGES.length, "page" + ((PAGES.length > 1) ? "s" : ""), PAGES, "\n");
 
 // WEBPACK
 module.exports = {
