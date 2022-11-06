@@ -13,7 +13,8 @@ const DIR = {
 };
 const PATHS = {
   dev: path.join(__dirname, "../"+DIR.dev),
-  public: path.join(__dirname, "../"+DIR.public)
+  public: path.join(__dirname, "../"+DIR.public),
+  publicDev: path.join(__dirname, "../"+DIR.public+"/"+DIR.dev)
 };
 
 const postcssLoader = {

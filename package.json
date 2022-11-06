@@ -12,7 +12,8 @@
   "scripts": {
     "dev": "webpack-dev-server --config ./config/webpack.dev.conf.js",
     "dev-o": "webpack-dev-server --config ./config/webpack.dev.conf.js --open",
-    "build": "webpack --config ./config/webpack.build.conf.js"
+    "build": "webpack --config ./config/webpack.build.conf.js",
+    "build-dev": "webpack --config ./config/webpack.build-dev.conf.js"
   },
   "devDependencies": {
     "@babel/core": "^7.18.10",
