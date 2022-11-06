@@ -632,8 +632,32 @@ function openProjectCardPopup(ev, p, item) {
             x : 'hidden',
             y : 'scroll'
         },
-        scrollbars : ppOScr
+        scrollbars : ppOScr,
+        callbacks : {
+            onScroll : scrollStartEnd
+        }
     });
+
+    function scrollStartEnd() { // change border radius left top/bottom with scroll
+        const scroll = projectPopup.scrollbarPP.scroll(),
+              pp = document.querySelector(".pp-popup-c"),
+              clamp = 120;
+
+        pp.style.borderBottomRightRadius = null;
+        pp.style.borderTopRightRadius = null;
+
+        if(scroll.handleLengthRatio.y < 1) { // check if needs scrollbar
+            if(scroll.position.y < clamp) { // top
+                pp.style.borderTopRightRadius = "0em";
+            } else if(scroll.position.y > scroll.trackLength.y - clamp) { // bottom
+                pp.style.borderBottomRightRadius = "0em";
+            }
+        }
+
+    }
+    setTimeout(() => {
+        scrollStartEnd();
+    }, 500);
 
     // Load higher resolution picture
     if(PROJECT.type == 'img') {
