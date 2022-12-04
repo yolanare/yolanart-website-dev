@@ -127,18 +127,18 @@ function createProjectsMenu() {
     var accItems = ``, accContent = ``;
 
     Object.entries(mData).forEach(categoryData => {
-        const categoryName = categoryData[0], category = categoryData[1];
+        const categoryID = categoryData[0], category = categoryData[1];
 
         // CATEGORIES
         // set up all category buttons
         accItems += `
-            <section i-id="${categoryName}" class="acc-s acclist-item" level="1">
+            <section i-id="${categoryID}" class="acc-s acclist-item" level="1">
                 <div class="acclist-in-c">
                     <div class="acclist-in">
                         <div class="acclist-btn lv1">
                             <div class="acclist-title">
                                 ${(category.icon) ? category.icon : mDataDefault.icon}
-                                <span class="acclist-t-span">${(category.title) ? category.title : mDataDefault.title}</span>
+                                <span class="acclist-t-span">${(category.title.en) ? category.title.en : mDataDefault.title.en}</span>
                             </div>
                         </div>
                     </div>
@@ -149,16 +149,17 @@ function createProjectsMenu() {
         // CARDS
         var accCards = ``;
         Object.entries(Prj.projectsData).forEach(projectData => {
-            const projectName = projectData[0], PROJECT = projectData[1];
+            const projectID = projectData[0], PROJECT = projectData[1],
+                  pCategories = PROJECT.category.split("|");
 
-            if(((PROJECT.category) ? PROJECT.category : pDataDefault.category) == categoryName) { // look in every project if category matches, for each category
+            if(pCategories.includes(categoryID)) { // look in every project if category matches, for each category
                 // set up all project cards
                 accCards += `
-                    <div id="${projectName}" class="al-card">
+                    <div id="${projectID}" class="al-card">
                         <div class="thumbnail-c">
                             <img class="thumb" ${
                                 (PROJECT.needBG) ? "style=\"background-color: "+ ((PROJECT.needBG != true) ? PROJECT.needBG : "var(--y-b2)") +";\"" : "" // put a background color if needed
-                            } src="./assets/medias/projects/low/${projectName}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"/>
+                            } src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"/>
                         </div>
                         <div class="p-title-c${(PROJECT.titleHide) ? " hide" : ""}">
                             <div class="p-title">
@@ -174,7 +175,7 @@ function createProjectsMenu() {
         });
         // put all cards in container
         accContent += `
-            <div i-id="${categoryName}" class="acccontent-c">
+            <div i-id="${categoryID}" class="acccontent-c">
                 <div class="acclist-content">
                     <div class="al-grid">
                     ${accCards}
