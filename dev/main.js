@@ -29,7 +29,6 @@ const pData = Prj.projectsData,
       mData = Prj.categoriesData,
       pDataDefault = Prj.projectsDataSample.default,
       mDataDefault = Prj.categoriesDataSample.default,
-      pCategories = Prj.categories,
       pContexts = Prj.contexts,
       pFilters = Prj.filters;
 

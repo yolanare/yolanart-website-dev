@@ -769,37 +769,7 @@ const categoriesData = {
         subtitle: "Things I do for fun",
         icon : '<svg viewBox="0 0 32 32"><path d="M22.4,7.9l1.3,2.3L20,12.4l-9.5,2.5L22.4,7.9 M23,5.6L4.5,16.5L5,17.7l20.8-6.3l0.2-0.6L23,5.6L23,5.6z"/><path d="M24.8,12.8l0.7,2.5l-4.4,1.2l-10.2,0L24.8,12.8 M26,10.8L4.5,16.5L5,17.7l21.4-0.7l1.2-0.5L26,10.8L26,10.8z"/><path d="M27.5,26.4h-23v-9.8h23V26.4z M22.6,23.8H25v-4.8h-2.3V23.8z M18.3,23.8h2.3v-4.8h-2.3V23.8zM13.9,23.8h2.3v-4.8h-2.3V23.8z M9,19.3c-1.2,0-2.1,1-2.1,2.1c0,1.2,1,2.1,2.1,2.1s2.1-1,2.1-2.1C11.2,20.3,10.2,19.3,9,19.3z"/></svg>'
     }
-    /* "logos" : {
-        title: "LOGOS",
-        icon : '<svg viewBox="0 0 32 32"><path d="M15.3,23.4l-5,3.5c-0.9,0.6-2.2-0.2-1.8-1.3l1.8-5.8c0.1-0.5,0-1-0.4-1.3L5,14.7c-0.9-0.7-0.4-2.1,0.7-2.2l6.1-0.1c0.5,0,0.9-0.3,1.1-0.8l2-5.7c0.4-1.1,1.9-1.1,2.3,0l2,5.7c0.2,0.5,0.6,0.8,1.1,0.8l6.1,0.1c1.1,0,1.6,1.5,0.7,2.2l-4.8,3.7c-0.4,0.3-0.6,0.8-0.4,1.3l1.8,5.8c0.3,1.1-0.9,2-1.8,1.3l-5-3.5C16.3,23.1,15.7,23.1,15.3,23.4z"/></svg>',
-    },
-    "banners" : {
-        title: "BANNERS",
-        icon : '<svg viewBox="0 0 32 32"><path d="M15.3,23.4l-5,3.5c-0.9,0.6-2.2-0.2-1.8-1.3l1.8-5.8c0.1-0.5,0-1-0.4-1.3L5,14.7c-0.9-0.7-0.4-2.1,0.7-2.2l6.1-0.1c0.5,0,0.9-0.3,1.1-0.8l2-5.7c0.4-1.1,1.9-1.1,2.3,0l2,5.7c0.2,0.5,0.6,0.8,1.1,0.8l6.1,0.1c1.1,0,1.6,1.5,0.7,2.2l-4.8,3.7c-0.4,0.3-0.6,0.8-0.4,1.3l1.8,5.8c0.3,1.1-0.9,2-1.8,1.3l-5-3.5C16.3,23.1,15.7,23.1,15.3,23.4z"/></svg>',
-    }, */
 }
-
-
-const categories = {
-    en : {
-        "artworks": "Artworks",
-        "render" : "3D Renders",
-        "motion" : "Motion-Design",
-        "brandings" : "Brandings",
-        "posters" : "Posters",
-        "web" : "Webdesign",
-        "other" : "Other Funky Stuff"
-    },
-    fr : {
-        "artworks": "Projets Graphique",
-        "render" : "Rendus 3D",
-        "motion" : "Motion-Design",
-        "brandings" : "Brandings",
-        "posters" : "Affiches",
-        "web" : "Webdesign",
-        "other" : "Autres Trucs Chelous"
-    }
-};
 
 const contexts = {
     en : {
@@ -911,6 +881,7 @@ const filters = {
 export {
     projectsData, categoriesData,
     projectsDataSample, categoriesDataSample,
-    categories, contexts, filters,
+    contexts, filters,
+
     projectTemplate
 };
