@@ -434,7 +434,7 @@ function openProjectCardPopup(ev, p, item) {
         var iframe;
 
         if(PROJECT.type == "yt") {
-            iframe = `<iframe width="1280" height="720" src="https://www.youtube.com/embed/${urlID}?rel=0&color=white&loop=1&playlist=${urlID}" frameborder="0" allowfullscreen></iframe>`
+            iframe = `<iframe width="1280" height="720" src="https://www.youtube.com/embed/${urlID}?rel=0&color=white&loop=1" frameborder="0" allowfullscreen></iframe>`
         }
 
         if(PROJECT.type == "embed") {
