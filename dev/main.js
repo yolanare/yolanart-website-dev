@@ -405,7 +405,9 @@ function openProjectCardPopup(ev, p, item) {
           PROJECT.desc = (!PROJECT.desc) ? {} : PROJECT.desc; // fix "TypeError PROJECT.desc undefined" when check if "desc.[lang]" exists
 
     // FORMAT
-    const urlID = ((PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id),
+    const urlID = ( (PROJECT.url_id) ? (
+                      (PROJECT.url_id != Prj.projectsDataSample.TEMPLATE.url_id) ? PROJECT.url_id : pDataDefault.url_id
+                  ) : pDataDefault.url_id ),
           embedURL = ((PROJECT.embed) ? PROJECT.embed : pDataDefault.embed),
           embedFormat = ((PROJECT.format) ? PROJECT.format : pDataDefault.format);
 
