@@ -32,3 +32,5 @@ démarrage *[2022.10.13]*
   - [ ] rajouter des nouveaux projets
   - [ ] réparer les vidéos décédées
 - [ ] commenter tout le bordel de mon code javascript car c'est le zbeul pour s'y retrouver
+- [ ] loading screen (until page loaded event), all spawn animations after removing loading screen
+- [ ] synchronize both Y arrows for spawn animation
