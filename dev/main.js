@@ -440,7 +440,7 @@ function openProjectCardPopup(ev, p, item) {
         }
 
         if(PROJECT.type == "embed") {
-            iframe = `<iframe src="${urlID}" width="1920px" height="1080px" frameborder="0"></iframe>`
+            iframe = `<iframe src="${embedURL}" width="1920px" height="1080px" frameborder="0"></iframe>`
             pWebLink = Prj.projectTemplate('link', embedURL, ((language == "fr") ? "ACCÉDER AU SITE" : "ACCESS WEBSITE"));
         }
 
