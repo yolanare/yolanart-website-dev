@@ -14,6 +14,12 @@ démarrage *[2022.12.18]*
 - [ ] fix overlayscrollbars unable to scroll when mouse is on top of fixed elements
 - [ ] loading screen for thumbnails & calculations checks (& until page loaded event), all spawn animations after removing loading screen
 
+<br>
+
+---
+
+<br>
+
 V7
 démarrage *[2022.10.13]*
 - [X] ***10.15-17h50*** - utiliser un bundler (babel + webpack)
