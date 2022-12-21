@@ -28,6 +28,7 @@ const projectsDataSample = {
         titleShort : "",
         titleHide: false,
         date : "----.--",
+        color : "#000000",
         category : "other",
         context: "",
         filter: "",
@@ -48,6 +49,7 @@ const projectsDataSample = {
         titleShort : "SHORT_TITLE",
         titleHide: false|true,
         date : "YYYY.MM",
+        color : "COLOR",
         category : "artworks|renders|motion|brandings|prints|web|other",
         context: "personal|fun|order|school|sc|ppm|retrosaturn|pti",
         filter: "experiment|photo|illustration|3D|motion|type|poster|print|logo|vector|layout|ad",
@@ -72,7 +74,8 @@ const projectsDataSample = {
         title : "TITLE",
         titleShort : "SHORT_TITLE", // to use if title is too long to fit the project card
         titleHide: false|true, // choose whether to hide or no the title | DEFAULT: "false"
-        date : "YYYY.MM", // CAN BE: "2021-2022" | "2020.09-11" | "2019-2021.03" | "2019.07-2020.02"
+        date : "YYYY.MM", // CAN BE: "2000-2001" | "2000-2001.00" | "2000.00-2001" | "2000.01-2001.00" | "2000.00" | "2000.00-01"
+        color : "COLOR", // CAN BE any CSS color : var(--var) | #ffffff | rgb(0, 0, 0) | hsl(0, 0%, 0%) | hwb(0 0% 0%)
         category : "artworks|renders|motion|brandings|prints|web|other", // CAN BE: "artworks" | "brandings|web"]
         context: "personal|fun|order|school|retrosaturn|pti|sc", // CAN BE: "fun" | "fun|school"]
         filter: "experiment|photo|illustration|3D|motion|type|poster|print|logo|vector|layout|ad", // CAN BE: "experiment" | "experiment|motion"]
@@ -407,6 +410,7 @@ var projectsData = {
         title : "VIDÉO PUBLICITAIRE: \"LES CONNECTÉS\"",
         titleShort : "PUB: \"LES CONNECTÉS\"",
         date : "2021.02-04",
+        color : "#fe670e",
         category : "motion",
         context: "sc",
         filter: "motion|ad",
@@ -706,7 +710,7 @@ var projectsData = {
     "w_vh" : {
         type : "embed", interact : "off",
             embed : "https://valentinhebert.com",
-        title : "VALENTIN HÉBERT PORTFOLIO",
+        title : "VALENTIN HÉBERT's PORTFOLIO",
         titleShort : "VALENTIN HÉBERT",
         //titleHide: true,
         date : "2020.10-2021.01",

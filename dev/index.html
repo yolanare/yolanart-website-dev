@@ -25,19 +25,33 @@
         <div class="ERROR" translate="yes"><div><span class="t">Something feels wrong...</span><span>Please try,</span><a class="l" href="https://www.enablejavascript.io/" target="_blank"><span>Enabling JavaScript</span></a><a class="l" href="https://browsehappy.com/" target="_blank"><span>Using an up-to-date Internet browser</span></a><span>to continue browsing here.</span></div></div>
     </noscript>
 
-    <div id="container" scroll-main>
-        <nav class="pre-spawn"></nav>
-        <div id="content-container">
-            <main id="swup" class="transition-op">
-                <div accordion-content level="1"></div>
-            </main>
-            <main id="swup" class="transition-y">
-                <!--TODO <div class="scrdown-notice"></div> -->
-                <div accordion-scroll></div>
-                <div class="margin-bott"></div>
-            </main>
-        </div>
-    </div>
+    <main id="content-container" scroll-main>
+        <header id="landing" class="content-sections">
+            <div class="main-title">Yolan’Art</div>
+            <div class="scroll-down-notice">Scroll down!</div>
+        </header>
+        <section id="recent-projects" class="content-sections">
+
+            <div id="intro" class="col1">
+                <div class="in sticky">
+                    <span class="title-recent" to_translate="recent-proj-title">here are my most recent projects</span>
+                    <div class="goto_filters-txt">
+                        <span to_translate="recent-proj-goto_filters">Want to see them all at once?</span>
+                        <svg class="arrow-right" viewBox="0 0 24 24"><polyline points="12 24 24 12 12 0"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div id="recent-projects-actions" class="col2">
+                <div class="in"></div>
+            </div>
+
+            <div id="recent-projects-slides" class="col2 sticky"></div>
+
+        </section>
+        <section id="filter" class="content-sections"></section>
+        <footer id="contact" class="content-sections"></footer>
+    </main>
 
 </body>
 </html>

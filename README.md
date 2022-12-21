@@ -2,7 +2,7 @@
 
 Development workspace for [yolan.art](https://yolan.art)
 
-Access current development build : [yolan.art/dev](https://yolan.art/dev)
+Access current deployed development build : [yolan.art/dev](https://yolan.art/dev)
 
 Public repository : [yolanare.github.io](https://github.com/Yolanare/yolanare.github.io)
 

@@ -1,3 +1,20 @@
+V8
+démarrage *[2022.12.18]*
+- [ ] section 1 : landing
+- [X] ***12.22-00h30*** section 2 : recent works
+- [ ] section 3 : filter
+- [ ] projectPages
+  - [ ] close with history
+  - [ ] when clicking on a project, remember order of previous and next project so that we can switch to them with arrows at the end
+- [ ] finish projects data-base
+- [ ] section 4 : contact
+- [ ] small menu : translate, quick social links, logo
+  - [ ] use y-navBoom (rename) when clicking on buttons or opening menu
+- [ ] fix overlayscrollbars backdrop-filter not working in chrome
+- [ ] fix overlayscrollbars unable to scroll when mouse is on top of fixed elements
+- [ ] loading screen for thumbnails & calculations checks (& until page loaded event), all spawn animations after removing loading screen
+
+V7
 démarrage *[2022.10.13]*
 - [X] ***10.15-17h50*** - utiliser un bundler (babel + webpack)
 - [X] ***10.23-16h00*** - site fonctionnel déployé
