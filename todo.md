@@ -3,6 +3,8 @@ démarrage *[2022.12.18]*
 - [ ] section 1 : landing
 - [X] ***12.22-00h30*** section 2 : recent works
 - [ ] section 3 : filter
+  - [ ] add quick play button next to video projects titles cards, which will popup the video embed to quickly watch the video
+  - [ ] add line saying "Showing FILTER1, FILTER2", right at the left put a bin icon to erase filtering, and at end of line number of projects shown with this filter (00)
 - [ ] projectPages
   - [ ] close with history
   - [ ] when clicking on a project, remember order of previous and next project so that we can switch to them with arrows at the end
@@ -13,6 +15,7 @@ démarrage *[2022.12.18]*
 - [ ] fix overlayscrollbars backdrop-filter not working in chrome
 - [ ] fix overlayscrollbars unable to scroll when mouse is on top of fixed elements
 - [ ] loading screen for thumbnails & calculations checks (& until page loaded event), all spawn animations after removing loading screen
+- [ ] small scroll snapping to : content-sections, recent projects cards
 
 <br>
 

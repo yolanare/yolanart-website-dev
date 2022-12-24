@@ -1092,21 +1092,23 @@ const filters = {
             "logo" : "Logo",
             "vector" : "Vector",
             "layout" : "Layout",
-            "ad" : "Advertising"
+            "ad" : "Advertising",
+            "date" : "Date"
         },
         plural : {
             "experiment" : "Experiments",
             "photo" : "Photography",
             "illustration" : "Illustrations",
             "3D" : "3D",
-            "motion" : "Motion-Design",
+            "motion" : "Motion-Designs",
             "type" : "Typography",
             "poster" : "Posters",
             "print" : "Prints",
             "logo" : "Logos",
-            "vector" : "Vector",
-            "layout" : "Layout",
-            "ad" : "Advertising"
+            "vector" : "Vectors",
+            "layout" : "Layouts",
+            "ad" : "Advertising",
+            "date" : "Dates"
         }
     },
     fr : {
@@ -1122,7 +1124,8 @@ const filters = {
             "logo" : "Logo",
             "vector" : "Vectoriel",
             "layout" : "Mise en forme",
-            "ad" : "Publicité"
+            "ad" : "Publicité",
+            "date" : "Date"
         },
         plural : {
             "experiment" : "Expérimentations",
@@ -1135,8 +1138,9 @@ const filters = {
             "print" : "Prints",
             "logo" : "Logos",
             "vector" : "Vectoriel",
-            "layout" : "Mises en forme",
-            "ad" : "Publicités"
+            "layout" : "Mises en formes",
+            "ad" : "Publicités",
+            "date" : "Dates"
         }
     }
 };
