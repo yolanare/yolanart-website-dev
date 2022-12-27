@@ -1,6 +1,7 @@
 // - IMPORTS -
 import "../node_modules/overlayscrollbars/css/OverlayScrollbars.css";
 import "../node_modules/overlayscrollbars/js/OverlayScrollbars.js";
+import { CountUp } from 'countup.js';
 
 import * as Prj from "./assets/js/projects.js";
 import "./index.html"
@@ -47,10 +48,8 @@ function mapRange(value, low1, high1, low2, high2) { // Processing's map functio
 }
 
 // call function at end of css transition of element (no propagation, option to do it only once)
-function addEvTrEnd(elem, func, property, once) {
-    var isNotAlready = true,
-        property = property ? property : false, // default: false
-        once = once ? once : true; // once? / default: true
+function addEvTrEnd(elem, func, property = false, once = true) {
+    var isNotAlready = true;
 
     if (!property) { // will check for all css properties
         elem.addEventListener("transitionend", () => { func(); }, { once : once });
@@ -116,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function() {
             y : "scroll"
         },
         scrollbars : {
-            autoHide : "scroll", // "scroll" "move" "never"
+            autoHide : "move", // "scroll" "move" "never"
             autoHideDelay : OScrHDelay
         },
         callbacks : {
@@ -126,18 +125,10 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
-function scrollUpdateEvents() {
-    recentProjectsUpdates();
-}
-function scrollEvents() {
-    StickIt();
-    recentProjectsSlides();
-    recentProjectsScrollIn();
-}
-
 
 // SHORTCUTS
 // generate HTML for filter pills with filter ID
+// TODO will need to do (learn to do) a class of smth later
 function htmlFilterPill(filterID, type, plural, customStaticName) {
     plural = plural ? "plural" : "format";
     return `<div filter-id="${filterID}" class="f-pill ${type}">
@@ -145,7 +136,21 @@ function htmlFilterPill(filterID, type, plural, customStaticName) {
             pFilters[language][plural][filterID] // get formatted name
     }</div>`
 }
-
+function htmlFilterPillComplex([filterID, customIcon], type, plural, customStaticName) {
+    plural = plural ? "plural" : "format";
+    return `<div filter-id="${filterID}" class="f-pill ${type}">
+        ${(customIcon) ? customIcon : ``}
+        <span>${(customStaticName) ? customStaticName : // use custom static name if specified
+            pFilters[language][plural][filterID] // get formatted name
+        }</span>
+    </div>`
+}
+function htmlFPill(pillID, label, customIcon = false) {
+    return `<div class="f-pill ${pillID}">
+        ${(customIcon) ? customIcon : ``}
+        <span>${label}</span>
+    </div>`
+}
 
 // STICK IT
 function StickIt() {
@@ -218,7 +223,7 @@ function projectsSortByDate() {
 
             return [y, m];
         }
-        //console.log( // debug for every case
+        //console.lo/g( // debug for every case
         //    "\n2021-2022 : " + getFinishingDate("2021-2022"),
         //    "\n2000-2001.00 : " + getFinishingDate("2000-2001.00"),
         //    "\n2000.00-2001 : " + getFinishingDate("2000.00-2001"),
@@ -265,6 +270,31 @@ var RP = {
     trackSegments : [],
 }
 
+function recentProjectsTrackLength() {
+    // TRACK LENGTH
+    RP.trackLength = doc.clientHeight * RP.projectsNb; // if using trackDivisor: / rP.trackDivisor
+    RP.track.style.height = RP.trackLength +"px"; // if using trackDivisor: - doc.clientHeight / rP.projectsNb
+}
+function recentProjectsTrackSegments() {
+    // cut track in segments to get start and end position for slides to occur
+    RP.trackSegments = []; // clear segments before updating
+
+    const offset = RP.section.offsetTop; // offset with start position in the page
+    var tSegmentAdd = 0; // point jumper
+
+    // make segments with start and end point of each project
+    for (let i = 0; i < RP.projectsNb; i++) {
+        // set first point
+        var add = [tSegmentAdd + offset]
+        // next point calc, also start point for next loop
+        tSegmentAdd += (RP.trackLength / RP.projectsNb); // if using trackDivisor: - doc.clientHeight / rP.projectsNb
+        // set next point
+        add.push(tSegmentAdd + offset);
+        // store tuple of start/end points
+        RP.trackSegments.push(add);
+    }
+}
+
 function createRecentProjects() {
     // get the most recent projects
     const recentProjects = projectsSortedDate.slice(0, RP.projectsNb);
@@ -306,8 +336,7 @@ function createRecentProjects() {
     // store recent slides elements
     RP.allSlides = RP.track.querySelectorAll(".recent-slides");
     // set the scroll track length
-    RP.trackLength = doc.clientHeight * RP.projectsNb; // if using trackDivisor: / rP.trackDivisor
-    RP.track.style.height = RP.trackLength +"px"; // if using trackDivisor: - doc.clientHeight / rP.projectsNb
+    recentProjectsTrackLength();
 
     // set filter buttons actions
     RP.section.querySelectorAll("#recent-projects-slides .f-pill").forEach((filterButton) => {
@@ -318,27 +347,6 @@ function createRecentProjects() {
     // apply z-index in order of slides
     for (let i = 1; i <= RP.projectsNb; i++) {
         RP.allSlides[RP.projectsNb - i].style.zIndex = i;
-    }
-}
-
-function recentProjectsUpdates() {
-    // TRACK SEGMENTS
-    // cut track in segments to get start and end position for slides to occur
-    RP.trackSegments = []; // clear segments before updating
-
-    const offset = RP.section.offsetTop; // offset with start position in the page
-    var tSegmentAdd = 0; // point jumper
-
-    // make segments with start and end point of each project
-    for (let i = 0; i < RP.projectsNb; i++) {
-        // set first point
-        var add = [tSegmentAdd + offset]
-        // next point calc, also start point for next loop
-        tSegmentAdd += (RP.trackLength / RP.projectsNb); // if using trackDivisor: - doc.clientHeight / rP.projectsNb
-        // set next point
-        add.push(tSegmentAdd + offset);
-        // store tuple of start/end points
-        RP.trackSegments.push(add);
     }
 }
 
@@ -441,28 +449,37 @@ RP.section.querySelector("#intro-rp .goto_filters-txt").addEventListener("click"
 var F = {
     allFilterIDs : [],
     section : document.querySelector(".content-sections#filters"),
-    filtersContainer : document.querySelector(".content-sections#filters #intro-filters .filters-selector"),
-    projectsListContainer : document.querySelector(".content-sections#filters #projects-list"),
+    filtersContainer : null,
+    projectsListContainer : null,
+    projectsDisplayedNbEl : null,
     allFilterBtns : {},
     allOtherBtns : {},
     allBtns : {},
-    allProjectShown : {},
 }
+F.filtersContainer = F.section.querySelector("#intro-filters .filters-selector");
+F.projectsListContainer = F.section.querySelector("#projects-list");
+
+let countUpProjectsNb;
 
 // generate array of all valid filters
 Prj.projectsDataSample.TEMPLATE.filter.split("|").forEach((filter) => { F.allFilterIDs.push(filter); })
 
-function filtersGenerateProjectsList(selectedFilters) {
-    selectedFilters = selectedFilters ? selectedFilters : [];
-    selectedFilters = Array.isArray(selectedFilters) ? selectedFilters : [selectedFilters]; // needs to be array since will loop through
+function filtersGenerateProjectsList() {
+    // get all filters selected
+    var selectedFilters = [];
+    F.allFilterBtns.forEach((filterButton) => {
+        var state = filterButton.getAttribute("state");
+        if (state === "true") {
+            selectedFilters.push(filterButton.getAttribute("filter-id"));
+        }
+    });
 
-    if (selectedFilters == []) {
-        selectedFilters = F.allFilterIDs;
-    }
+    // if no filter selected, use all of them
+    //selectedFilters = selectedFilters == [] ? F.allFilterIDs : selectedFilters; // no need actually, [] is always true
 
-    // select projects
+    // selected projects arrays
     var selectedProjects = [], selectedProjectsSorted = [];
-
+    // loop through each existing project and select the ones with corresponding filters
     Object.entries(pData).forEach((projectData) => {
         // get project filters
         const pF = projectData[1].filter;
@@ -479,7 +496,8 @@ function filtersGenerateProjectsList(selectedFilters) {
                 }
             });
             // if one filter is missing, skip
-            if (!verif.includes(false)) {
+            if (!verif.includes(false)) { // select project if has all filters selected
+    // added quirk : if no selected filter, will select all projects since [] is not false
                 selectedProjects.push(projectData[0]);
             }
         }
@@ -494,26 +512,30 @@ function filtersGenerateProjectsList(selectedFilters) {
         if(selectedProjects.includes(project[0])) {
             selectedProjectsSorted.push(project[0]);
         }
-    })
+    });
+    const selectedProjectsNb = selectedProjectsSorted.length;
 
     // date order : false = descending | true = ascending
-    const dateOrder = F.filtersContainer.querySelector(`.f-pill[filter-id="date"]`).getAttribute("state");
+    const dateOrder = F.filtersContainer.querySelector(`.main .f-pill[filter-id="date"]`).getAttribute("state");
     if (dateOrder === "true") { selectedProjectsSorted.reverse(); }
 
-    console.log("--------");
+    // if no filter selected, hide "clear filters" button
+    if(selectedFilters.length > 0) {
+        F.filtersContainer.querySelector(".secondary").classList.remove("hidden");
+    } else {
+        F.filtersContainer.querySelector(".secondary").classList.add("hidden");
+    }
+
     // generate columns
     const numberOfColumnsMax = 3;
     var allColumns = [];
-    console.log("1", allColumns);
-
-    // initialize storage
+    // initialize columns storage
     for (let cIndex = 0; cIndex < numberOfColumnsMax; cIndex++) {
         allColumns.push([]); // init column groups
         for (let colIndex = 0; colIndex < cIndex + 1; colIndex++) {
             allColumns[cIndex].push([``]); // init columns (in which project cards will be)
         }
     }
-    console.log("2", allColumns);
 
     // generate HTML for all columns patterns
     // starting with selected projects for perfomance reasons,
@@ -531,8 +553,14 @@ function filtersGenerateProjectsList(selectedFilters) {
                 <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"></div>
                 <div class="header">
                     <span class="project-title">${(PROJECT.title) ? PROJECT.title : pDataDefault.title}</span>
-                    ${(["yt", "vid"].includes((PROJECT.type) ? PROJECT.type : pDataDefault.type))
-                    ? `<div class="video-quick-popup-button"><div></div></div>`
+                    ${(["yt", "vid"].includes((PROJECT.type) ? PROJECT.type : pDataDefault.type)) // if video : add popup button to see the video without leaving the page
+                    ? `<div class="video-quick-popup-button">
+                            <svg viewBox="0 0 24 24">
+                                <path class="st1" d="M-24.17,21.28h-4.43c-3.67,0-6.65-2.98-6.65-6.65v0c0-3.67,2.98-6.65,6.65-6.65h4.43c3.67,0,6.65,2.98,6.65,6.65v0C-17.52,18.3-20.5,21.28-24.17,21.28z"/>
+                                <path class="st2" d="M-18.94,16.05h-4.43c-3.67,0-6.65-2.98-6.65-6.65v0c0-3.67,2.98-6.65,6.65-6.65h4.43c3.67,0,6.65,2.98,6.65,6.65v0C-12.3,13.07-15.27,16.05-18.94,16.05z"/>
+                                <path d="M-22.55,12.87l4.96-2.86c0.47-0.27,0.47-0.95,0-1.23l-4.96-2.86c-0.47-0.27-1.06,0.07-1.06,0.61v5.73C-23.61,12.8-23.02,13.14-22.55,12.87z"/>
+                            </svg>
+                        </div>`
                     : ``}
                 </div>
                 <div class="filters">
@@ -552,16 +580,13 @@ function filtersGenerateProjectsList(selectedFilters) {
         }
 
     }
-    console.log("3", allColumns.length, allColumns[0].length, allColumns[1].length, allColumns[2].length);
 
-    console.log("----");
     // generate columns
     var columnsHTML = ``;
     for (let cIndex = 0; cIndex < numberOfColumnsMax; cIndex++) {
         // generating column
         var columnHTML = ``;
         for (let col = 0; col < allColumns[cIndex].length; col++) {
-            console.log("col", col);
             columnHTML += `
                 <div column="${col + 1}">
                     ${allColumns[cIndex][col]}
@@ -575,10 +600,11 @@ function filtersGenerateProjectsList(selectedFilters) {
             </div>
         `
     }
-    console.log("4", [columnsHTML]);
 
     // CREATION
     F.projectsListContainer.innerHTML = columnsHTML;
+
+
 
     // put the last project card in odd columns (starting from 0) since they're the ones going up
     // but only if there are more than 3 lines of projects (arbitrary number, test with scroll speed later)
@@ -591,34 +617,6 @@ function filtersGenerateProjectsList(selectedFilters) {
     // if resizing at the same time:
     // -> keep the old animated elements even if not displayed anymore
     // -> don't play with display anymore until animations finished
-
-
-    /*// column lists
-    var selectedProjectsColumns = {
-        one : selectedProjectsSorted,
-        two : [[],[]],
-        three : [[],[],[]],
-    }
-
-    // 2 columns
-    for (let i = 0; i < selectedProjectsSorted.length; i++) {
-        if (i%2 == 0) {
-            selectedProjectsColumns.two[0].push(selectedProjectsSorted[i]);
-        } else {
-            selectedProjectsColumns.two[1].push(selectedProjectsSorted[i]);
-        }
-    }
-
-    // 3 columns
-    for (let i = 0; i < selectedProjectsSorted.length; i++) {
-        if (i%3 == 0) {
-            selectedProjectsColumns.three[0].push(selectedProjectsSorted[i]);
-        } else if (i%3 == 1) {
-            selectedProjectsColumns.three[1].push(selectedProjectsSorted[i]);
-        } else {
-            selectedProjectsColumns.three[2].push(selectedProjectsSorted[i]);
-        }
-    }*/
 
     /*///before that columns madness
     var projectsCards = ``;
@@ -642,7 +640,6 @@ function filtersGenerateProjectsList(selectedFilters) {
             </div>
         `
     })
-
     // CREATION
     F.projectsListContainer.innerHTML = projectsCards;
     ///*/
@@ -652,15 +649,29 @@ function filtersGenerateProjectsList(selectedFilters) {
         filterButton.addEventListener("click", gotoFiltersProjectList);
         filterButton.addEventListener("click", (e) => {setTimeout(() => { filtersAction(e, "isolate"); }, scrollToDuration*(4/5))});
     })
+
+    // display new number of projects found
+    if(selectedProjectsSorted.length == 0) { // if not projects found
+        F.projectsDisplayedNbEl.classList.remove("counting");
+        F.projectsDisplayedNbEl.classList.add("none");
+    } else {
+        F.projectsDisplayedNbEl.classList.add("counting")
+        F.projectsDisplayedNbEl.classList.remove("none");
+    }
+    // duration of counting depends of number of projects shown, the more the longer
+    countUpProjectsNb.options.duration = 0.5 + mapRange(selectedProjectsNb, 0, projectsSortedDate.length, 0, 1.75);
+    // start from 0 and go to new number
+    countUpProjectsNb.reset();
+    countUpProjectsNb.update(selectedProjectsSorted.length);
+    // remove counting styles at the end of counting
+    countUpProjectsNb.start(() => { F.projectsDisplayedNbEl.classList.remove("counting"); });
+
 }
 
-function filtersAction(caller, isolate) {
+function filtersAction(caller, isolate = false) {
     // which filter called?
     caller = caller.target;
     const selectedFilter = F.filtersContainer.querySelector(`.f-pill[filter-id="${caller.getAttribute("filter-id")}"]`);
-
-    // isolate this filter? -> true : will disable every other filter
-    isolate = isolate ? isolate : false;
 
     if (isolate) { // filter buttons on project cards/slides
         // reset every other filter (even date order)
@@ -673,45 +684,126 @@ function filtersAction(caller, isolate) {
         selectedFilter.setAttribute("state", (selectedFilter.getAttribute("state") === "true") ? "false" : "true");
     }
 
-    // get all filter buttons enabled
-    var selectedFilters = [];
-    F.allFilterBtns.forEach((filterButton) => {
-        var state = filterButton.getAttribute("state");
-        if (state === "true") {
-            selectedFilters.push(filterButton.getAttribute("filter-id"));
-        }
-    });
-
     // generate projects
-    filtersGenerateProjectsList(selectedFilters);
+    filtersGenerateProjectsList();
 }
-
+/*
+<svg viewBox="0 0 24 24">
+    <path d="M11,22.02l-8.42-6.2c-0.75-0.55-0.91-1.6-0.36-2.35l0,0c0.55-0.75,1.6-0.91,2.35-0.36l3.98,2.94c2.05,1.51,4.83,1.51,6.88,0l3.98-2.94c0.75-0.55,1.8-0.39,2.35,0.36l0,0c0.55,0.75,0.39,1.8-0.36,2.35L13,22.02C12.4,22.46,11.6,22.46,11,22.02z"/>
+    <path d="M12,22.35c-0.93,0-1.68-0.75-1.68-1.68V3.33c0-0.93,0.75-1.68,1.68-1.68s1.68,0.75,1.68,1.68v17.33C13.68,21.59,12.93,22.35,12,22.35z"/>
+</svg>
+*/
 function createFilters() {
     // generate filter pills
     var allButtonsHTML = ``;
     F.allFilterIDs.forEach((filter) => {
         allButtonsHTML += htmlFilterPill(filter, "filter", "plural");
     })
-    allButtonsHTML += htmlFilterPill("date", "date", "");
+    allButtonsHTML += htmlFilterPillComplex(["date",
+        `<svg viewBox="0 0 24 24">
+            <path d="M11,22.02l-8.42-6.2c-0.75-0.55-0.91-1.6-0.36-2.35l0,0c0.55-0.75,1.6-0.91,2.35-0.36l3.98,2.94c2.05,1.51,4.83,1.51,6.88,0l3.98-2.94c0.75-0.55,1.8-0.39,2.35,0.36l0,0c0.55,0.75,0.39,1.8-0.36,2.35L13,22.02C12.4,22.46,11.6,22.46,11,22.02z"/>
+            <path d="M12,22.35c-0.93,0-1.68-0.75-1.68-1.68V3.33c0-0.93,0.75-1.68,1.68-1.68s1.68,0.75,1.68,1.68v17.33C13.68,21.59,12.93,22.35,12,22.35z"/>
+        </svg>`], "date", "");
     // create buttons
-    F.section.querySelector("#intro-filters .filters-selector").innerHTML = allButtonsHTML;
+    F.filtersContainer.innerHTML = `
+            <div class="main">
+                ${allButtonsHTML}
+            </div>
+            <div class="secondary">
+                <div class="left">
+                    <div class="animate">
+                        ${htmlFPill("clear-filters-button", "Clear filters",
+                        `<svg viewBox="0 0 24 24">
+                            <path d="M22.04,5.31L22.04,5.31c0-0.9-0.73-1.63-1.63-1.63H3.59c-0.9,0-1.63,0.73-1.63,1.63v0c0,0.9,0.73,1.63,1.63,1.63h16.82C21.31,6.94,22.04,6.21,22.04,5.31z"/>
+                            <path d="M10.45,2.38h3.11c0.51,0,0.92-0.41,0.92-0.92v0c0-0.51-0.41-0.92-0.92-0.92h-3.11c-0.51,0-0.92,0.41-0.92,0.92v0C9.53,1.97,9.94,2.38,10.45,2.38z"/>
+                            <path d="M16.85,8.24h-9.7c-1.12,0-2.03,0.91-2.03,2.03v8.93c0,2.37,1.92,4.3,4.3,4.3h6.17c2.37,0,3.3-1.92,3.3-4.3v-8.93C18.88,9.15,17.97,8.24,16.85,8.24z M10.69,17.12c0,0.51-0.41,0.92-0.92,0.92s-0.92-0.41-0.92-0.92v-5.03c0-0.51,0.41-0.92,0.92-0.92s0.92,0.41,0.92,0.92V17.12z M15.15,17.12c0,0.51-0.41,0.92-0.92,0.92h0c-0.51,0-0.92-0.41-0.92-0.92v-5.03c0-0.51,0.41-0.92,0.92-0.92h0c0.51,0,0.92,0.41,0.92,0.92V17.12z"/>
+                        </svg>`)}
+                    </div>
+                </div>
+                <div class="right">
+                    <div class="filter-projects-number"><span anim-count>69</span><span> projects found</span></div>
+                </div>
+            </div>
+    `;
 
     // store filters
-    F.allFilterBtns = F.filtersContainer.querySelectorAll(".f-pill.filter");
+    F.allFilterBtns = F.filtersContainer.querySelectorAll(".main .f-pill.filter");
     // store other buttons (date)
-    F.allOtherBtns = F.filtersContainer.querySelectorAll(".f-pill:not(.filter)");
+    F.allOtherBtns = F.filtersContainer.querySelectorAll(".main .f-pill:not(.filter)");
     // store all buttons
-    F.allBtns = F.filtersContainer.querySelectorAll(".f-pill");
+    F.allBtns = F.filtersContainer.querySelectorAll(".main .f-pill");
 
     // set filter buttons actions & states
-    F.filtersContainer.querySelectorAll(".f-pill").forEach((filterButton) => {
+    F.allBtns.forEach((filterButton) => {
         filterButton.setAttribute("state", false); // by default, every filter is false
         filterButton.addEventListener("click", filtersAction);
     })
 
-    filtersGenerateProjectsList(); // display all projects by default
+    // clear filters button
+    F.filtersContainer.querySelector(".secondary .clear-filters-button").addEventListener("click", () => {
+        // reset filters state
+        F.allBtns.forEach((filterButton) => { filterButton.setAttribute("state", false); });
+        // display all projects
+        filtersGenerateProjectsList();
+    })
+
+    // set secondary line animations delay
+    var addDelay = 0;
+    F.filtersContainer.querySelectorAll(".secondary .animate").forEach((el) => {
+        el.style.transitionDelay = addDelay +"s";
+        addDelay += 0.25;
+    })
+
+    // set CountUp.js for projects found count
+    F.projectsDisplayedNbEl = F.filtersContainer.querySelector(".secondary .filter-projects-number [anim-count]");
+    countUpProjectsNb = new CountUp(F.projectsDisplayedNbEl, 0, {
+        startVal: 0,
+        decimalPlaces: 0,
+        duration: 2,
+        useGrouping: true,
+        useEasing: true,
+        separator: ",",
+        easingFn : (t, b, c, d) => {
+            var ts = (t /= d) * t;
+            var tc = ts * t;
+            return b + c * (tc + -3 * ts + 3 * t);
+        },
+        enableScrollSpy: false
+    });
+
+    // display all projects by default
+    filtersGenerateProjectsList();
 }
 
+function projectListColumnsByRatio() {
+    console.log("resize");
+}
+
+function projectListColumnsOddScrollOffset() {
+    var move = F.projectsListContainer.getBoundingClientRect().top;
+    if (move < doc.clientHeight * 1.2) {
+        doc.style.setProperty('--col-scroll-offset', (float(move / 3)) +"px")
+    }
+}
+
+// UPDATES EVENTS
+function scrollUpdateEvents() {
+    StickIt();
+    recentProjectsTrackLength();
+    recentProjectsTrackSegments();
+}
+function scrollEvents() {
+    StickIt();
+    recentProjectsSlides();
+    recentProjectsScrollIn();
+    projectListColumnsOddScrollOffset();
+}
+window.addEventListener("resize", () => {
+    StickIt();
+    recentProjectsTrackLength();
+    recentProjectsTrackSegments();
+    projectListColumnsByRatio();
+});
 
 
 function init() {
@@ -723,11 +815,11 @@ function init() {
     createFilters();
 
     // STICKY ELEMENTS
-    setTimeout(() => { // delay for when opening page with hash of sections
-        StickIt();
-        window.addEventListener("resize", StickIt)
-        // + scroll event
-    }, 100);
+    for (let i = 0; i < 8; i++) { // for loop to make sure it's applied
+        setTimeout(() => { // delay for when opening page with hash of sections
+            StickIt();
+        }, 400 * i);
+    }
 }
 document.addEventListener("DOMContentLoaded", init);
 
