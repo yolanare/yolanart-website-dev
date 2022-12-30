@@ -469,7 +469,7 @@ function recentProjectsScrollIn() { // shift slides until reach top of vp
 
 // GO TO FILTERS BUTTON
 function scrollToFiltersSection() {
-    isScrollingTo = true;
+    //isScrollingTo = true;
 
     scrollbarMain.scroll(
         document.querySelector(".content-sections#filters"),
@@ -736,7 +736,7 @@ function filtersGenerateProjectsList() {
         F.projectsListColumns.forEach((col) => {
             col.classList.remove("anim-pre");
         })
-    }, 300);
+    }, 250);
 
     // TODO
     // put the last project card in odd columns (starting from 0) since they're the ones going up
