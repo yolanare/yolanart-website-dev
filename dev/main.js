@@ -15,7 +15,8 @@ var doc = document.documentElement,
     pageContentContainer = document.querySelector("main#content-container"), // main container of page
     language = (/^fr\b/.test(navigator.language)) ? "fr" : "en"; // language (default : en)
 
-const scrollToDuration = 1000;
+const scrollToDuration = 1000,
+      scrollToDurationFilter = scrollToDuration * (5/7);
 
 // check the viewport size, set boolean "isMini" if vp goes small
 function checkWinSize() { isMini = (window.innerWidth > 727); };
@@ -46,17 +47,22 @@ const deg2rad = Math.PI/180,
 function mapRange(value, low1, high1, low2, high2) { // Processing's map function
     return float(low2 + (high2 - low2) * (value - low1) / (high1 - low1));
 }
+function mapRangePrecise(value, low1, high1, low2, high2) { // Processing's map function
+    return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
+}
+function constrain(value, low, high) { // Processing's constrain function
+    return Math.min(Math.max(value, low), high);
+}
 
 // call function at end of css transition of element (no propagation, option to do it only once)
 function addEvTrEnd(elem, func, property = false, once = true) {
-    var isNotAlready = true;
-
     if (!property) { // will check for all css properties
         elem.addEventListener("transitionend", () => { func(); }, { once : once });
     } else { // will check only for specified css property
         elem.addEventListener("transitionend", (ev) => { if (ev.propertyName == property) { func(); }}, { once : once });
     }
 
+    var isNotAlready = true;
     trEndAlready.forEach((e) => { isNotAlready &= (e == elem) ? false : true; }); // check if already checking for trEnd
     if (isNotAlready) {
         trEndAlready.push(elem);
@@ -119,12 +125,28 @@ document.addEventListener("DOMContentLoaded", function() {
             autoHideDelay : OScrHDelay
         },
         callbacks : {
-            onUpdated : scrollUpdateEvents,
-            onScroll : scrollEvents
+            //onContentSizeChanged : scrollContentSizeEvents,
+            onUpdated : scrollUpdatesEvents,
+            onScroll : scrollEvents,
+            //onScrollStop : scrollStopEvents,
         }
     });
 });
 
+// TODO cancel go-to scroll animation if user scrolls the opposite way
+//var isScrollingTo = false, isScrollingToPrevPos = [];
+//function scrollToForceStop() {
+//    if (isScrollingTo) {
+//       if (scrollbarMain.scroll().position.y > Math.min(...isScrollingToPrevPos) ||
+//           scrollbarMain.scroll().position.y < Math.max(...isScrollingToPrevPos)) {
+//           scrollbarMain.scrollStop();
+//           isScrollingTo = false;
+//       }
+//       isScrollingToPrevPos.push(scrollbarMain.scroll().position.y);
+//       if (isScrollingToPrevPos.length > 4) { isScrollingToPrevPos.shift(); }
+//    }
+//    console.log(isScrollingTo, isScrollingToPrevPos, scrollbarMain.scroll().position.y);
+//}
 
 // SHORTCUTS
 // generate HTML for filter pills with filter ID
@@ -160,20 +182,23 @@ function StickIt() {
 
         if (0 < targetContainer.top) { // if container goes out viewport at the top
             // position normal
-            stickyEl.parentElement.classList.remove("fixed");
+            stickyEl.classList.remove("sticky-fixed");
+            stickyEl.classList.remove("sticky-end");
             stickyEl.style.position = null;
             stickyEl.style.top = null;
             stickyEl.style.bottom = null;
         } else if (target.bottom >= targetContainer.bottom-1 // if sticky element hits the bottom
                 && target.top <= 0) { // and if the element's top is under the top of viewport (scroll sticky)
             // position sticked to bottom
-            stickyEl.parentElement.classList.remove("fixed");
+            stickyEl.classList.remove("sticky-fixed");
+            stickyEl.classList.add("sticky-end");
             stickyEl.style.position = "absolute";
             stickyEl.style.top = "auto";
             stickyEl.style.bottom = 0 +"px";
         } else {
             // position sticked to scroll
-            stickyEl.parentElement.classList.add("fixed");
+            stickyEl.classList.add("sticky-fixed");
+            stickyEl.classList.remove("sticky-end");
             stickyEl.style.position = "fixed";
             stickyEl.style.top = 0 +"px";
             stickyEl.style.bottom = null;
@@ -183,11 +208,17 @@ function StickIt() {
 
 // SORT PROJECTS BY DATE
 function projectsSortByDate() {
-    var projectsDate = [], projectsDateInvalid = [];
+    var projectsDate = [], projectsDateInvalid = [], projectsHidden = [];
 
     // create list of tuples of all projects : [project_id, project_date]
     Object.entries(pData).forEach((projectData) => {
         const PROJECT = projectData[1];
+
+        // if hidden, skip
+        if (PROJECT.hidden == true) {
+            projectsHidden.push([projectData[0], PROJECT.date])
+            return;
+        }
 
         // if date is invalid, don't sort
         if (!PROJECT.date || (["YYYY.MM", pDataDefault.date]).includes(PROJECT.date)) {
@@ -340,14 +371,16 @@ function createRecentProjects() {
 
     // set filter buttons actions
     RP.section.querySelectorAll("#recent-projects-slides .f-pill").forEach((filterButton) => {
-        filterButton.addEventListener("click", gotoFiltersProjectList);
-        filterButton.addEventListener("click", (e) => {setTimeout(() => { filtersAction(e, "isolate"); }, scrollToDuration*(2/3))});
+        filterButton.addEventListener("click", (e) => {filtersAction(e, "isolate", scrollToDuration * (1/5)); });
     })
 
     // apply z-index in order of slides
     for (let i = 1; i <= RP.projectsNb; i++) {
         RP.allSlides[RP.projectsNb - i].style.zIndex = i;
     }
+
+    // scroll to filters button click action
+    RP.section.querySelector("#intro-rp .goto_filters-txt").addEventListener("click", scrollToFiltersSection);
 }
 
 function recentProjectsSlides() {
@@ -424,11 +457,10 @@ function recentProjectsSlides() {
 }
 
 function recentProjectsScrollIn() { // shift slides until reach top of vp
-    const move = Math.min(Math.max(
-                        mapRange(scrollbarMain.scroll().position.y,
-                            0, doc.clientHeight,
-                            doc.clientHeight / 3, 0)
-                        , 0), doc.clientHeight / 3)
+    const move = constrain(mapRange(scrollbarMain.scroll().position.y,
+                                    0, doc.clientHeight,
+                                    doc.clientHeight / 3, 0),
+                   0, doc.clientHeight / 3);
     // apply position
     RP.section.querySelector("#recent-projects-slides").style.transform = `translateY(${move}px)`;
     RP.section.querySelector("#recent-projects-actions").style.transform = `translateY(${move}px)`;
@@ -436,36 +468,86 @@ function recentProjectsScrollIn() { // shift slides until reach top of vp
 
 
 // GO TO FILTERS BUTTON
-function gotoFilters() {
-    scrollbarMain.scroll(document.querySelector(".content-sections#filters"), scrollToDuration, "easeInOutQuart");
+function scrollToFiltersSection() {
+    isScrollingTo = true;
+
+    scrollbarMain.scroll(
+        document.querySelector(".content-sections#filters"),
+        scrollToDuration,
+        "easeInOutQuart"
+        //() => { isScrollingTo = false; }
+        );
 }
-function gotoFiltersProjectList() {
-    scrollbarMain.scroll(document.querySelector(".content-sections#filters #projects-list"), scrollToDuration, "easeInOutQuart");
+function scrollToProjectsListFilters(card = false) {
+    //isScrollingTo = true;
+
+    // default scrollTo pos : top of projects list
+    var scrollToPos = F.projectsListContainer.getBoundingClientRect().top;
+
+    // default behavior : button off-screen so we do animations and tralala
+    F.filterBtnIsOnScreen = false;
+
+    // if project card, scroll only if main filter buttons not in view
+    if (card == true) {
+        // scroll to top of filter buttons
+        scrollToPos -= F.filtersContainer.offsetHeight + 30;
+
+        // take first button, check if off-screen
+        const filtersPos = F.allFilterBtns[0].getBoundingClientRect().top;
+        if (filtersPos > 0 && filtersPos < doc.clientHeight) {
+            F.filterBtnIsOnScreen = true; // true to skip delay
+            return; // skip if on-screen
+        }
+    } else {
+        // default : scroll to top of filters intro
+        getFiltersContainerHeight();
+        scrollToPos -= F.filtersContainerHeight + 30;
+    }
+
+    scrollbarMain.scroll(
+        `+= ${scrollToPos}px`,
+        scrollToDuration,
+        (card == true) ? "easeOutQuint" : "easeInOutQuart"
+        //() => { isScrollingTo = false; }
+        );
 }
-RP.section.querySelector("#intro-rp .goto_filters-txt").addEventListener("click", gotoFilters)
 
 
 // FILTERS SECTION
 var F = {
     allFilterIDs : [],
-    section : document.querySelector(".content-sections#filters"),
-    filtersContainer : null,
-    projectsListContainer : null,
-    projectsDisplayedNbEl : null,
+    selectedFilters : [],
     allFilterBtns : {},
     allOtherBtns : {},
     allBtns : {},
+
+    section : document.querySelector(".content-sections#filters"),
+    introContainer : null,
+
+    filtersContainer : null,
+    filtersContainerHeight : 0,
+    filterBtnIsOnScreen : false,
+
+    projectsListContainer : null,
+    projectsDisplayedNbEl : null,
+    countUpProjectsNb : null,
+    previousDateOrder : "false",
+
+    projectsListColumns : {},
+    projectsListColumnGroupCurrentIndex : 1,
+    projectsListColumnLongestInGroups : [],
 }
-F.filtersContainer = F.section.querySelector("#intro-filters .filters-selector");
+// generate array of all valid filters
+Prj.projectsDataSample.TEMPLATE.filter.split("|").forEach((filter) => { F.allFilterIDs.push(filter); });
+
+// elements
+F.introContainer = F.section.querySelector("#intro-filters");
+F.filtersContainer = F.introContainer.querySelector(".filters-selector");
 F.projectsListContainer = F.section.querySelector("#projects-list");
 
-let countUpProjectsNb;
 
-// generate array of all valid filters
-Prj.projectsDataSample.TEMPLATE.filter.split("|").forEach((filter) => { F.allFilterIDs.push(filter); })
-
-function filtersGenerateProjectsList() {
-    // get all filters selected
+// get all currently selected filters
+function filtersGetSelected() {
     var selectedFilters = [];
     F.allFilterBtns.forEach((filterButton) => {
         var state = filterButton.getAttribute("state");
@@ -473,9 +555,23 @@ function filtersGenerateProjectsList() {
             selectedFilters.push(filterButton.getAttribute("filter-id"));
         }
     });
+    return selectedFilters;
+}
+
+function filtersClearProjectsList() {
+    // animation out for all (hypothetically) projects list present
+    F.projectsListContainer.querySelectorAll(".projects-list").forEach((pl) => {
+        pl.classList.add("anim-clear");
+        addEvTrEnd(pl, () => { pl.remove() }, "transform", false);
+    })
+}
+
+function filtersGenerateProjectsList() {
+    // update all selected filters
+    F.selectedFilters = filtersGetSelected();
 
     // if no filter selected, use all of them
-    //selectedFilters = selectedFilters == [] ? F.allFilterIDs : selectedFilters; // no need actually, [] is always true
+    //F.selectedFilters = F.selectedFilters == [] ? F.allFilterIDs : F.selectedFilters; // no need actually, [] is always true
 
     // selected projects arrays
     var selectedProjects = [], selectedProjectsSorted = [];
@@ -487,7 +583,7 @@ function filtersGenerateProjectsList() {
         if (pF) {
             var verif = [];
             // check for filters one by one
-            selectedFilters.forEach(sFilter => {
+            F.selectedFilters.forEach(sFilter => {
                 if (!pF.split("|").includes(sFilter)) { // filter missing
                     verif.push(false);
                     return; // skip
@@ -520,17 +616,19 @@ function filtersGenerateProjectsList() {
     if (dateOrder === "true") { selectedProjectsSorted.reverse(); }
 
     // if no filter selected, hide "clear filters" button
-    if(selectedFilters.length > 0) {
+    if(F.selectedFilters.length > 0) {
         F.filtersContainer.querySelector(".secondary").classList.remove("hidden");
     } else {
         F.filtersContainer.querySelector(".secondary").classList.add("hidden");
     }
 
     // generate columns
-    const numberOfColumnsMax = 3;
+    const columnsNbMax = 3,
+          columnsNbMin = 1, // value excluded, there will be no columns under that number
+          animateInCards = 10; // number of cards to animate in
     var allColumns = [];
     // initialize columns storage
-    for (let cIndex = 0; cIndex < numberOfColumnsMax; cIndex++) {
+    for (let cIndex = 0; cIndex < columnsNbMax; cIndex++) {
         allColumns.push([]); // init column groups
         for (let colIndex = 0; colIndex < cIndex + 1; colIndex++) {
             allColumns[cIndex].push([``]); // init columns (in which project cards will be)
@@ -549,7 +647,7 @@ function filtersGenerateProjectsList() {
             filters += htmlFilterPill(filter, "filter");
         })
         const projectCardHTML = `
-            <div project-id="${projectID}" class="project-cards">
+            <div project-id="${projectID}" class="project-cards" style="${(spIndex < animateInCards) ? `transition-delay:${spIndex / 10}s;` : `transition: none;`}">
                 <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"></div>
                 <div class="header">
                     <span class="project-title">${(PROJECT.title) ? PROJECT.title : pDataDefault.title}</span>
@@ -570,7 +668,7 @@ function filtersGenerateProjectsList() {
         `;
 
         // generate each columns, while alternating projects in each
-        for (let cIndex = 0; cIndex < numberOfColumnsMax; cIndex++) {
+        for (let cIndex = columnsNbMin; cIndex < columnsNbMax; cIndex++) {
             // using euclidian division, we can get index of column for the project with its index
             // this is the column to put the current project in
             const column = spIndex % (cIndex + 1);
@@ -581,9 +679,12 @@ function filtersGenerateProjectsList() {
 
     }
 
+    // which column group should be used right away
+    projectListColumnsByRatio();
+
     // generate columns
     var columnsHTML = ``;
-    for (let cIndex = 0; cIndex < numberOfColumnsMax; cIndex++) {
+    for (let cIndex = columnsNbMin; cIndex < columnsNbMax; cIndex++) {
         // generating column
         var columnHTML = ``;
         for (let col = 0; col < allColumns[cIndex].length; col++) {
@@ -595,40 +696,62 @@ function filtersGenerateProjectsList() {
         }
         // generating column group
         columnsHTML += `
-            <div column-group="${cIndex + 1}">
+            <div ${(F.projectsListColumnGroupCurrentIndex + columnsNbMin == cIndex) ? `class="anim-pre"` : ``} style="grid-template-columns: repeat(${cIndex + 1}, 1fr);" column-group="${cIndex + 1}">
                 ${columnHTML}
             </div>
         `
     }
 
     // CREATION
-    F.projectsListContainer.innerHTML = columnsHTML;
+    var projectList = document.createElement("div");
+    projectList.setAttribute("filters", (F.selectedFilters.toString()).replace(/,/g, "_")); // specify each filters
+    projectList.classList.add("projects-list");
 
+    // clear the way for the new projects list
+    // must happen before creation because when animating out, wep ut "position:absolute"
+    // which fucks up the container's height and the scroll length
+    filtersClearProjectsList();
 
+    // finally create
+    projectList.innerHTML = columnsHTML; // content
+    F.projectsListContainer.appendChild(projectList);
 
+    // store column groups
+    F.projectsListColumns = projectList.querySelectorAll("[column-group]");
+
+    // update again for column groups visibility
+    projectListColumnsByRatio();
+
+    // since columns are offset by scroll, need to reduce size of container
+    filtersColumnLongestUpdate();
+    // image loads will change the track's length
+    F.projectsListContainer.querySelectorAll("img").forEach((img) => {
+        img.addEventListener("load", () => {
+            filtersColumnLongestUpdate();
+        });
+    });
+
+    // animation in
+    setTimeout(() => {
+        F.projectsListColumns.forEach((col) => {
+            col.classList.remove("anim-pre");
+        })
+    }, 300);
+
+    // TODO
     // put the last project card in odd columns (starting from 0) since they're the ones going up
     // but only if there are more than 3 lines of projects (arbitrary number, test with scroll speed later)
     // do this to one more project every 3 lines in more
     // -> calculate for every columns, if projectNm/columnNb > 3 : add one, > 6 : add 2, etc
     // to this per column, meaning if there are 4 columns, add one for each odd (2)
 
-    // when resizing window, play with display property
-    // only do animations for currently displayed column
-    // if resizing at the same time:
-    // -> keep the old animated elements even if not displayed anymore
-    // -> don't play with display anymore until animations finished
-
-    /*///before that columns madness
+    /*/// before that column groups madness
     var projectsCards = ``;
     selectedProjectsSorted.forEach((projectID) => {
         const PROJECT = pData[projectID];
-
         // FILTERS
         var filters = ``;
-        PROJECT.filter.split("|").forEach((filter) => {
-            filters += htmlFilterPill(filter, "filter");
-        })
-
+        PROJECT.filter.split("|").forEach((filter) => { filters += htmlFilterPill(filter, "filter"); })
         // CARDS GENERATION
         projectsCards += `
             <div project-id="${projectID}" class="project-cards">
@@ -637,8 +760,7 @@ function filtersGenerateProjectsList() {
                 <div class="filters">
                     ${filters}
                 </div>
-            </div>
-        `
+            </div>`
     })
     // CREATION
     F.projectsListContainer.innerHTML = projectsCards;
@@ -646,46 +768,59 @@ function filtersGenerateProjectsList() {
 
     // set filter buttons actions
     F.projectsListContainer.querySelectorAll(".project-cards .f-pill").forEach((filterButton) => {
-        filterButton.addEventListener("click", gotoFiltersProjectList);
-        filterButton.addEventListener("click", (e) => {setTimeout(() => { filtersAction(e, "isolate"); }, scrollToDuration*(4/5))});
+        filterButton.addEventListener("click", (e) => {filtersAction(e, "isolate", scrollToDurationFilter, true); });
     })
 
     // display new number of projects found
-    if(selectedProjectsSorted.length == 0) { // if not projects found
-        F.projectsDisplayedNbEl.classList.remove("counting");
-        F.projectsDisplayedNbEl.classList.add("none");
-    } else {
-        F.projectsDisplayedNbEl.classList.add("counting")
-        F.projectsDisplayedNbEl.classList.remove("none");
+    if (F.previousDateOrder == dateOrder) { // do not update if just changing date order
+        if(selectedProjectsSorted.length == 0) { // if not projects found
+            F.projectsDisplayedNbEl.classList.remove("counting");
+            F.projectsDisplayedNbEl.classList.add("none");
+        } else {
+            F.projectsDisplayedNbEl.classList.add("counting")
+            F.projectsDisplayedNbEl.classList.remove("none");
+        }
+        // duration of counting depends of number of projects shown, the more the longer
+        F.countUpProjectsNb.options.duration = 0.5 + mapRange(selectedProjectsNb, 0, projectsSortedDate.length, 0, 1.75);
+        // start from 0 and go to new number
+        F.countUpProjectsNb.reset();
+        F.countUpProjectsNb.update(selectedProjectsSorted.length);
+        // remove counting styles at the end of counting
+        F.countUpProjectsNb.start(() => { F.projectsDisplayedNbEl.classList.remove("counting"); });
     }
-    // duration of counting depends of number of projects shown, the more the longer
-    countUpProjectsNb.options.duration = 0.5 + mapRange(selectedProjectsNb, 0, projectsSortedDate.length, 0, 1.75);
-    // start from 0 and go to new number
-    countUpProjectsNb.reset();
-    countUpProjectsNb.update(selectedProjectsSorted.length);
-    // remove counting styles at the end of counting
-    countUpProjectsNb.start(() => { F.projectsDisplayedNbEl.classList.remove("counting"); });
 
+    // reset previousDateOrder
+    F.previousDateOrder = dateOrder;
 }
 
-function filtersAction(caller, isolate = false) {
+function filtersAction(caller, isolate = false, delay = 0, card = false) {
     // which filter called?
     caller = caller.target;
     const selectedFilter = F.filtersContainer.querySelector(`.f-pill[filter-id="${caller.getAttribute("filter-id")}"]`);
 
-    if (isolate) { // filter buttons on project cards/slides
-        // reset every other filter (even date order)
-        F.allBtns.forEach((btn) => { btn.setAttribute("state", false); });
-        // enable selected filter
-        selectedFilter.setAttribute("state", "true");
-    }
-    else { // normal filter buttons
-        // invert selected filter's state
-        selectedFilter.setAttribute("state", (selectedFilter.getAttribute("state") === "true") ? "false" : "true");
-    }
+    // scroll to filters click action
+    caller.addEventListener("click", scrollToProjectsListFilters(card));
 
-    // generate projects
-    filtersGenerateProjectsList();
+    // if button is on screen, skip scrollTo animation delay
+    delay = (F.filterBtnIsOnScreen == true) ? 0 : delay;
+
+    setTimeout(() => {
+        if (isolate) { // reset every other filter (even date order)
+            if (F.selectedFilters.length == 1 && F.selectedFilters[0] == caller.getAttribute("filter-id")) {
+                 // cancel re-creation of projects list if isolated filter is the same (will keep date order)
+                return;
+            }
+            F.allBtns.forEach((btn) => { btn.setAttribute("state", false); });
+            // enable selected filter
+            selectedFilter.setAttribute("state", "true");
+        }
+        else { // invert selected filter's state
+            selectedFilter.setAttribute("state", (selectedFilter.getAttribute("state") === "true") ? "false" : "true");
+        }
+
+        // generate projects list
+        filtersGenerateProjectsList();
+    }, delay);
 }
 /*
 <svg viewBox="0 0 24 24">
@@ -756,7 +891,7 @@ function createFilters() {
 
     // set CountUp.js for projects found count
     F.projectsDisplayedNbEl = F.filtersContainer.querySelector(".secondary .filter-projects-number [anim-count]");
-    countUpProjectsNb = new CountUp(F.projectsDisplayedNbEl, 0, {
+    F.countUpProjectsNb = new CountUp(F.projectsDisplayedNbEl, 0, {
         startVal: 0,
         decimalPlaces: 0,
         duration: 2,
@@ -771,38 +906,155 @@ function createFilters() {
         enableScrollSpy: false
     });
 
+    // clear container
+    F.projectsListContainer.innerHTML = ``;
+
     // display all projects by default
     filtersGenerateProjectsList();
 }
 
-function projectListColumnsByRatio() {
-    console.log("resize");
+function getFiltersContainerHeight() {
+    F.filtersContainerHeight = -1 * (F.introContainer.querySelector(".in > *:first-child").getBoundingClientRect().top
+                                   - F.introContainer.querySelector(".in > *:last-child").getBoundingClientRect().bottom);
 }
 
-function projectListColumnsOddScrollOffset() {
-    var move = F.projectsListContainer.getBoundingClientRect().top;
-    if (move < doc.clientHeight * 1.2) {
-        doc.style.setProperty('--col-scroll-offset', (float(move / 3)) +"px")
+function filtersScrollCalcs() {
+    const projectsListOffset = F.projectsListContainer.getBoundingClientRect().top,
+          docHeight = doc.clientHeight;
+    if (projectsListOffset < docHeight * 2.2) { // avoid unnecessary calculations
+        getFiltersContainerHeight();
+
+        // TODO update only when necessary (when filtersContainerHeight changes)
+        filtersColumnLongestUpdate();
+
+        const filtersIntro = F.introContainer.querySelector(".in"),
+              endAnim = docHeight / 4 + F.filtersContainerHeight / 2;
+
+        filtersIntro.style.height = `calc(25% + ${F.filtersContainerHeight / 2}px)`;
+        // nice slow scroll down (this is why height at 25%, we translate 25% too)
+        filtersIntro.style.transform = `translateY(${
+            constrain(mapRange(projectsListOffset, docHeight, endAnim,
+                docHeight / 4, 0), 0, docHeight / 4)}px)`;
+        // nice slow text going smol
+        //filtersIntro.style.fontSize =
+        //    constrain(mapRange(projectsListOffset, docHeight, endAnim,
+        //        2, 1.7), 1.7, 2) +"em";
+
+        // columns scroll offset
+        doc.style.setProperty("--col-scroll-offset", float(projectsListOffset / 3) +"px");
+
+        // resize projects list with columns scroll offset because it leaves empty space at the end
+            // but it recalculates at every frames, it's not good
+            // so I opted for calculating the final offset right away (see filtersColumnLongestUpdate)
+        //if (F.projectsListColumns.length > 0) {
+        //    F.projectsListColumns[F.projectsListColumnGroupCurrentIndex].style.height =
+        //        F.projectsListColumnLongestInGroups[F.projectsListColumnGroupCurrentIndex] + float(projectsListOffset / 3 / 3)
+        //        +"px";
+        //}
     }
 }
 
+// columns are offset by scroll, need to reduce size of container to avoid empty space at the end
+function filtersColumnLongestUpdate() {
+    //if (F.projectsListColumns[F.projectsListColumnGroupCurrentIndex]) {
+        // getting the longest column of each group
+        //F.projectsListColumnLongestInGroups = []; // reset
+        //if (F.projectsListColumns.length > 0) {
+        //    F.projectsListColumns.forEach((columnGroup) => {
+        //        // geting the longest column's index
+        //        // get all column's height
+        //        var columnsHeight = [];
+        //        columnGroup.querySelectorAll("[column]").forEach((column) => { columnsHeight.push(column.offsetHeight); });
+        //        // store longest column's height
+        //        F.projectsListColumnLongestInGroups.push(Math.max(...columnsHeight));
+        //    });
+        //}
+
+        // getting the track length of each group, each column is same length because "display: grid/flex"
+        F.projectsListColumnLongestInGroups = []; // reset
+        if (F.projectsListColumns.length > 0) {
+            F.projectsListColumns.forEach((columnGroup) => {
+                // we take any column and store its height
+                F.projectsListColumnLongestInGroups.push(columnGroup.querySelector("[column]").offsetHeight);
+            });
+        }
+
+        // calculate the offset with track length and column offset value
+        const trackLength = F.projectsListColumnLongestInGroups[F.projectsListColumnGroupCurrentIndex],
+            finalColumnsOffset = trackLength / 3 - F.filtersContainerHeight / 2,
+            resize = float(trackLength - finalColumnsOffset / 3) + 50;
+        F.projectsListColumns[F.projectsListColumnGroupCurrentIndex].style.height = resize +"px";
+        F.projectsListContainer.style.height = `calc(${resize}px + var(--p-top) + var(--p-bottom)`; // to animate length changes
+    //}
+} // resize event + load event on project cards img
+
+function projectListColumnsByRatio() {
+    // TODO
+    // only do animations for currently displayed column
+    // if resizing at the same time:
+    // -> keep the old animated elements even if not displayed anymore
+    // -> don't play with display anymore until animations finished
+
+
+    /*if(doc.clientWidth / doc.clientHeight > 0.8) { // big screens
+        var select = [1,0];
+    } else { // small screens (phones)
+        var select = [0,1];
+    }*/
+
+    // big or small screens
+    var select = (doc.clientWidth > 727) ? [1,0] : [0,1];
+    // TODO
+    // make it so it works with any number of columns
+    // currently it's only 2
+
+    if (F.projectsListColumns[1]) {
+        F.projectsListColumns[select[0]].classList.remove("hidden");
+        F.projectsListColumns[select[1]].classList.add("hidden");
+    }
+
+    F.projectsListColumnGroupCurrentIndex = select[0];
+}
+
+
 // UPDATES EVENTS
-function scrollUpdateEvents() {
-    StickIt();
+function updateAll() {
+}
+
+//function scrollContentSizeEvents() {
+//    //filtersColumnLongestUpdate();
+//}
+function scrollUpdatesEvents() {
+    updateAll();
+
     recentProjectsTrackLength();
     recentProjectsTrackSegments();
 }
 function scrollEvents() {
+    updateAll();
+
+    //scrollToForceStop();
     StickIt();
+
     recentProjectsSlides();
     recentProjectsScrollIn();
-    projectListColumnsOddScrollOffset();
+
+    filtersScrollCalcs();
 }
+//function scrollStopEvents() {
+//    isScrollingToPrevPos = [];
+//}
 window.addEventListener("resize", () => {
+    updateAll();
+
     StickIt();
+
     recentProjectsTrackLength();
     recentProjectsTrackSegments();
+
+    filtersScrollCalcs();
     projectListColumnsByRatio();
+    filtersColumnLongestUpdate(); // must be after projectListColumnsByRatio
 });
 
 
@@ -815,7 +1067,7 @@ function init() {
     createFilters();
 
     // STICKY ELEMENTS
-    for (let i = 0; i < 8; i++) { // for loop to make sure it's applied
+    for (let i = 0; i < 8; i++) { // for loop to make sure it's applied correctly
         setTimeout(() => { // delay for when opening page with hash of sections
             StickIt();
         }, 400 * i);

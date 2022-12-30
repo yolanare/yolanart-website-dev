@@ -18,6 +18,7 @@ var srcPH = "./assets/medias/projects/high/";
 
 const projectsDataSample = {
     default : {
+        hidden: false,
         type : "img", interact : "zoom",
                 ext : "jpg",
                 needBG : false,
@@ -39,6 +40,7 @@ const projectsDataSample = {
         }
     },
     "TEMPLATE" : {
+        hidden: false|true,
         type : "img|yt|g_pdf|embed", interact : "zoom|off",
                 ext : "png",
                 needBG : false|"000000"|"var(--y-b1)",
@@ -64,6 +66,7 @@ const projectsDataSample = {
         }
     },
     Comments : {
+        hidden: false|true, // hidden projects will not be processed
         type : "img|yt|g_pdf|embed",
                 ext : "png", // IF TYPE: "img" : if anything other than "jpg" file | DEFAULT: "jpg"
                 needBG : false|true|"000000"|"var(--y-b1)", // useful for monochrome white logos | you can specify the color of choice, CAN BE CSS variable | "true" is default dark | DEFAULT: false
@@ -246,6 +249,7 @@ var projectsData = {
         }
     },
     "destr_casque" : {
+        hidden: true,
         type : "img", interact : "zoom",
         title : "HAMMER ON BROKEN G230",
         date : "2016.12",
