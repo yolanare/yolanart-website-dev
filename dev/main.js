@@ -15,8 +15,9 @@ var doc = document.documentElement,
     pageContentContainer = document.querySelector("main#content-container"), // main container of page
     language = (/^fr\b/.test(navigator.language)) ? "fr" : "en"; // language (default : en)
 
-const scrollToDuration = 1000,
-      scrollToDurationFilter = scrollToDuration * (5/7);
+const scrollToDuration = 1250,
+      scrollToDurationCard = 1000,
+      scrollToDurationElse = 2000;
 
 // check the viewport size, set boolean "isMini" if vp goes small
 function checkWinSize() { isMini = (window.innerWidth > 727); };
@@ -145,15 +146,20 @@ document.addEventListener("DOMContentLoaded", function() {
 //       isScrollingToPrevPos.push(scrollbarMain.scroll().position.y);
 //       if (isScrollingToPrevPos.length > 4) { isScrollingToPrevPos.shift(); }
 //    }
-//    console.log(isScrollingTo, isScrollingToPrevPos, scrollbarMain.scroll().position.y);
+//    console.lo/g(isScrollingTo, isScrollingToPrevPos, scrollbarMain.scroll().position.y);
 //}
 
 // SHORTCUTS
 // generate HTML for filter pills with filter ID
 // TODO will need to do (learn to do) a class of smth later
-function htmlFilterPill(filterID, type, plural, customStaticName) {
+function htmlFilterPill({
+        filterID,
+        type,
+        state,
+        plural,
+        customStaticName}) {
     plural = plural ? "plural" : "format";
-    return `<div filter-id="${filterID}" class="f-pill ${type}">
+    return `<div filter-id="${filterID}" class="f-pill ${type}" ${(state) ? `state="${state}"` : ``}>
         ${(customStaticName) ? customStaticName : // use custom static name if specified
             pFilters[language][plural][filterID] // get formatted name
     }</div>`
@@ -338,7 +344,7 @@ function createRecentProjects() {
         // FILTERS
         var filters = ``;
         ((PROJECT.filter) ? PROJECT.filter : pDataDefault.filter).split("|").forEach((filter) => {
-            filters += htmlFilterPill(filter, "filter");
+            filters += htmlFilterPill({filterID : filter, type : "filter"});
         })
 
         // SLIDES GENERATION
@@ -371,7 +377,7 @@ function createRecentProjects() {
 
     // set filter buttons actions
     RP.section.querySelectorAll("#recent-projects-slides .f-pill").forEach((filterButton) => {
-        filterButton.addEventListener("click", (e) => {filtersAction(e, "isolate", scrollToDuration * (1/5)); });
+        filterButton.addEventListener("click", (e) => {filtersAction({caller : e, isolate : "isolate", customScrollToDuration : scrollToDurationElse}); });
     })
 
     // apply z-index in order of slides
@@ -478,7 +484,7 @@ function scrollToFiltersSection() {
         //() => { isScrollingTo = false; }
         );
 }
-function scrollToProjectsListFilters(card = false) {
+function scrollToProjectsListFilters(card = false, scrollDuration = scrollToDurationCard) {
     //isScrollingTo = true;
 
     // default scrollTo pos : top of projects list
@@ -506,7 +512,7 @@ function scrollToProjectsListFilters(card = false) {
 
     scrollbarMain.scroll(
         `+= ${scrollToPos}px`,
-        scrollToDuration,
+        scrollDuration,
         (card == true) ? "easeOutQuint" : "easeInOutQuart"
         //() => { isScrollingTo = false; }
         );
@@ -644,7 +650,7 @@ function filtersGenerateProjectsList() {
         // generating project card
         var filters = ``;
         PROJECT.filter.split("|").forEach((filter) => {
-            filters += htmlFilterPill(filter, "filter");
+            filters += htmlFilterPill({filterID : filter, type : "filter", state : (F.selectedFilters.includes(filter)) ? "true" : false});
         })
         const projectCardHTML = `
             <div project-id="${projectID}" class="project-cards" style="${(spIndex < animateInCards) ? `transition-delay:${spIndex / 10}s;` : `transition: none;`}">
@@ -768,7 +774,7 @@ function filtersGenerateProjectsList() {
 
     // set filter buttons actions
     F.projectsListContainer.querySelectorAll(".project-cards .f-pill").forEach((filterButton) => {
-        filterButton.addEventListener("click", (e) => {filtersAction(e, "isolate", scrollToDurationFilter, true); });
+        filterButton.addEventListener("click", (e) => { filtersAction({caller : e, isolate : "isolate", delay : scrollToDurationCard * (5/7), card : true}); });
     })
 
     // display new number of projects found
@@ -793,13 +799,13 @@ function filtersGenerateProjectsList() {
     F.previousDateOrder = dateOrder;
 }
 
-function filtersAction(caller, isolate = false, delay = 0, card = false) {
+function filtersAction({caller, isolate = false, delay = 0, card = false, customScrollToDuration}) {
     // which filter called?
     caller = caller.target;
     const selectedFilter = F.filtersContainer.querySelector(`.f-pill[filter-id="${caller.getAttribute("filter-id")}"]`);
 
     // scroll to filters click action
-    caller.addEventListener("click", scrollToProjectsListFilters(card));
+    caller.addEventListener("click", scrollToProjectsListFilters(card, customScrollToDuration));
 
     // if button is on screen, skip scrollTo animation delay
     delay = (F.filterBtnIsOnScreen == true) ? 0 : delay;
@@ -832,7 +838,7 @@ function createFilters() {
     // generate filter pills
     var allButtonsHTML = ``;
     F.allFilterIDs.forEach((filter) => {
-        allButtonsHTML += htmlFilterPill(filter, "filter", "plural");
+        allButtonsHTML += htmlFilterPill({filterID : filter, type : "filter", plural : "plural"});
     })
     allButtonsHTML += htmlFilterPillComplex(["date",
         `<svg viewBox="0 0 24 24">
@@ -871,7 +877,7 @@ function createFilters() {
     // set filter buttons actions & states
     F.allBtns.forEach((filterButton) => {
         filterButton.setAttribute("state", false); // by default, every filter is false
-        filterButton.addEventListener("click", filtersAction);
+        filterButton.addEventListener("click", (e) => { filtersAction({caller : e}); });
     })
 
     // clear filters button
@@ -921,7 +927,7 @@ function getFiltersContainerHeight() {
 function filtersScrollCalcs() {
     const projectsListOffset = F.projectsListContainer.getBoundingClientRect().top,
           docHeight = doc.clientHeight;
-    if (projectsListOffset < docHeight * 2.2) { // avoid unnecessary calculations
+    if (projectsListOffset < docHeight * 2.5) { // avoid unnecessary calculations
         getFiltersContainerHeight();
 
         // TODO update only when necessary (when filtersContainerHeight changes)
@@ -1082,6 +1088,7 @@ document.addEventListener("DOMContentLoaded", init);
 to translate
 
 get all elements with attribute [to_translate]
+get all .f-pill, search in data base if filter-id exists
 compare with data-base if [to_translate="id"] element exists
 if yes, replace text
 if no, leave as is

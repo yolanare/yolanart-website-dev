@@ -2,9 +2,11 @@ V8
 démarrage *[2022.12.18]*
 - [ ] section 1 : landing
 - [X] ***12.22-00h30*** section 2 : recent works
-- [ ] section 3 : filter
+- [X] ***12.30-19h20*** section 3 : filter
   - [ ] add quick play button next to video projects titles cards, which will popup the video embed to quickly watch the video
-  - [ ] add line saying "Showing FILTER1, FILTER2", right at the left put a bin icon to erase filtering, and at end of line number of projects shown with this filter (00)
+  - [X] ***12.31-11h30*** highlight selected filters in projects cards
+  - [ ] "No projects found" message
+  - [ ] finish each TODOs in the code
 - [ ] projectPages
   - [ ] close with history
   - [ ] when clicking on a project, remember order of previous and next project so that we can switch to them with arrows at the end
