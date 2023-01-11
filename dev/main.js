@@ -1,7 +1,8 @@
 // - IMPORTS -
 import "../node_modules/overlayscrollbars/css/OverlayScrollbars.css";
 import "../node_modules/overlayscrollbars/js/OverlayScrollbars.js";
-import { CountUp } from 'countup.js';
+import { CountUp } from "countup.js";
+//import anime from "animejs/lib/anime.es.js";
 
 import * as Prj from "./assets/js/projects.js";
 import "./index.html"
@@ -11,13 +12,16 @@ import "./main.scss"
 //- VARIABLES -
 var doc = document.documentElement,
     isMini, // boolean if viewport is small like a phone
-    touchDevice = (navigator.maxTouchPoints || 'ontouchstart' in document.documentElement), // boolean if touched device
+    touchDevice = (navigator.maxTouchPoints || "ontouchstart" in document.documentElement), // boolean if touch device
     pageContentContainer = document.querySelector("main#content-container"), // main container of page
     language = (/^fr\b/.test(navigator.language)) ? "fr" : "en"; // language (default : en)
 
 const scrollToDuration = 1250,
       scrollToDurationCard = 1000,
       scrollToDurationElse = 2000;
+
+// chrome has "faster" scroll
+const iceScrollFactor = (!window.chrome) ? 3 : 7;
 
 // check the viewport size, set boolean "isMini" if vp goes small
 function checkWinSize() { isMini = (window.innerWidth > 727); };
@@ -56,12 +60,15 @@ function constrain(value, low, high) { // Processing's constrain function
 }
 
 // call function at end of css transition of element (no propagation, option to do it only once)
-function addEvTrEnd(elem, func, property = false, once = true) {
+function addEvTrEnd(elem, func, {property = false, once = true, debug = false}) {
     if (!property) { // will check for all css properties
         elem.addEventListener("transitionend", () => { func(); }, { once : once });
     } else { // will check only for specified css property
         elem.addEventListener("transitionend", (ev) => { if (ev.propertyName == property) { func(); }}, { once : once });
     }
+
+    // debug transition events
+    if (debug) { elem.addEventListener("transitionend", (ev) => { console.debug("tr end: "+ ev.propertyName + ((property) ? (" (selected)") : "")); }); }
 
     var isNotAlready = true;
     trEndAlready.forEach((e) => { isNotAlready &= (e == elem) ? false : true; }); // check if already checking for trEnd
@@ -211,6 +218,90 @@ function StickIt() {
         }
     });
 }
+
+// BUBBLE TIPS
+function bubbleTipInit({target, delayAnimIn, force}) {
+    target.addEventListener("mouseenter", () => { bubbleTipCreate({target : target}); });
+}
+
+function bubbleTipCreate({target, delayAnimIn = 500, force = false}) {
+    delayAnimIn = Math.max(delayAnimIn, 50); // minimal value for delay
+
+    const label = target.getAttribute("tip");
+    // cancel if no tip to show
+    if (!label) { console.error("no bubble tip specified"); return; }
+
+    // not on touch devices
+    if (!touchDevice && force) { return; }
+
+    // generate
+    var bubbleTipEl;
+    bubbleTipEl = document.createElement("div");
+    bubbleTipEl.classList.add("bubble-tip");
+    bubbleTipEl.classList.add("anim-pre");
+    bubbleTipEl.innerHTML = `<div class="point"></div><div class="content"><div class="bg"></div><span>${label}</span></div>`;
+
+    // create
+    document.querySelector(".bubble-tips-container").appendChild(bubbleTipEl);
+
+    // allow getting final size before animating (transform is fucking with size)
+    bubbleTipEl.classList.add("normal-scale");
+    setTimeout(() => { bubbleTipEl.classList.remove("normal-scale"); }, delayAnimIn / 2); // restore
+
+    // position
+    const targetRect = target.getBoundingClientRect(),
+          //
+          bubblePosX = targetRect.left + (targetRect.width / 2),
+          bubblePosY = (targetRect.top + (targetRect.height / 2));
+
+    bubbleTipEl.style.left = bubblePosX +"px";
+    bubbleTipEl.style.top = bubblePosY +"px";
+
+    // offset content if offscreen
+    setTimeout(() => {
+        const bubbleTipContentEl = bubbleTipEl.querySelector(".content"),
+              bubbleTipContentRect = bubbleTipContentEl.getBoundingClientRect(),
+              //
+              borderOffset = 10,
+              bubbleCPosXWR = bubblePosX + (bubbleTipContentRect.width / 2),
+              bubbleCPosXWL = bubblePosX - (bubbleTipContentRect.width / 2);
+
+        // default position
+        var bContentPosX = 0;
+
+        if (bubbleCPosXWR > doc.clientWidth) { // off to the right
+            bContentPosX = doc.clientWidth - bubbleCPosXWR - borderOffset;
+            bubbleTipContentEl.style.transformOrigin = `calc(75% + ${borderOffset}px) 50%`;
+        }
+        if (bubbleCPosXWL < 0) { // off to the left
+            bContentPosX = 0 - bubbleCPosXWL + borderOffset;
+            bubbleTipContentEl.style.transformOrigin = `calc(25% - ${borderOffset}px) 50%`;
+        }
+        if (bubblePosY + (bubbleTipContentRect.height / 2) + 35 > doc.clientHeight) { // off to the bottom
+            bubbleTipEl.classList.add("reverse");
+        }
+
+        // TODO : have a better animation for offscreen cases
+
+        bubbleTipContentEl.style.left = bContentPosX +"px";
+        bubbleTipContentEl.style.top = 0 +"px";
+    }, delayAnimIn / 4);
+
+    // animation in trigger
+    setTimeout(() => {
+        bubbleTipEl.classList.remove("anim-pre");
+    }, delayAnimIn);
+
+    // out
+    target.addEventListener("mouseleave", () => { bubbleTipRemove(bubbleTipEl); })
+    target.addEventListener("click", () => { bubbleTipRemove(bubbleTipEl); })
+}
+
+function bubbleTipRemove(bubbleTipEl) {
+    bubbleTipEl.classList.add("anim-clear");
+    addEvTrEnd(bubbleTipEl, () => { bubbleTipEl.remove(); }, {property : "opacity", once : false});
+}
+
 
 // SORT PROJECTS BY DATE
 function projectsSortByDate() {
@@ -394,7 +485,7 @@ function recentProjectsSlides() {
     function findSegment(segments, scrollPos) {
         for (let i = 0; i < RP.projectsNb; i++) {
             const [start, end] = segments[i];
-            if (start <= scrollPos && scrollPos <= end) {
+            if (scrollPos >= start && scrollPos <= end) {
                 return i;
             }
         }
@@ -521,27 +612,31 @@ function scrollToProjectsListFilters(card = false, scrollDuration = scrollToDura
 
 // FILTERS SECTION
 var F = {
-    allFilterIDs : [],
-    selectedFilters : [],
-    allFilterBtns : {},
-    allOtherBtns : {},
+    allFilterIDs : [], // array of filters's id
+    selectedFilters : [], // array of selected filters's id
+    allFilterBtns : {}, // node list of all filters buttons
+    allOtherBtns : {}, // node list of all other filter buttons that are not filters (it makes sense trust me)
     allBtns : {},
+    previousFilters : [], // used to check if filters changed or not
+    previousDateOrder : "false", // used to check if date order changed or not
 
     section : document.querySelector(".content-sections#filters"),
     introContainer : null,
 
     filtersContainer : null,
-    filtersContainerHeight : 0,
-    filterBtnIsOnScreen : false,
+    filtersContainerHeight : 0, // needed for positions calculations
+    filterBtnIsOnScreen : false, // check if filters buttons are on screen or not (to scroll-to or not)
 
     projectsListContainer : null,
-    projectsDisplayedNbEl : null,
-    countUpProjectsNb : null,
-    previousDateOrder : "false",
+    projectsDisplayedNbEl : null, // number of projects found
+    countUpProjectsNb : null, // var for count-up animation
 
-    projectsListColumns : {},
-    projectsListColumnGroupCurrentIndex : 1,
-    projectsListColumnLongestInGroups : [],
+    projectsListContentElements : {}, // node list of #projects-list content
+    projectsListColumnGroupCurrentIndex : 0, // column to show depending on viewport width
+    projectsListColumnLongestInGroups : [], // array of length of each column group
+    columnsNbMax : 3, // number of columns to display the projects list
+    columnsNbMin : 1, // value excluded, there will be no columns under that number
+    animateInLinesOfCards : 3, // number of lines of cards to animate in (decimal values work too)
 }
 // generate array of all valid filters
 Prj.projectsDataSample.TEMPLATE.filter.split("|").forEach((filter) => { F.allFilterIDs.push(filter); });
@@ -568,7 +663,7 @@ function filtersClearProjectsList() {
     // animation out for all (hypothetically) projects list present
     F.projectsListContainer.querySelectorAll(".projects-list").forEach((pl) => {
         pl.classList.add("anim-clear");
-        addEvTrEnd(pl, () => { pl.remove() }, "transform", false);
+        addEvTrEnd(pl, () => { pl.remove(); }, {property : "transform", once : false});
     })
 }
 
@@ -628,118 +723,184 @@ function filtersGenerateProjectsList() {
         F.filtersContainer.querySelector(".secondary").classList.add("hidden");
     }
 
-    // generate columns
-    const columnsNbMax = 3,
-          columnsNbMin = 1, // value excluded, there will be no columns under that number
-          animateInCards = 10; // number of cards to animate in
-    var allColumns = [];
-    // initialize columns storage
-    for (let cIndex = 0; cIndex < columnsNbMax; cIndex++) {
-        allColumns.push([]); // init column groups
-        for (let colIndex = 0; colIndex < cIndex + 1; colIndex++) {
-            allColumns[cIndex].push([``]); // init columns (in which project cards will be)
+    // projects list
+    var projectsListContent = ``;
+    // create projects list / content container
+    var projectsList = document.createElement("div");
+    projectsList.setAttribute("filters", (F.selectedFilters.toString()).replace(/,/g, "_")); // specify each filters
+    projectsList.classList.add("projects-list");
+
+    // GENERATE CONTENT
+    if (selectedProjectsNb > 0) { // at least one project found
+        // generate columns
+        var allColumns = [];
+        // initialize columns storage
+        for (let cIndex = 0; cIndex < F.columnsNbMax; cIndex++) {
+            allColumns.push([]); // init column groups
+            for (let colIndex = 0; colIndex < cIndex + 1; colIndex++) {
+                allColumns[cIndex].push([``]); // init columns (in which project cards will be)
+            }
+        }
+
+        // generate HTML for all columns patterns
+        // starting with selected projects for perfomance reasons,
+        // it's faster to loop through all projects then columns than all columns then projects
+        for (let spIndex = 0; spIndex < selectedProjectsSorted.length; spIndex++) {
+            const projectID = selectedProjectsSorted[spIndex], PROJECT = pData[projectID];
+
+            // generating project card
+            var filters = ``;
+            PROJECT.filter.split("|").forEach((filter) => {
+                filters += htmlFilterPill({filterID : filter, type : "filter", state : (F.selectedFilters.includes(filter)) ? "true" : false});
+            })//${(spIndex < F.animateInLinesOfCards) ? `transition-delay:${spIndex / 10}s;` : `transition: none;`}
+            const projectCardHTML = `
+                <div project-id="${projectID}" list-nb="${spIndex}" class="project-cards" style="transition: none;">
+                    <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"></div>
+                    <div class="header">
+                        <span class="project-title">${(PROJECT.title) ? PROJECT.title : pDataDefault.title}</span>
+                        ${(["yt", "vid"].includes((PROJECT.type) ? PROJECT.type : pDataDefault.type)) // if video : add popup button to see the video without leaving the page
+                        ? `<div class="video-quick-popup-button" tip="Pop-up quick video player" translate_bubble_id="plist-video-quick-popup-btn">
+                                <div class="bg"></div>
+                                <svg class="arrow" viewbox="0 0 24 24">
+                                    <path d="M6.55,22.19l14.16-8.17c1.5-0.87,1.5-3.03,0-3.9L6.55,1.95C5.05,1.08,3.18,2.16,3.18,3.9v16.35C3.18,21.97,5.05,23.06,6.55,22.19z"/>
+                                </svg>
+                            </div>`
+                        : ``}
+                    </div>
+                    <div class="filters">
+                        ${filters}
+                    </div>
+                </div>
+            `;
+
+            // generate each columns, while alternating projects in each
+            for (let cIndex = F.columnsNbMin; cIndex < F.columnsNbMax; cIndex++) {
+                // using euclidian division, we can get index of column for the project with its index
+                // this is the column to put the current project in
+                const column = spIndex % (cIndex + 1);
+
+                // adding the project card's HTML in the corresponding column in the columns group
+                allColumns[cIndex][column] += projectCardHTML;
+            }
+
+        }
+
+        // which column group should be used right away
+        projectListColumnsByRatio(F.columnsNbMax - F.columnsNbMin);
+        // force the number of columns because when no columns exists it returns default value (0)
+
+        // generate columns
+        for (let cIndex = F.columnsNbMin; cIndex < F.columnsNbMax; cIndex++) {
+            // generating column
+            var columnContent = ``;
+            for (let col = 0; col < allColumns[cIndex].length; col++) {
+                columnContent += `
+                    <div column="${col + 1}" style="z-index: ${F.columnsNbMax - col};">
+                        ${allColumns[cIndex][col]}
+                    </div>
+                `
+            }
+            // generating column group
+            projectsListContent += `
+                <div ${(F.projectsListColumnGroupCurrentIndex + F.columnsNbMin == cIndex) ? `class="anim-pre"` : ``} style="grid-template-columns: repeat(${cIndex + 1}, 1fr);" column-group="${cIndex + 1}">
+                    ${columnContent}
+                </div>
+            ` // "anim-pre" only to currently shown column-group
         }
     }
-
-    // generate HTML for all columns patterns
-    // starting with selected projects for perfomance reasons,
-    // it's faster to loop through all projects then columns than all columns then projects
-    for (let spIndex = 0; spIndex < selectedProjectsSorted.length; spIndex++) {
-        const projectID = selectedProjectsSorted[spIndex], PROJECT = pData[projectID];
-
-        // generating project card
-        var filters = ``;
-        PROJECT.filter.split("|").forEach((filter) => {
-            filters += htmlFilterPill({filterID : filter, type : "filter", state : (F.selectedFilters.includes(filter)) ? "true" : false});
-        })
-        const projectCardHTML = `
-            <div project-id="${projectID}" class="project-cards" style="${(spIndex < animateInCards) ? `transition-delay:${spIndex / 10}s;` : `transition: none;`}">
-                <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"></div>
-                <div class="header">
-                    <span class="project-title">${(PROJECT.title) ? PROJECT.title : pDataDefault.title}</span>
-                    ${(["yt", "vid"].includes((PROJECT.type) ? PROJECT.type : pDataDefault.type)) // if video : add popup button to see the video without leaving the page
-                    ? `<div class="video-quick-popup-button">
-                            <svg viewBox="0 0 24 24">
-                                <path class="st1" d="M-24.17,21.28h-4.43c-3.67,0-6.65-2.98-6.65-6.65v0c0-3.67,2.98-6.65,6.65-6.65h4.43c3.67,0,6.65,2.98,6.65,6.65v0C-17.52,18.3-20.5,21.28-24.17,21.28z"/>
-                                <path class="st2" d="M-18.94,16.05h-4.43c-3.67,0-6.65-2.98-6.65-6.65v0c0-3.67,2.98-6.65,6.65-6.65h4.43c3.67,0,6.65,2.98,6.65,6.65v0C-12.3,13.07-15.27,16.05-18.94,16.05z"/>
-                                <path d="M-22.55,12.87l4.96-2.86c0.47-0.27,0.47-0.95,0-1.23l-4.96-2.86c-0.47-0.27-1.06,0.07-1.06,0.61v5.73C-23.61,12.8-23.02,13.14-22.55,12.87z"/>
-                            </svg>
-                        </div>`
-                    : ``}
+    else { // no projects found
+        projectsListContent += `
+            <div class="nothing-found ice-scroll anim-pre">
+                <div class="content-container">
+                    <div class="title" to_translate="filters_nothing_found_title">Oops!</div>
+                    <div class="txt" to_translate="filters_nothing_found_txt">Seems like there's nothing corresponding to these filters.</div>
                 </div>
-                <div class="filters">
-                    ${filters}
-                </div>
-            </div>
-        `;
-
-        // generate each columns, while alternating projects in each
-        for (let cIndex = columnsNbMin; cIndex < columnsNbMax; cIndex++) {
-            // using euclidian division, we can get index of column for the project with its index
-            // this is the column to put the current project in
-            const column = spIndex % (cIndex + 1);
-
-            // adding the project card's HTML in the corresponding column in the columns group
-            allColumns[cIndex][column] += projectCardHTML;
-        }
-
-    }
-
-    // which column group should be used right away
-    projectListColumnsByRatio();
-
-    // generate columns
-    var columnsHTML = ``;
-    for (let cIndex = columnsNbMin; cIndex < columnsNbMax; cIndex++) {
-        // generating column
-        var columnHTML = ``;
-        for (let col = 0; col < allColumns[cIndex].length; col++) {
-            columnHTML += `
-                <div column="${col + 1}">
-                    ${allColumns[cIndex][col]}
-                </div>
-            `
-        }
-        // generating column group
-        columnsHTML += `
-            <div ${(F.projectsListColumnGroupCurrentIndex + columnsNbMin == cIndex) ? `class="anim-pre"` : ``} style="grid-template-columns: repeat(${cIndex + 1}, 1fr);" column-group="${cIndex + 1}">
-                ${columnHTML}
             </div>
         `
     }
 
-    // CREATION
-    var projectList = document.createElement("div");
-    projectList.setAttribute("filters", (F.selectedFilters.toString()).replace(/,/g, "_")); // specify each filters
-    projectList.classList.add("projects-list");
-
-    // clear the way for the new projects list
-    // must happen before creation because when animating out, wep ut "position:absolute"
+    // clear the way for the new content (generally projects list)
+    // must happen before creation because when animating out projects list, we put "position:absolute"
     // which fucks up the container's height and the scroll length
     filtersClearProjectsList();
 
-    // finally create
-    projectList.innerHTML = columnsHTML; // content
-    F.projectsListContainer.appendChild(projectList);
+    // CREATE CONTENT
+    projectsList.innerHTML = projectsListContent; // content
+    F.projectsListContainer.appendChild(projectsList);
 
-    // store column groups
-    F.projectsListColumns = projectList.querySelectorAll("[column-group]");
+    // store content
+    F.projectsListContentElements = [...projectsList.children];
+    //F.projectsListContentElements = projectsList.querySelectorAll(".nothing-found");
+    //F.projectsListContentElements = projectsList.querySelectorAll("[column-group]");
 
     // update again for column groups visibility
     projectListColumnsByRatio();
 
     // since columns are offset by scroll, need to reduce size of container
     filtersColumnLongestUpdate();
-    // image loads will change the track's length
+    // image loads will change the track's length, need to adjust
     F.projectsListContainer.querySelectorAll("img").forEach((img) => {
         img.addEventListener("load", () => {
             filtersColumnLongestUpdate();
         });
     });
 
-    // animation in
+    // code used after creation
+    if (selectedProjectsNb > 0) {
+        // for each columns groups
+        F.projectsListContentElements.forEach((columnGrp) => {
+            const colGrpIndex = parseInt(columnGrp.getAttribute("column-group"));
+
+            // for each column in columns group
+            columnGrp.querySelectorAll("[column]").forEach((column) => {
+                // set max-width to columns when there are a lot because they can overflow
+                if (colGrpIndex >= 5) {
+                    column.style.maxWidth = `calc((100vw - (var(--p) * 2)) / ${colGrpIndex})`;
+                }
+            });
+
+            // animate in the first F.animateInLinesOfCards amount of lines of cards
+            for (let i = 0; i < colGrpIndex * F.animateInLinesOfCards; i++) {
+                const card = columnGrp.querySelector(`.project-cards[list-nb="${i}"]`);
+                if (!card) { return; } // stop if no more cards
+                card.style.transition = null; // cancel the "transition: none;" put by default when generating
+                card.style.transitionDelay = i / 10 +"s";
+            }
+
+            columnGrp.querySelectorAll(".project-cards").forEach(card => {
+                // bubble tip for video quick popup button
+                const vidPopBtn = card.querySelector(".video-quick-popup-button");
+                if (vidPopBtn) { bubbleTipInit({target : vidPopBtn}); }
+            });
+        });
+    }
+
+    // animation in set ups
+    if (selectedProjectsNb > 0) {
+    } else {
+        var txtNoPrjFound = projectsList.querySelector(".nothing-found .txt");
+        txtNoPrjFound.innerHTML = txtNoPrjFound.textContent.replace(/\S+/g, "<span class='words'>$&</span>");
+        //txtNoPrjFound.querySelectorAll(".words").forEach(word => {
+        //    word.innerHTML = word.textContent.replace(/\S/g, "<span class='letters'>$&</span>");
+        //});
+
+        for (let i = 0; i < txtNoPrjFound.querySelectorAll(".words").length; i++) {
+            txtNoPrjFound.querySelector(`.words:nth-child(${i + 1})`).style.transitionDelay = (i / 17.5) + 0.5 +"s";
+        }
+
+        //anime({
+        //    targets: txtNoPrjFound.querySelectorAll(".words"),
+        //    translateY: [40, 0],
+        //    opacity: [0, 1],
+        //    easing: "easeOutExpo",
+        //    duration: 1200,
+        //    delay: (el, i) => 500 + 30 * i
+        //});
+    }
+
+    // animation in trigger
     setTimeout(() => {
-        F.projectsListColumns.forEach((col) => {
+        F.projectsListContentElements.forEach((col) => {
             col.classList.remove("anim-pre");
         })
     }, 250);
@@ -777,9 +938,11 @@ function filtersGenerateProjectsList() {
         filterButton.addEventListener("click", (e) => { filtersAction({caller : e, isolate : "isolate", delay : scrollToDurationCard * (5/7), card : true}); });
     })
 
+    // TODO do not re generate if filters give the same results (especially if no projects are found (selectedProjectsNb = 0)
+
     // display new number of projects found
-    if (F.previousDateOrder == dateOrder) { // do not update if just changing date order
-        if(selectedProjectsSorted.length == 0) { // if not projects found
+    if (F.previousDateOrder == dateOrder || JSON.stringify(F.previousFilters) != JSON.stringify(F.selectedFilters)) { // do not update if just changing date order / update if selected projects changed
+        if(selectedProjectsNb == 0) { // if not projects found
             F.projectsDisplayedNbEl.classList.remove("counting");
             F.projectsDisplayedNbEl.classList.add("none");
         } else {
@@ -790,12 +953,13 @@ function filtersGenerateProjectsList() {
         F.countUpProjectsNb.options.duration = 0.5 + mapRange(selectedProjectsNb, 0, projectsSortedDate.length, 0, 1.75);
         // start from 0 and go to new number
         F.countUpProjectsNb.reset();
-        F.countUpProjectsNb.update(selectedProjectsSorted.length);
+        F.countUpProjectsNb.update(selectedProjectsNb);
         // remove counting styles at the end of counting
         F.countUpProjectsNb.start(() => { F.projectsDisplayedNbEl.classList.remove("counting"); });
     }
 
-    // reset previousDateOrder
+    // reset "previous" vars
+    F.previousFilters = F.selectedFilters;
     F.previousDateOrder = dateOrder;
 }
 
@@ -828,12 +992,17 @@ function filtersAction({caller, isolate = false, delay = 0, card = false, custom
         filtersGenerateProjectsList();
     }, delay);
 }
-/*
-<svg viewBox="0 0 24 24">
-    <path d="M11,22.02l-8.42-6.2c-0.75-0.55-0.91-1.6-0.36-2.35l0,0c0.55-0.75,1.6-0.91,2.35-0.36l3.98,2.94c2.05,1.51,4.83,1.51,6.88,0l3.98-2.94c0.75-0.55,1.8-0.39,2.35,0.36l0,0c0.55,0.75,0.39,1.8-0.36,2.35L13,22.02C12.4,22.46,11.6,22.46,11,22.02z"/>
-    <path d="M12,22.35c-0.93,0-1.68-0.75-1.68-1.68V3.33c0-0.93,0.75-1.68,1.68-1.68s1.68,0.75,1.68,1.68v17.33C13.68,21.59,12.93,22.35,12,22.35z"/>
-</svg>
-*/
+
+function filtersUpdateDateBubbleTip(dateEl = F.filtersContainer.querySelectorAll(".main .f-pill.date")) {
+    if (dateEl.getAttribute("state") === "false") {
+        dateEl.setAttribute("translate_bubble_id", "filters-date-false");
+        dateEl.setAttribute("tip", "Most Recent");
+    } else {
+        dateEl.setAttribute("translate_bubble_id", "filters-date-true");
+        dateEl.setAttribute("tip", "Oldest");
+    }
+}
+
 function createFilters() {
     // generate filter pills
     var allButtonsHTML = ``;
@@ -880,7 +1049,15 @@ function createFilters() {
         filterButton.addEventListener("click", (e) => { filtersAction({caller : e}); });
     })
 
-    // clear filters button
+    // bubble tips
+    // date -> tell if "most recent" or "oldest"
+    const fDateEl = F.filtersContainer.querySelector(".main .f-pill.date");
+    fDateEl.addEventListener("mouseenter", () => {
+        filtersUpdateDateBubbleTip(fDateEl);
+        bubbleTipCreate({target : fDateEl});
+    });
+
+    // "clear filters" button
     F.filtersContainer.querySelector(".secondary .clear-filters-button").addEventListener("click", () => {
         // reset filters state
         F.allBtns.forEach((filterButton) => { filterButton.setAttribute("state", false); });
@@ -920,8 +1097,8 @@ function createFilters() {
 }
 
 function getFiltersContainerHeight() {
-    F.filtersContainerHeight = -1 * (F.introContainer.querySelector(".in > *:first-child").getBoundingClientRect().top
-                                   - F.introContainer.querySelector(".in > *:last-child").getBoundingClientRect().bottom);
+    F.filtersContainerHeight = F.introContainer.querySelector(".in > *:last-child").getBoundingClientRect().bottom
+                             - F.introContainer.querySelector(".in > *:first-child").getBoundingClientRect().top;
 }
 
 function filtersScrollCalcs() {
@@ -947,13 +1124,13 @@ function filtersScrollCalcs() {
         //        2, 1.7), 1.7, 2) +"em";
 
         // columns scroll offset
-        doc.style.setProperty("--col-scroll-offset", float(projectsListOffset / 3) +"px");
+        doc.style.setProperty("--ice-scroll-offset", float(projectsListOffset / iceScrollFactor) +"px");
 
         // resize projects list with columns scroll offset because it leaves empty space at the end
             // but it recalculates at every frames, it's not good
             // so I opted for calculating the final offset right away (see filtersColumnLongestUpdate)
-        //if (F.projectsListColumns.length > 0) {
-        //    F.projectsListColumns[F.projectsListColumnGroupCurrentIndex].style.height =
+        //if (F.projectsListContentElements.length > 0) {
+        //    F.projectsListContentElements[F.projectsListColumnGroupCurrentIndex].style.height =
         //        F.projectsListColumnLongestInGroups[F.projectsListColumnGroupCurrentIndex] + float(projectsListOffset / 3 / 3)
         //        +"px";
         //}
@@ -962,11 +1139,11 @@ function filtersScrollCalcs() {
 
 // columns are offset by scroll, need to reduce size of container to avoid empty space at the end
 function filtersColumnLongestUpdate() {
-    //if (F.projectsListColumns[F.projectsListColumnGroupCurrentIndex]) {
+    //if (F.projectsListContentElements[F.projectsListColumnGroupCurrentIndex]) {
         // getting the longest column of each group
         //F.projectsListColumnLongestInGroups = []; // reset
-        //if (F.projectsListColumns.length > 0) {
-        //    F.projectsListColumns.forEach((columnGroup) => {
+        //if (F.projectsListContentElements.length > 0) {
+        //    F.projectsListContentElements.forEach((columnGroup) => {
         //        // geting the longest column's index
         //        // get all column's height
         //        var columnsHeight = [];
@@ -976,50 +1153,70 @@ function filtersColumnLongestUpdate() {
         //    });
         //}
 
+        var iceScrolling = true;
+
         // getting the track length of each group, each column is same length because "display: grid/flex"
         F.projectsListColumnLongestInGroups = []; // reset
-        if (F.projectsListColumns.length > 0) {
-            F.projectsListColumns.forEach((columnGroup) => {
-                // we take any column and store its height
-                F.projectsListColumnLongestInGroups.push(columnGroup.querySelector("[column]").offsetHeight);
+        if (F.projectsListContentElements.length > 0) {
+            F.projectsListContentElements.forEach((element) => {
+                if (element.querySelector("[column]")) {
+                    iceScrolling = "column";
+                    // we take any column and store its height
+                    F.projectsListColumnLongestInGroups.push(element.querySelector("[column]").offsetHeight);
+                }
+                else { // not a column
+                    iceScrolling = false;
+                    F.projectsListColumnLongestInGroups.push(element.querySelector(".content-container").offsetHeight);
+                }
             });
         }
 
-        // calculate the offset with track length and column offset value
+        // calculate the offset with track length and ice scrolling offset value
         const trackLength = F.projectsListColumnLongestInGroups[F.projectsListColumnGroupCurrentIndex],
-            finalColumnsOffset = trackLength / 3 - F.filtersContainerHeight / 2,
-            resize = float(trackLength - finalColumnsOffset / 3) + 50;
-        F.projectsListColumns[F.projectsListColumnGroupCurrentIndex].style.height = resize +"px";
+              finalColumnsOffset = trackLength / iceScrollFactor - F.filtersContainerHeight / 2;
+
+        // resize value dependant on ice scrolling
+        var resize;
+        //if (iceScrolling == "column") { // columns ice scroll
+        //    resize = float(trackLength - finalColumnsOffset / 3) + 50;
+        //} else
+        if (iceScrolling) { // ice scroll
+            resize = float(trackLength - finalColumnsOffset / iceScrollFactor) + 50;
+        } else { // no ice scroll
+            resize = trackLength;
+        }
+        F.projectsListContentElements[F.projectsListColumnGroupCurrentIndex].style.height = resize +"px";
         F.projectsListContainer.style.height = `calc(${resize}px + var(--p-top) + var(--p-bottom)`; // to animate length changes
     //}
 } // resize event + load event on project cards img
 
-function projectListColumnsByRatio() {
-    // TODO
-    // only do animations for currently displayed column
-    // if resizing at the same time:
-    // -> keep the old animated elements even if not displayed anymore
-    // -> don't play with display anymore until animations finished
+function projectListColumnsByRatio(ColumnsNb = F.projectsListContentElements.length) {
+    if (ColumnsNb > 1) {
+        const docW = doc.clientWidth,
+              forceFirstColumn = 727, // force display of first column to this width
+              screenWMin = 0, screenWMax = 1920,
+              columnsIncrements = (screenWMax - (screenWMin + forceFirstColumn)) / (ColumnsNb - ((forceFirstColumn != 0) ? 1 : 0));
+        var incrementMin, incrementMax;
 
+        for (let i = 0; i < ColumnsNb; i++) {
+            incrementMin = (i == 0) ? 0                : incrementMax;
+            incrementMax = (i == 0) ? forceFirstColumn : incrementMin + columnsIncrements;
 
-    /*if(doc.clientWidth / doc.clientHeight > 0.8) { // big screens
-        var select = [1,0];
-    } else { // small screens (phones)
-        var select = [0,1];
-    }*/
+            const columnEl = F.projectsListContentElements[i];
 
-    // big or small screens
-    var select = (doc.clientWidth > 727) ? [1,0] : [0,1];
-    // TODO
-    // make it so it works with any number of columns
-    // currently it's only 2
-
-    if (F.projectsListColumns[1]) {
-        F.projectsListColumns[select[0]].classList.remove("hidden");
-        F.projectsListColumns[select[1]].classList.add("hidden");
+            if ((docW >= incrementMin && docW <= incrementMax)
+                || (i == ColumnsNb - 1 && docW >= incrementMax))
+            {
+                    F.projectsListColumnGroupCurrentIndex = i;
+                    if (columnEl) { columnEl.classList.remove("hidden"); }
+            } else {
+                if (columnEl) { columnEl.classList.add("hidden"); }
+            }
+        }
+    } else {
+        F.projectsListColumnGroupCurrentIndex = 0; // default
     }
-
-    F.projectsListColumnGroupCurrentIndex = select[0];
+    //console.lo/g(doc.clientWidth, "col Nb:",ColumnsNb, "col index:",F.projectsListColumnGroupCurrentIndex, ColumnsNb > 1);
 }
 
 
