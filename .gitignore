@@ -17,6 +17,7 @@ Desktop.ini
 .DS_Store*
 ehthumbs.db
 Icon?
+.tmp.*
 
 # Yolanart Public
 _old
