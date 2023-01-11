@@ -271,11 +271,11 @@ function bubbleTipCreate({target, delayAnimIn = 500, force = false}) {
 
         if (bubbleCPosXWR > doc.clientWidth) { // off to the right
             bContentPosX = doc.clientWidth - bubbleCPosXWR - borderOffset;
-            bubbleTipContentEl.style.transformOrigin = `calc(75% + ${borderOffset}px) 50%`;
+            bubbleTipContentEl.style.transformOrigin = `calc(75% + ${borderOffset * 2}px) 50%`;
         }
         if (bubbleCPosXWL < 0) { // off to the left
             bContentPosX = 0 - bubbleCPosXWL + borderOffset;
-            bubbleTipContentEl.style.transformOrigin = `calc(25% - ${borderOffset}px) 50%`;
+            bubbleTipContentEl.style.transformOrigin = `calc(25% - ${borderOffset * 2}px) 50%`;
         }
         if (bubblePosY + (bubbleTipContentRect.height / 2) + 35 > doc.clientHeight) { // off to the bottom
             bubbleTipEl.classList.add("reverse");
