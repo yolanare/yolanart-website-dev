@@ -28,15 +28,15 @@
     <main id="content-container" scroll-main>
         <header id="landing" class="content-sections">
             <div class="main-title">Yolan’Art</div>
-            <div class="scroll-down-notice">Scroll down!</div>
+            <div class="scroll-down-notice" translate-id="landing-scroll-down-notice"></div>
         </header>
         <section id="recent-projects" class="content-sections">
 
             <div id="intro-rp" class="col1">
                 <div class="in sticky">
-                    <span class="title-recent" to_translate="recent-proj-title">here are my most recent projects</span>
+                    <span class="title-recent" translate-id="recent-proj-title"></span>
                     <div class="goto_filters-txt">
-                        <span to_translate="recent-proj-goto_filters">Want to see them all at once?</span>
+                        <span translate-id="recent-proj-goto_filters"></span>
                         <svg class="arrow-right" viewBox="0 0 24 24"><polyline points="12 24 24 12 12 0"/></svg>
                     </div>
                 </div>
@@ -64,7 +64,7 @@
         <section id="filters" class="content-sections">
             <div id="intro-filters">
                 <div class="in sticky">
-                    <div class="title-filters" translate-id="filters-title">what kind of projects do you wanna see?</div>
+                    <div class="title-filters" translate-id="filters-title"></div>
                     <div class="filters-selector">
                         <!-- <div class="main">
                             <div filter-id="FILTER" class="f-pill">PROJECT_FILTER</div>
@@ -94,7 +94,11 @@
         </section>
         <footer id="contact" class="content-sections"></footer>
 
-        <div class="bubble-tips-container"></div>
+        <nav class="menu"></nav>
+
+        <div boom-main-container></div>
+        <div bubble-tips-container></div>
+        <div video-popups-container></div>
     </main>
 
 </body>

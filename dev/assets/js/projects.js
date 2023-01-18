@@ -24,7 +24,7 @@ const projectsDataSample = {
                 needBG : false,
             url_id : "D2_r4q2imnQ",
             embed : "https://yolan.art/",
-            format : "fill",
+            aspectRatio : "16:9",
         title : "<no name>",
         titleShort : "",
         titleHide: false,
@@ -46,7 +46,7 @@ const projectsDataSample = {
                 needBG : false|"000000"|"var(--y-b1)",
             url_id : "URL_ID",
             embed : "FULL_URL",
-            format : "fill|16:9|1:1",
+            aspectRatio : "16:9|1:1",
         title : "TITLE",
         titleShort : "SHORT_TITLE",
         titleHide: false|true,
@@ -72,7 +72,7 @@ const projectsDataSample = {
                 needBG : false|true|"000000"|"var(--y-b1)", // useful for monochrome white logos | you can specify the color of choice, CAN BE CSS variable | "true" is default dark | DEFAULT: false
             url_id : "URL_ID", // FOR TYPE: "yt|g_pdf"
             embed : "FULL_URL",
-            format : "fill|16:9|1:1", // IF TYPE: "vid|embed", else is not computed
+            aspectRatio : "fill|16:9|1:1", // IF TYPE: "vid|embed", else is not computed
         interact : "zoom|off", // DEFAULT: "zoom", better have "off" for others that are embed
         title : "TITLE",
         titleShort : "SHORT_TITLE", // to use if title is too long to fit the project card
@@ -275,7 +275,7 @@ var projectsData = {
     "mc_factory92" : {
         type : "yt", interact : "off",
             url_id : "jN7L44_-igk",
-            format : "1:1",
+            aspectRatio : "1:1",
         title : "FACTORY-92",
         date : "2021.01",
         category : "renders",
@@ -361,7 +361,7 @@ var projectsData = {
     "sch_1_wc" : {
         type : "yt", interact : "off",
             url_id : "Cg0DBZRAbqU",
-            format : "1:1",
+            aspectRatio : "1:1",
         title : "WHITE CITY",
         date : "2019.03-06",
         category : "renders",
@@ -410,7 +410,7 @@ var projectsData = {
     "pub_sc_lc" : {
         type : "yt", interact : "off",
             url_id : "66QpHMgmXLM",
-            format : "16:9",
+            aspectRatio : "16:9",
         title : "VIDÉO PUBLICITAIRE: \"LES CONNECTÉS\"",
         titleShort : "PUB: \"LES CONNECTÉS\"",
         date : "2021.02-04",
@@ -448,7 +448,7 @@ var projectsData = {
     "i_rs_b" : {
         type : "yt", interact : "off",
             url_id : "XOnAthClcEI",
-            format : "16:9",
+            aspectRatio : "16:9",
         title : "RETROSATURN β",
         date : "2018.09",
         category : "motion",
@@ -479,7 +479,7 @@ var projectsData = {
     "i_jfm" : {
         type : "yt", interact : "off",
             url_id : "Gyho58zddwg",
-            format : "16:9",
+            aspectRatio : "16:9",
         title : "JordanneFM",
         date : "2017.12",
         category : "motion",
@@ -499,7 +499,7 @@ var projectsData = {
     "i_y2" : {
         type : "yt", interact : "off",
             url_id : "UkL4zVUw27Y",
-            format : "16:9",
+            aspectRatio : "16:9",
         title : "Yolan' v2",
         date : "2017.09",
         category : "motion",
@@ -509,7 +509,7 @@ var projectsData = {
     "i_inex" : {
         type : "yt", interact : "off",
             url_id : "46MrLGy5Xb8",
-            format : "16:9",
+            aspectRatio : "16:9",
         title : "iNEX",
         date : "2017.03",
         category : "motion",
@@ -519,7 +519,7 @@ var projectsData = {
     "i_yc" : {
         type : "yt", interact : "off",
             url_id : "PR0fVAGbHIQ",
-            format : "16:9",
+            aspectRatio : "16:9",
         title : "YOLAN & CLÉMENT",
         date : "2017.01",
         category : "motion",
@@ -871,7 +871,7 @@ var projectsData = {
                 needBG : false|"000000"|"var(--y-b1)",
             url_id : "URL_ID",
             embed : "FULL_URL",
-            format : "fill|16:9|1:1",
+            aspectRatio : "16:9|1:1",
         title : "LONELY DAFT",
         date : "YYYY.MM",
         category : "artworks",
@@ -925,7 +925,7 @@ var projectsData = {
     "zelda_badge" : {
         type : "yt", interact : "off",
             url_id : "URL_ID",
-            format : "16:9",
+            aspectRatio : "16:9",
         title : "LINK TROUVE UN BADGE D'ACCÈS",
         titleShort : "LINK TROUVE UN BADGE",
         date : "YYYY.MM",
@@ -1035,125 +1035,10 @@ const categoriesData = {
     }
 }
 
-const contexts = {
-    en : {
-        format : {
-            "personal": "Personal Project",
-            "fun" : "Fun",
-            "order" : "Order",
-            "school" : "School Project",
-            "sc" : "Service Civique",
-            "ppm" : "Pamplemousse",
-            "retrosaturn" : "Retrosaturn",
-            "pti" : "Psychoid: the Industriax"
-        },
-        plural : {
-            "personal": "Personal Projects",
-            "fun" : "Fun",
-            "order" : "Orders",
-            "school" : "School Projects",
-            "sc" : "Service Civique",
-            "ppm" : "Pamplemousse",
-            "retrosaturn" : "Retrosaturn",
-            "pti" : "Psychoid: the Industriax"
-        }
-    },
-    fr : {
-        format : {
-            "personal": "Projet Personnel",
-            "fun" : "Fun",
-            "order" : "Commande",
-            "school" : "Projet d'École",
-            "sc" : "Service Civique",
-            "ppm" : "Pamplemousse",
-            "retrosaturn" : "Retrosaturn",
-            "pti" : "Psychoid: the Industriax"
-        },
-        plural : {
-            "personal": "Projets Personnel",
-            "fun" : "Fun",
-            "order" : "Commandes",
-            "school" : "Projets d'École",
-            "sc" : "Service Civique",
-            "ppm" : "Pamplemousse",
-            "retrosaturn" : "Retrosaturn",
-            "pti" : "Psychoid: the Industriax"
-        }
-    }
-};
-
-const filters = {
-    en : {
-        format : {
-            "experiment" : "Experiment",
-            "photo" : "Photography",
-            "illustration" : "Illustration",
-            "3D" : "3D",
-            "motion" : "Motion-Design",
-            "type" : "Typography",
-            "poster" : "Poster",
-            "print" : "Prints",
-            "logo" : "Logo",
-            "vector" : "Vector",
-            "layout" : "Layout",
-            "ad" : "Advertising",
-            "date" : "Date"
-        },
-        plural : {
-            "experiment" : "Experiments",
-            "photo" : "Photography",
-            "illustration" : "Illustrations",
-            "3D" : "3D",
-            "motion" : "Motion-Designs",
-            "type" : "Typography",
-            "poster" : "Posters",
-            "print" : "Prints",
-            "logo" : "Logos",
-            "vector" : "Vectors",
-            "layout" : "Layouts",
-            "ad" : "Advertising",
-            "date" : "Dates"
-        }
-    },
-    fr : {
-        format : {
-            "experiment" : "Expérimentation",
-            "photo" : "Photographie",
-            "illustration" : "Illustration",
-            "3D" : "3D",
-            "motion" : "Motion-Design",
-            "type" : "Typographie",
-            "poster" : "Affiche",
-            "print" : "Print",
-            "logo" : "Logo",
-            "vector" : "Vectoriel",
-            "layout" : "Mise en forme",
-            "ad" : "Publicité",
-            "date" : "Date"
-        },
-        plural : {
-            "experiment" : "Expérimentations",
-            "photo" : "Photographie",
-            "illustration" : "Illustrations",
-            "3D" : "3D",
-            "motion" : "Motion-Design",
-            "type" : "Typographie",
-            "poster" : "Affiches",
-            "print" : "Prints",
-            "logo" : "Logos",
-            "vector" : "Vectoriel",
-            "layout" : "Mises en formes",
-            "ad" : "Publicités",
-            "date" : "Dates"
-        }
-    }
-};
-
 
 export {
     projectsData, categoriesData,
     projectsDataSample, categoriesDataSample,
-    contexts, filters,
 
     projectTemplate
 };

@@ -5,48 +5,34 @@ import { CountUp } from "countup.js";
 //import anime from "animejs/lib/anime.es.js";
 
 import * as Prj from "./assets/js/projects.js";
+import * as Lang from "./assets/js/lang.js";
 import "./index.html"
 import "./main.scss"
 
 
-//- VARIABLES -
+// - HELPER VARIABLES -
 var doc = document.documentElement,
     isMini, // boolean if viewport is small like a phone
     touchDevice = (navigator.maxTouchPoints || "ontouchstart" in document.documentElement), // boolean if touch device
-    pageContentContainer = document.querySelector("main#content-container"), // main container of page
-    language = (/^fr\b/.test(navigator.language)) ? "fr" : "en"; // language (default : en)
+    pageContentContainer = document.querySelector("main#content-container"); // main container of page
 
-const scrollToDuration = 1250,
-      scrollToDurationCard = 1000,
-      scrollToDurationElse = 2000;
-
-// chrome has "faster" scroll
-const iceScrollFactor = (!window.chrome) ? 3 : 7;
+// convert to radian or to degrees
+const deg2rad = Math.PI/180,
+      rad2deg = 180/Math.PI;
 
 // check the viewport size, set boolean "isMini" if vp goes small
 function checkWinSize() { isMini = (window.innerWidth > 727); };
 checkWinSize(); window.addEventListener("resize", checkWinSize);
 
-// check if browser is chromium based
+// - CSS HELPERS -
+// is browser chromium based
 if (!!window.chrome) { document.querySelector("html").classList.add("isChr"); }
+// is touch device
+if (!!window.chrome) { document.querySelector("html").classList.add("isTouch"); }
 
-
-// PROJECTS (const shortcuts)
-const pData = Prj.projectsData,
-      mData = Prj.categoriesData,
-      pDataDefault = Prj.projectsDataSample.default,
-      mDataDefault = Prj.categoriesDataSample.default,
-      pContexts = Prj.contexts,
-      pFilters = Prj.filters;
-
-
-// - REUSABLE FUNCTIONS -
+// - HELPER FUNCTIONS -
 // convert to float and round to .01
 function float(str) { return parseFloat(str.toFixed(2)) }
-
-// convert to radian or to degrees
-const deg2rad = Math.PI/180,
-      rad2deg = 180/Math.PI;
 
 // take a value, convert it from a range to another range, and rounded to .01
 function mapRange(value, low1, high1, low2, high2) { // Processing's map function
@@ -110,6 +96,13 @@ function removeClassAll(path, c) {
     if (elems) { elems.forEach((el) => { el.classList.remove(c); }); }
 }
 
+// get tuple of center position of specified element
+function getCenterOfEl(el) {
+    const elRect = el.getBoundingClientRect();
+    return [elRect.left + (elRect.width / 2),
+            elRect.top + (elRect.height / 2)]
+}
+
 // get "project-id" attribute from an element
 function pID(i) { return thiis.getAttribute("project-id"); }
 // get "filter-id" attribute from an element
@@ -129,6 +122,7 @@ document.addEventListener("DOMContentLoaded", function() {
             y : "scroll"
         },
         scrollbars : {
+            visibility : "auto",
             autoHide : "move", // "scroll" "move" "never"
             autoHideDelay : OScrHDelay
         },
@@ -140,6 +134,23 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
+
+// enable/disable scroll
+function scrollbarMainSetShowState(state = false, scrollbar = scrollbarMain) {
+    if (!state) { // default
+        scrollbar.options("overflowBehavior.y", "scroll");
+    } else if (state == "hide") {
+        scrollbar.options("overflowBehavior.y", "hidden");
+    }
+}
+
+// scrollTo variables
+const scrollToDuration = 1250,
+      scrollToDurationCard = 1000,
+      scrollToDurationElse = 2000;
+
+// speed factor for ice scroll
+const iceScrollFactor = (!window.chrome) ? 3 : 7; // chrome has "faster" scroll
 
 // TODO cancel go-to scroll animation if user scrolls the opposite way
 //var isScrollingTo = false, isScrollingToPrevPos = [];
@@ -156,152 +167,28 @@ document.addEventListener("DOMContentLoaded", function() {
 //    console.lo/g(isScrollingTo, isScrollingToPrevPos, scrollbarMain.scroll().position.y);
 //}
 
-// SHORTCUTS
-// generate HTML for filter pills with filter ID
-// TODO will need to do (learn to do) a class of smth later
-function htmlFilterPill({
-        filterID,
-        type,
-        state,
-        plural,
-        customStaticName}) {
-    plural = plural ? "plural" : "format";
-    return `<div filter-id="${filterID}" class="f-pill ${type}" ${(state) ? `state="${state}"` : ``}>
-        ${(customStaticName) ? customStaticName : // use custom static name if specified
-            pFilters[language][plural][filterID] // get formatted name
-    }</div>`
-}
-function htmlFilterPillComplex([filterID, customIcon], type, plural, customStaticName) {
-    plural = plural ? "plural" : "format";
-    return `<div filter-id="${filterID}" class="f-pill ${type}">
-        ${(customIcon) ? customIcon : ``}
-        <span>${(customStaticName) ? customStaticName : // use custom static name if specified
-            pFilters[language][plural][filterID] // get formatted name
-        }</span>
-    </div>`
-}
-function htmlFPill(pillID, label, customIcon = false) {
-    return `<div class="f-pill ${pillID}">
-        ${(customIcon) ? customIcon : ``}
-        <span>${label}</span>
-    </div>`
-}
 
-// STICK IT
-function StickIt() {
-    document.querySelectorAll(".sticky").forEach((stickyEl) => {
-        const target = stickyEl.getBoundingClientRect(),
-              targetContainer = stickyEl.parentElement.getBoundingClientRect();
+// PROJECTS (const shortcuts)
+const pDataDefault = Prj.projectsDataSample.default,
+      pContexts = Lang.contexts,
+      pFilters = Lang.filters;
 
-        if (0 < targetContainer.top) { // if container goes out viewport at the top
-            // position normal
-            stickyEl.classList.remove("sticky-fixed");
-            stickyEl.classList.remove("sticky-end");
-            stickyEl.style.position = null;
-            stickyEl.style.top = null;
-            stickyEl.style.bottom = null;
-        } else if (target.bottom >= targetContainer.bottom-1 // if sticky element hits the bottom
-                && target.top <= 0) { // and if the element's top is under the top of viewport (scroll sticky)
-            // position sticked to bottom
-            stickyEl.classList.remove("sticky-fixed");
-            stickyEl.classList.add("sticky-end");
-            stickyEl.style.position = "absolute";
-            stickyEl.style.top = "auto";
-            stickyEl.style.bottom = 0 +"px";
-        } else {
-            // position sticked to scroll
-            stickyEl.classList.add("sticky-fixed");
-            stickyEl.classList.remove("sticky-end");
-            stickyEl.style.position = "fixed";
-            stickyEl.style.top = 0 +"px";
-            stickyEl.style.bottom = null;
-        }
-    });
-}
+// TODO PROJECTS DATA FILL WITH DEFAULT VALUES
+//function projectDataFillWithDefaults(projectData) {
+//    // find and add default values to non existing/wrong project values
+//    pDataDefault.forEach((pDefaultEntry) => {
+//        const isExisting = Object.hasOwn(projectData, pDefaultEntry);
+//    // play with Object.assign()
+//
+//        console.lo/g(pDefaultEntry, isExisting);
+//    })
+//}
+//projectDataFillWithDefaults(Prj.projectsData[1])
 
-// BUBBLE TIPS
-function bubbleTipInit({target, delayAnimIn, force}) {
-    target.addEventListener("mouseenter", () => { bubbleTipCreate({target : target}); });
-}
+// for each project data
+//Prj.projectsData.forEach((projectData) => { projectDataFillWithDefaults(projectData); })
 
-function bubbleTipCreate({target, delayAnimIn = 500, force = false}) {
-    delayAnimIn = Math.max(delayAnimIn, 50); // minimal value for delay
-
-    const label = target.getAttribute("tip");
-    // cancel if no tip to show
-    if (!label) { console.error("no bubble tip specified"); return; }
-
-    // not on touch devices
-    if (!touchDevice && force) { return; }
-
-    // generate
-    var bubbleTipEl;
-    bubbleTipEl = document.createElement("div");
-    bubbleTipEl.classList.add("bubble-tip");
-    bubbleTipEl.classList.add("anim-pre");
-    bubbleTipEl.innerHTML = `<div class="point"></div><div class="content"><div class="bg"></div><span>${label}</span></div>`;
-
-    // create
-    document.querySelector(".bubble-tips-container").appendChild(bubbleTipEl);
-
-    // allow getting final size before animating (transform is fucking with size)
-    bubbleTipEl.classList.add("normal-scale");
-    setTimeout(() => { bubbleTipEl.classList.remove("normal-scale"); }, delayAnimIn / 2); // restore
-
-    // position
-    const targetRect = target.getBoundingClientRect(),
-          //
-          bubblePosX = targetRect.left + (targetRect.width / 2),
-          bubblePosY = (targetRect.top + (targetRect.height / 2));
-
-    bubbleTipEl.style.left = bubblePosX +"px";
-    bubbleTipEl.style.top = bubblePosY +"px";
-
-    // offset content if offscreen
-    setTimeout(() => {
-        const bubbleTipContentEl = bubbleTipEl.querySelector(".content"),
-              bubbleTipContentRect = bubbleTipContentEl.getBoundingClientRect(),
-              //
-              borderOffset = 10,
-              bubbleCPosXWR = bubblePosX + (bubbleTipContentRect.width / 2),
-              bubbleCPosXWL = bubblePosX - (bubbleTipContentRect.width / 2);
-
-        // default position
-        var bContentPosX = 0;
-
-        if (bubbleCPosXWR > doc.clientWidth) { // off to the right
-            bContentPosX = doc.clientWidth - bubbleCPosXWR - borderOffset;
-            bubbleTipContentEl.style.transformOrigin = `calc(75% + ${borderOffset * 2}px) 50%`;
-        }
-        if (bubbleCPosXWL < 0) { // off to the left
-            bContentPosX = 0 - bubbleCPosXWL + borderOffset;
-            bubbleTipContentEl.style.transformOrigin = `calc(25% - ${borderOffset * 2}px) 50%`;
-        }
-        if (bubblePosY + (bubbleTipContentRect.height / 2) + 35 > doc.clientHeight) { // off to the bottom
-            bubbleTipEl.classList.add("reverse");
-        }
-
-        // TODO : have a better animation for offscreen cases
-
-        bubbleTipContentEl.style.left = bContentPosX +"px";
-        bubbleTipContentEl.style.top = 0 +"px";
-    }, delayAnimIn / 4);
-
-    // animation in trigger
-    setTimeout(() => {
-        bubbleTipEl.classList.remove("anim-pre");
-    }, delayAnimIn);
-
-    // out
-    target.addEventListener("mouseleave", () => { bubbleTipRemove(bubbleTipEl); })
-    target.addEventListener("click", () => { bubbleTipRemove(bubbleTipEl); })
-}
-
-function bubbleTipRemove(bubbleTipEl) {
-    bubbleTipEl.classList.add("anim-clear");
-    addEvTrEnd(bubbleTipEl, () => { bubbleTipEl.remove(); }, {property : "opacity", once : false});
-}
-
+const pData = Prj.projectsData;
 
 // SORT PROJECTS BY DATE
 function projectsSortByDate() {
@@ -387,6 +274,484 @@ function projectsSortByDate() {
 const projectsSortedDate = projectsSortByDate();
 
 
+// LANGUAGE
+const Translations = Lang.translations, // translations data-base
+      langNavigator = (navigator.language).split("-")[0]; // navigator's language
+
+// array of supported languages
+var languagesSupported = [];
+Object.entries(Translations).forEach((trID) => { Object.entries(trID[1]).forEach((lang) => { if (!languagesSupported.includes(lang[0])) { languagesSupported.push(lang[0]); } }) });
+
+// check if navigator's language is supported
+const langIsNavigatorSupported = languagesSupported.includes(langNavigator);
+
+// current language var, will fallback english if not supported
+var language = (langIsNavigatorSupported) ? langNavigator : "en";
+
+// get from the data base the translation of specified entry
+function getTextLang({type : translateType, id : input, useLangDB, DB2nd}) {
+    const isEl = (typeof input === "string" || input instanceof String) ? false : true, // check if input is an element
+          translateID = (isEl) ? input.getAttribute(translateType) : input;
+
+    // fallback to other language containing the translation
+    function findInOtherLang(DB, DB2) {
+        console.error(`Translation [${translateType}] for [${translateID}] doesn't exist in language [${language}].\n`, input);
+        var isFound = false;
+        Object.entries(DB).forEach((lang) => {
+            // get data if nested
+            var isNewLabel = (DB2) ? lang[1][DB2][translateID] : lang[1][translateID];
+
+            if (isNewLabel && !isFound) {
+                console.warn(`Found translation substitute in [${lang[0]}] for [${translateID}].`);
+                newLabel = isNewLabel;
+                isFound = !isFound; // found, use the first one found (generally english in order)
+            }
+        })
+    }
+
+    if (!useLangDB) {
+        var newLabel = Translations[translateType][language][translateID];
+
+        if (!newLabel) { findInOtherLang(Translations[translateType]); }
+    } else if (useLangDB == "filters") {
+        // data is nested, DB2nd is used if specified, else getAttribute of el
+        DB2nd = (isEl && !DB2nd) ? input.getAttribute("plural") : DB2nd;
+
+        var newLabel = pFilters[language][DB2nd][translateID];
+
+        if (!newLabel) { findInOtherLang(pFilters, DB2nd); }
+    }
+
+    // if no translation found at all
+    if (!newLabel) {
+        console.warn(`Using ID [${translateID}] as placeholder.`);
+        if (isEl) {
+            input.setAttribute("no-translation-found", "");
+            return `[${translateID}]`;
+        }
+        else { return `[${translateID}]`; }
+    }
+
+    return newLabel;
+}
+
+// changes every "translatable" valid elements's innerText to the translation in the database
+function translatePage() {
+    document.querySelectorAll("[translate-id]").forEach((toTranslateEl) => {
+        toTranslateEl.innerText = getTextLang({type : "translate-id", id : toTranslateEl});
+    })
+    document.querySelectorAll("[translate-bubble-id]").forEach((toTranslateEl) => {
+        toTranslateEl.setAttribute("tip", getTextLang({type : "translate-bubble-id", id : toTranslateEl}));
+    })
+    document.querySelectorAll(".f-pill[filter-id]").forEach((toTranslateEl) => {
+        toTranslateEl.querySelector("span").innerText = getTextLang({type : "filter-id", id : toTranslateEl, useLangDB : "filters"});
+    })
+    // TODO pContexts
+
+    const projectPages = document.querySelectorAll("[project-pages-container] .project-page");
+    if (projectPages.length > 0) {
+        console.debug("project pages", projectPages);
+    }
+}
+
+// call to change to the next language
+function changeLanguage(e, PARAMS = {specificLanguage : false, callTranslatePage : true}) {
+    // force language if specified
+    if (PARAMS.specificLanguage != false) { language = PARAMS.specificLanguage; return; }
+
+    // use the next language in the list
+    const index = languagesSupported.indexOf(language),
+          newLanguage = languagesSupported[(index + 1 >= languagesSupported.length) ? 0 : index + 1];
+
+    language = newLanguage;
+
+    // "translate" the page, by default will always do
+    if (PARAMS.callTranslatePage) { translatePage(); }
+
+    // need to update some things because sometimes text can be longer/shorter and change scroll length
+    scrollEvents();
+}
+
+// create menu button to change language
+function languageButtonCreate() {
+    var languageButton = document.createElement("div");
+    languageButton.classList.add("change-language-button");
+    languageButton.innerHTML = `<span translate-id="change-language-button">${getTextLang({type : "translate-id", id : "change-language-button"})}</span>`;
+
+    document.querySelector("nav.menu").appendChild(languageButton);
+
+    languageButton.addEventListener("click", () => { setTimeout(() => { changeLanguage(); }, 100); });
+    boomAnimInit(languageButton, false, "languageButton");
+}
+languageButtonCreate();
+
+
+// BOOM
+function boomAnimInit(target, container, specialCase) {
+    target.addEventListener("mousedown", (ev) => { boomAnim(ev, target, container, specialCase); });
+}
+
+function boomAnim(
+    // if specified ("mousedown" event var) will appear from cursor position,
+    // else from center of target if specified,
+    // else center of container
+    boomOrigin = false,
+    // if specified : will dismiss boom when "mouseup" or "mouseleave",
+    // else will dismiss itself right away
+    target = false,
+    // boom will fill container
+    // default: page viewport
+    container = false,
+    // custom styling (css class name goes here)
+    specialCase = false,
+    // dismiss delay (ms)
+    fadeOutTime = 1300
+) {
+
+    // container selector
+    if (!container) { // if not specified, default to page viewport
+        container = doc;
+    }
+
+    // origin position of boom
+    var originX, originY;
+    if (!boomOrigin) { // not at cursor position
+        if (!target) { // not at target position
+            // will be at center of container
+            [originX, originY] = getCenterOfEl(container);
+        } else {
+            [originX, originY] = getCenterOfEl(target);
+        }
+    } else { // click position
+        originX = boomOrigin.clientX,
+        originY = boomOrigin.clientY;
+    }
+
+    const containerW = container.clientWidth, containerH = container.clientHeight,
+          // get farthest corner from origin
+          cornerX = Math.abs(originX - ((originX > containerW / 2) ? 0 : containerW)),
+          cornerY = Math.abs(originY - ((originY > containerH / 2) ? 0 : containerH)),
+          // use Pythagoras to get circle parameters
+          circleDiameter = float(Math.sqrt(cornerX**2 + cornerY**2) + 5) * 2, // get diameter + add 5px to be sure it fills the whole container
+          circleRotate = float(Math.atan(cornerX/cornerY)*180/Math.PI) * -1; // get angle to match middle of the circle div edge
+          //console.table({containerW2,containerH2, originX,originY, cornerX,cornerY, circleDiameter,circleRotate}) // debug values
+
+    // generate
+    var boom = document.createElement("div"),
+        boomCircle = document.createElement("div");
+
+    boom.classList.add("boom");
+    boomCircle.classList.add("circle");
+    if(specialCase) { boom.classList.add(specialCase); }
+
+    boom.style.setProperty("--boom-rotate", circleRotate +"deg");
+    boom.style.setProperty("--boom-x", originX +"px");
+    boom.style.setProperty("--boom-y", originY +"px");
+
+    // create
+    document.querySelector("[boom-main-container]").appendChild(boom);
+    boom.appendChild(boomCircle);
+
+    // animation in
+    setTimeout(function() { // delay for computing
+        boomCircle.style.setProperty("--boom-size", circleDiameter +"px");
+        boomCircle.style.setProperty("--boom-fadeout-time", fadeOutTime +"ms");
+        boomCircle.classList.add("final-style");
+    }, 10);
+
+    // dismissing the boom
+    function boomRemove() {
+        setTimeout(function() { // delay for computing
+            // animation out
+            boomCircle.style.opacity = "0";
+            setTimeout(function() {
+                boom.remove();
+            }, fadeOutTime);
+        }, 10);
+    }
+
+    // if there is a target element, wait for these events
+    if(target) {
+        target.addEventListener("mouseup", () => { boomRemove(); });
+        target.addEventListener("mouseleave", () => { boomRemove(); });
+    }
+    // else dismiss right away
+    else { boomRemove(); }
+}
+
+
+// CURSOR CROSS
+function cursorCrossShow(curCrossEl, force) {
+    curCrossEl.classList.add("hover");
+    if (force) { curCrossEl.classList.remove("hidden"); }
+}
+function cursorCrossHide(curCrossEl, force) {
+    curCrossEl.classList.remove("hover");
+    curCrossEl.classList.remove("click");
+
+    if (force) { curCrossEl.classList.add("hidden"); }
+    else { curCrossEl.classList.remove("hidden"); }
+}
+function cursorCrossClick(curCrossEl, click) {
+    if (click) { curCrossEl.classList.add("click"); }
+    else { curCrossEl.classList.remove("click"); }
+}
+function cursorCrossMove(e, curCrossEl) {
+    curCrossEl.style.left = e.clientX + 'px';
+    curCrossEl.style.top = e.clientY + 'px';
+}
+
+function cursorCrossCreate(surface, container) {
+    if(touchDevice == false) {
+        // by default, the container will be the parent of the target surface, but it can be specified
+        container = (container) ? container : surface.parentElement;
+
+        // generate
+        var curCrossEl;
+        curCrossEl = document.createElement("div");
+        curCrossEl.classList.add("cursor-cross");
+        curCrossEl.innerHTML = `
+            <svg viewBox="0 0 32 32">
+                <line x1="26.3" y1="26.3" x2="5.7" y2="5.7"/>
+                <line x1="5.7" y1="26.3" x2="26.3" y2="5.7"/>
+            </svg>
+        `;
+
+        // create
+        container.appendChild(curCrossEl);
+
+        surface.style.cursor = "none";
+
+        // events
+        surface.addEventListener("mouseover", () => { cursorCrossShow(curCrossEl); });
+        surface.addEventListener("mouseout", () => { cursorCrossHide(curCrossEl); });
+        surface.addEventListener("mousedown", () => { cursorCrossClick(curCrossEl, true); });
+        surface.addEventListener("mouseup", () => { cursorCrossClick(curCrossEl, false); });
+        surface.addEventListener("mousemove", (e) => { cursorCrossMove(e, curCrossEl); });
+
+        //TODO cursor cross is unable to detect it is on surface when starting (while on V6 it could with pp-curclose)
+
+        //container.addEventListener("mousemove", (e) => { cursorCrossMove(e, curCrossEl); });
+        //setTimeout(() => { container.removeEventListener("mousemove", (e) => { cursorCrossMove(e, curCrossEl); }), 800});
+
+        return curCrossEl;
+    }
+}
+
+
+// BUBBLE TIPS
+function bubbleTipInit({target, delayAnimIn, force}) {
+    var bubbleTipEl_;
+    target.addEventListener("mouseenter", () => { bubbleTipEl_ = bubbleTipCreate({target : target}); });
+
+    // out
+    target.addEventListener("mouseleave", () => { bubbleTipRemove(bubbleTipEl_); })
+    target.addEventListener("click", () => { bubbleTipRemove(bubbleTipEl_); })
+}
+
+function bubbleTipCreate({target, delayAnimIn = 500, force = false}) {
+    delayAnimIn = Math.max(delayAnimIn, 50); // minimal value for delay
+
+    const label = target.getAttribute("tip");
+    // cancel if no tip to show
+    if (!label) { console.error("no bubble tip specified"); return; }
+
+    // not on touch devices
+    if (!touchDevice && force) { return; }
+
+    // generate
+    var bubbleTipEl;
+    bubbleTipEl = document.createElement("div");
+    bubbleTipEl.classList.add("bubble-tip");
+    bubbleTipEl.classList.add("anim-pre");
+    bubbleTipEl.innerHTML = `<div class="point"></div><div class="content"><div class="bg"></div><span>${label}</span></div>`;
+
+    // create
+    document.querySelector("[bubble-tips-container]").appendChild(bubbleTipEl);
+
+    // allow getting final size before animating (transform is fucking with size)
+    bubbleTipEl.classList.add("normal-scale");
+    setTimeout(() => { bubbleTipEl.classList.remove("normal-scale"); }, delayAnimIn / 2); // restore
+
+    // position
+    const targetRect = target.getBoundingClientRect(),
+          //
+          bubblePosX = targetRect.left + (targetRect.width / 2),
+          bubblePosY = (targetRect.top + (targetRect.height / 2));
+
+    bubbleTipEl.style.left = bubblePosX +"px";
+    bubbleTipEl.style.top = bubblePosY +"px";
+
+    // offset content if offscreen
+    setTimeout(() => {
+        const bubbleTipContentEl = bubbleTipEl.querySelector(".content"),
+              bubbleTipContentRect = bubbleTipContentEl.getBoundingClientRect(),
+              //
+              borderOffset = 10,
+              bubbleCPosXWR = bubblePosX + (bubbleTipContentRect.width / 2),
+              bubbleCPosXWL = bubblePosX - (bubbleTipContentRect.width / 2);
+
+        // default position
+        var bContentPosX = 0;
+
+        if (bubbleCPosXWR > doc.clientWidth) { // off to the right
+            bContentPosX = doc.clientWidth - bubbleCPosXWR - borderOffset;
+            bubbleTipContentEl.style.transformOrigin = `calc(75% + ${borderOffset * 2}px) 50%`;
+        }
+        if (bubbleCPosXWL < 0) { // off to the left
+            bContentPosX = 0 - bubbleCPosXWL + borderOffset;
+            bubbleTipContentEl.style.transformOrigin = `calc(25% - ${borderOffset * 2}px) 50%`;
+        }
+        if (bubblePosY + (bubbleTipContentRect.height / 2) + 35 > doc.clientHeight) { // off to the bottom
+            bubbleTipEl.classList.add("reverse");
+        }
+
+        // TODO : have a better animation for offscreen cases
+
+        bubbleTipContentEl.style.left = bContentPosX +"px";
+        bubbleTipContentEl.style.top = 0 +"px";
+    }, delayAnimIn / 4);
+
+    // animation in
+    setTimeout(() => {
+        bubbleTipEl.classList.remove("anim-pre");
+    }, delayAnimIn);
+
+    return bubbleTipEl;
+}
+
+function bubbleTipRemove(bubbleTipEl) {
+    bubbleTipEl.classList.add("anim-clear");
+    addEvTrEnd(bubbleTipEl, () => { bubbleTipEl.remove(); }, {property : "opacity", once : false});
+}
+
+// QUICK VIDEO POPUPS
+function quickPopupVideoInit(target, projectID, originEl) {
+    target.addEventListener("click", () => { quickPopupVideoCreate(projectID, originEl); });
+}
+function quickPopupVideoCreate(projectID, originEl) { // popup video projects anywhere
+    const PROJECT = pData[projectID];
+
+    // generate
+    var popVid;
+    popVid = document.createElement("div");
+    popVid.classList.add("video-popup");
+    popVid.classList.add("anim-pre");
+    popVid.innerHTML = `
+        <div class="bg"></div>
+        <div class="ytplayer-c">
+            <div class="ytplayer" style="background-color: ${(PROJECT.color) ? PROJECT.color : pDataDefault.color}" aspect-ratio="${(PROJECT.aspectRatio) ? PROJECT.aspectRatio : pDataDefault.aspectRatio}">
+                <iframe width="1280" height="720" src="https://www.youtube.com/embed/${(PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id}?rel=0&color=white&loop=1" frameborder="0" allowfullscreen></iframe>
+            </div>
+        </div>
+    `;
+
+    // create
+    document.querySelector("[video-popups-container]").appendChild(popVid);
+
+    // animation in : get from position
+    // if target element, from center of element
+    if (originEl) {
+        const targetRect = (originEl.classList.contains("project-cards"))
+            // if project card, take thumbnail's center
+            ? originEl.querySelector(".thumbnail").getBoundingClientRect()
+            : originEl.getBoundingClientRect();
+
+        var popOriginX = targetRect.left + (targetRect.width / 2),
+            popOriginY = targetRect.top + (targetRect.height / 2);
+        // default position is set to center of viewport with css
+
+        popVid.style.left = popOriginX +"px";
+        popVid.style.top = popOriginY +"px";
+    }
+
+    // anim in
+    setTimeout(() => {
+        scrollbarMainSetShowState("hide");
+        popVid.classList.remove("anim-pre");
+    }, 100);
+
+    // out
+    const curCrossEl = cursorCrossCreate(popVid.querySelector(".bg"));
+    cursorCrossHide(curCrossEl, true);
+
+    setTimeout(() => {
+        cursorCrossHide(curCrossEl, false);
+        popVid.querySelector(".bg").addEventListener("click", () => { quickPopupVideoRemove(popVid); })
+    }, 300);
+}
+function quickPopupVideoRemove(popVid) {
+    scrollbarMainSetShowState(); // default
+    popVid.classList.add("anim-clear");
+    addEvTrEnd(popVid, () => { popVid.remove(); }, {property : "opacity", once : false});
+}
+
+
+// STICK IT
+function StickIt() {
+    document.querySelectorAll(".sticky").forEach((stickyEl) => {
+        const target = stickyEl.getBoundingClientRect(),
+              targetContainer = stickyEl.parentElement.getBoundingClientRect();
+
+        if (0 < targetContainer.top) { // if container goes out viewport at the top
+            // position normal
+            stickyEl.classList.remove("sticky-fixed");
+            stickyEl.classList.remove("sticky-end");
+            stickyEl.style.position = null;
+            stickyEl.style.top = null;
+            stickyEl.style.bottom = null;
+        } else if (target.bottom >= targetContainer.bottom-1 // if sticky element hits the bottom
+                && target.top <= 0) { // and if the element's top is under the top of viewport (scroll sticky)
+            // position sticked to bottom
+            stickyEl.classList.remove("sticky-fixed");
+            stickyEl.classList.add("sticky-end");
+            stickyEl.style.position = "absolute";
+            stickyEl.style.top = "auto";
+            stickyEl.style.bottom = 0 +"px";
+        } else {
+            // position sticked to scroll
+            stickyEl.classList.add("sticky-fixed");
+            stickyEl.classList.remove("sticky-end");
+            stickyEl.style.position = "fixed";
+            stickyEl.style.top = 0 +"px";
+            stickyEl.style.bottom = null;
+        }
+    });
+}
+
+
+// FILTER PILLS
+// generate HTML for filter pills with filter ID
+function generateFPill({
+    filterID = undefined,
+    type = "",
+    forceState = undefined,
+    plural = false, // true|false
+    customClass = "",
+    customStaticLabel = "", // custom static label, will never contextually change, is used in priority if specified
+    labelTranslateID, // custom label but can be translated
+    customIcon = ``,
+}) {
+
+    plural = (plural) ? "plural" : "format";
+
+    const label = (customStaticLabel) ? customStaticLabel // use custom static label if specified
+                  // get formatted name // use custom label if specified
+                  : (labelTranslateID) ? getTextLang({type : "translate-id", id : labelTranslateID})
+                  : getTextLang({type : "filter-id", id : filterID, useLangDB : "filters", DB2nd : plural}) //: pFilters[language][plural][filterID]
+
+    labelTranslateID = (labelTranslateID) ? `translate-id="${labelTranslateID}"` : "";
+    filterID = (filterID) ? `filter-id="${filterID}"` : "";
+    forceState = (forceState) ? `state="${forceState}"` : "";
+
+
+    return `<div ${filterID} class="f-pill ${type} ${customClass}" ${forceState} plural="${plural}">
+        ${(customIcon) ? customIcon : ``}
+        <span ${labelTranslateID}>${label}</span>
+    </div>`
+}
+
+
 // RECENT PROJECTS CREATION
 var RP = {
     projectsNb : 4,
@@ -435,7 +800,7 @@ function createRecentProjects() {
         // FILTERS
         var filters = ``;
         ((PROJECT.filter) ? PROJECT.filter : pDataDefault.filter).split("|").forEach((filter) => {
-            filters += htmlFilterPill({filterID : filter, type : "filter"});
+            filters += generateFPill({filterID : filter, type : "filter"});
         })
 
         // SLIDES GENERATION
@@ -751,7 +1116,7 @@ function filtersGenerateProjectsList() {
             // generating project card
             var filters = ``;
             PROJECT.filter.split("|").forEach((filter) => {
-                filters += htmlFilterPill({filterID : filter, type : "filter", state : (F.selectedFilters.includes(filter)) ? "true" : false});
+                filters += generateFPill({filterID : filter, type : "filter", state : ((F.selectedFilters.includes(filter)) ? "true" : false)});
             })//${(spIndex < F.animateInLinesOfCards) ? `transition-delay:${spIndex / 10}s;` : `transition: none;`}
             const projectCardHTML = `
                 <div project-id="${projectID}" list-nb="${spIndex}" class="project-cards" style="transition: none;">
@@ -759,7 +1124,7 @@ function filtersGenerateProjectsList() {
                     <div class="header">
                         <span class="project-title">${(PROJECT.title) ? PROJECT.title : pDataDefault.title}</span>
                         ${(["yt", "vid"].includes((PROJECT.type) ? PROJECT.type : pDataDefault.type)) // if video : add popup button to see the video without leaving the page
-                        ? `<div class="video-quick-popup-button" tip="Pop-up quick video player" translate_bubble_id="plist-video-quick-popup-btn">
+                        ? `<div class="video-quick-popup-button" translate-bubble-id="plist-video-quick-popup-btn" tip="${getTextLang({type : "translate-bubble-id", id : "plist-video-quick-popup-btn"})}">
                                 <div class="bg"></div>
                                 <svg class="arrow" viewbox="0 0 24 24">
                                     <path d="M6.55,22.19l14.16-8.17c1.5-0.87,1.5-3.03,0-3.9L6.55,1.95C5.05,1.08,3.18,2.16,3.18,3.9v16.35C3.18,21.97,5.05,23.06,6.55,22.19z"/>
@@ -812,8 +1177,8 @@ function filtersGenerateProjectsList() {
         projectsListContent += `
             <div class="nothing-found ice-scroll anim-pre">
                 <div class="content-container">
-                    <div class="title" to_translate="filters_nothing_found_title">Oops!</div>
-                    <div class="txt" to_translate="filters_nothing_found_txt">Seems like there's nothing corresponding to these filters.</div>
+                    <div class="title" translate-id="filters-nothing-found-title">${getTextLang({type : "translate-id", id : "filters-nothing-found-title"})}</div>
+                    <div class="txt" translate-id="filters-nothing-found-txt">${getTextLang({type : "translate-id", id : "filters-nothing-found-txt"})}</div>
                 </div>
             </div>
         `
@@ -870,7 +1235,10 @@ function filtersGenerateProjectsList() {
             columnGrp.querySelectorAll(".project-cards").forEach(card => {
                 // bubble tip for video quick popup button
                 const vidPopBtn = card.querySelector(".video-quick-popup-button");
-                if (vidPopBtn) { bubbleTipInit({target : vidPopBtn}); }
+                if (vidPopBtn) {
+                    bubbleTipInit({target : vidPopBtn});
+                    quickPopupVideoInit(vidPopBtn, card.getAttribute("project-id"), card);
+                }
             });
         });
     }
@@ -918,7 +1286,7 @@ function filtersGenerateProjectsList() {
         const PROJECT = pData[projectID];
         // FILTERS
         var filters = ``;
-        PROJECT.filter.split("|").forEach((filter) => { filters += htmlFilterPill(filter, "filter"); })
+        PROJECT.filter.split("|").forEach((filter) => { filters += generateFPill({filterID : filter, type : "filter"}); })
         // CARDS GENERATION
         projectsCards += `
             <div project-id="${projectID}" class="project-cards">
@@ -956,6 +1324,16 @@ function filtersGenerateProjectsList() {
         F.countUpProjectsNb.update(selectedProjectsNb);
         // remove counting styles at the end of counting
         F.countUpProjectsNb.start(() => { F.projectsDisplayedNbEl.classList.remove("counting"); });
+
+        // plural or singular label
+        const pFoundLabel = F.introContainer.querySelector(".secondary .filter-projects-number [anim-count]+span");
+        if(selectedProjectsNb <= 1) { // if no more than 1 project found
+            pFoundLabel.setAttribute("translate-id", "plist-projects-found-singular");
+        } else {
+            pFoundLabel.setAttribute("translate-id", "plist-projects-found");
+        }
+        pFoundLabel.innerText = getTextLang({type : "translate-id", id : pFoundLabel});
+
     }
 
     // reset "previous" vars
@@ -995,25 +1373,24 @@ function filtersAction({caller, isolate = false, delay = 0, card = false, custom
 
 function filtersUpdateDateBubbleTip(dateEl = F.filtersContainer.querySelectorAll(".main .f-pill.date")) {
     if (dateEl.getAttribute("state") === "false") {
-        dateEl.setAttribute("translate_bubble_id", "filters-date-false");
-        dateEl.setAttribute("tip", "Most Recent");
+        dateEl.setAttribute("translate-bubble-id", "filters-date-false");
     } else {
-        dateEl.setAttribute("translate_bubble_id", "filters-date-true");
-        dateEl.setAttribute("tip", "Oldest");
+        dateEl.setAttribute("translate-bubble-id", "filters-date-true");
     }
+    dateEl.setAttribute("tip", getTextLang({type : "translate-bubble-id", id : dateEl}));
 }
 
 function createFilters() {
     // generate filter pills
     var allButtonsHTML = ``;
     F.allFilterIDs.forEach((filter) => {
-        allButtonsHTML += htmlFilterPill({filterID : filter, type : "filter", plural : "plural"});
+        allButtonsHTML += generateFPill({filterID : filter, type : "filter", plural : true});
     })
-    allButtonsHTML += htmlFilterPillComplex(["date",
-        `<svg viewBox="0 0 24 24">
+    allButtonsHTML += generateFPill({filterID : "date", type : "date", plural : false,
+        customIcon : `<svg viewBox="0 0 24 24">
             <path d="M11,22.02l-8.42-6.2c-0.75-0.55-0.91-1.6-0.36-2.35l0,0c0.55-0.75,1.6-0.91,2.35-0.36l3.98,2.94c2.05,1.51,4.83,1.51,6.88,0l3.98-2.94c0.75-0.55,1.8-0.39,2.35,0.36l0,0c0.55,0.75,0.39,1.8-0.36,2.35L13,22.02C12.4,22.46,11.6,22.46,11,22.02z"/>
             <path d="M12,22.35c-0.93,0-1.68-0.75-1.68-1.68V3.33c0-0.93,0.75-1.68,1.68-1.68s1.68,0.75,1.68,1.68v17.33C13.68,21.59,12.93,22.35,12,22.35z"/>
-        </svg>`], "date", "");
+        </svg>`});
     // create buttons
     F.filtersContainer.innerHTML = `
             <div class="main">
@@ -1022,16 +1399,16 @@ function createFilters() {
             <div class="secondary">
                 <div class="left">
                     <div class="animate">
-                        ${htmlFPill("clear-filters-button", "Clear filters",
-                        `<svg viewBox="0 0 24 24">
-                            <path d="M22.04,5.31L22.04,5.31c0-0.9-0.73-1.63-1.63-1.63H3.59c-0.9,0-1.63,0.73-1.63,1.63v0c0,0.9,0.73,1.63,1.63,1.63h16.82C21.31,6.94,22.04,6.21,22.04,5.31z"/>
-                            <path d="M10.45,2.38h3.11c0.51,0,0.92-0.41,0.92-0.92v0c0-0.51-0.41-0.92-0.92-0.92h-3.11c-0.51,0-0.92,0.41-0.92,0.92v0C9.53,1.97,9.94,2.38,10.45,2.38z"/>
-                            <path d="M16.85,8.24h-9.7c-1.12,0-2.03,0.91-2.03,2.03v8.93c0,2.37,1.92,4.3,4.3,4.3h6.17c2.37,0,3.3-1.92,3.3-4.3v-8.93C18.88,9.15,17.97,8.24,16.85,8.24z M10.69,17.12c0,0.51-0.41,0.92-0.92,0.92s-0.92-0.41-0.92-0.92v-5.03c0-0.51,0.41-0.92,0.92-0.92s0.92,0.41,0.92,0.92V17.12z M15.15,17.12c0,0.51-0.41,0.92-0.92,0.92h0c-0.51,0-0.92-0.41-0.92-0.92v-5.03c0-0.51,0.41-0.92,0.92-0.92h0c0.51,0,0.92,0.41,0.92,0.92V17.12z"/>
-                        </svg>`)}
+                        ${generateFPill({customClass : "clear-filters-button", labelTranslateID : "filters-clear-filters",
+                            customIcon : `<svg viewBox="0 0 24 24">
+                                <path d="M22.04,5.31L22.04,5.31c0-0.9-0.73-1.63-1.63-1.63H3.59c-0.9,0-1.63,0.73-1.63,1.63v0c0,0.9,0.73,1.63,1.63,1.63h16.82C21.31,6.94,22.04,6.21,22.04,5.31z"/>
+                                <path d="M10.45,2.38h3.11c0.51,0,0.92-0.41,0.92-0.92v0c0-0.51-0.41-0.92-0.92-0.92h-3.11c-0.51,0-0.92,0.41-0.92,0.92v0C9.53,1.97,9.94,2.38,10.45,2.38z"/>
+                                <path d="M16.85,8.24h-9.7c-1.12,0-2.03,0.91-2.03,2.03v8.93c0,2.37,1.92,4.3,4.3,4.3h6.17c2.37,0,3.3-1.92,3.3-4.3v-8.93C18.88,9.15,17.97,8.24,16.85,8.24z M10.69,17.12c0,0.51-0.41,0.92-0.92,0.92s-0.92-0.41-0.92-0.92v-5.03c0-0.51,0.41-0.92,0.92-0.92s0.92,0.41,0.92,0.92V17.12z M15.15,17.12c0,0.51-0.41,0.92-0.92,0.92h0c-0.51,0-0.92-0.41-0.92-0.92v-5.03c0-0.51,0.41-0.92,0.92-0.92h0c0.51,0,0.92,0.41,0.92,0.92V17.12z"/>
+                            </svg>`})}
                     </div>
                 </div>
                 <div class="right">
-                    <div class="filter-projects-number"><span anim-count>69</span><span> projects found</span></div>
+                    <div class="filter-projects-number"><span anim-count>69</span><span translate-id="plist-projects-found"></span></div>
                 </div>
             </div>
     `;
@@ -1054,8 +1431,8 @@ function createFilters() {
     const fDateEl = F.filtersContainer.querySelector(".main .f-pill.date");
     fDateEl.addEventListener("mouseenter", () => {
         filtersUpdateDateBubbleTip(fDateEl);
-        bubbleTipCreate({target : fDateEl});
     });
+    bubbleTipInit({target : fDateEl});
 
     // "clear filters" button
     F.filtersContainer.querySelector(".secondary .clear-filters-button").addEventListener("click", () => {
@@ -1186,7 +1563,7 @@ function filtersColumnLongestUpdate() {
             resize = trackLength;
         }
         F.projectsListContentElements[F.projectsListColumnGroupCurrentIndex].style.height = resize +"px";
-        F.projectsListContainer.style.height = `calc(${resize}px + var(--p-top) + var(--p-bottom)`; // to animate length changes
+        F.projectsListContainer.style.height = `calc(${resize}px + var(--plist-ptop) + var(--plist-pbottom)`; // to animate length changes
     //}
 } // resize event + load event on project cards img
 
@@ -1228,13 +1605,13 @@ function updateAll() {
 //    //filtersColumnLongestUpdate();
 //}
 function scrollUpdatesEvents() {
-    updateAll();
+    //updateAll();
 
     recentProjectsTrackLength();
     recentProjectsTrackSegments();
 }
 function scrollEvents() {
-    updateAll();
+    //updateAll();
 
     //scrollToForceStop();
     StickIt();
@@ -1248,7 +1625,7 @@ function scrollEvents() {
 //    isScrollingToPrevPos = [];
 //}
 window.addEventListener("resize", () => {
-    updateAll();
+    //updateAll();
 
     StickIt();
 
@@ -1262,6 +1639,9 @@ window.addEventListener("resize", () => {
 
 
 function init() {
+    // page text in corresponding language
+    translatePage();
+
     // RECENT PROJECTS
     createRecentProjects();
     recentProjectsSlides();
@@ -1277,17 +1657,3 @@ function init() {
     }
 }
 document.addEventListener("DOMContentLoaded", init);
-
-
-
-/*
-
-to translate
-
-get all elements with attribute [to_translate]
-get all .f-pill, search in data base if filter-id exists
-compare with data-base if [to_translate="id"] element exists
-if yes, replace text
-if no, leave as is
-
-*/
