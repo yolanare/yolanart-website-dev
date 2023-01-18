@@ -51,6 +51,7 @@ body {
     overflow-x: hidden;
 }
 
+
 // HIERARCHY
 .content-sections#landing { z-index: 0; }
 .content-sections#recent-projects { z-index: 0; }
@@ -92,6 +93,7 @@ nav.menu {
     }
 }
 
+
 // CONTENT
 #content-container {
     position: absolute !important;
@@ -128,6 +130,7 @@ nav.menu {
     user-select: none;
     pointer-events: none;
 }
+
 
 // FILTER PILLS
 // "experiment|photo|illustration|3D|motion|type|poster|print|logo|vector|layout|ad"
@@ -219,6 +222,7 @@ nav.menu {
     }
 }
 
+
 // BOOM
 [boom-main-container] {
     position: fixed;
@@ -277,55 +281,6 @@ nav.menu {
             &.final-style {
                 background-color: var(--y-r1);
             }
-        }
-    }
-}
-
-
-// CURSOR CROSS
-.cursor-cross {
-    position: fixed;
-    transform: translate(-50%, -50%) scale(0);
-    width: 3.3rem;
-    height: 3.3rem;
-    stroke: var(--y-w1);
-    stroke-width: 0;
-    opacity: 0;
-    transition: transform 0.6s cubic-bezier(0.2, 0.75, 0, 1),
-                stroke-width 0.5s cubic-bezier(0.1, 0.6, 0, 1),
-                opacity 0.4s;
-    pointer-events: none;
-    user-select: none;
-
-    & svg {
-        transform: rotateZ(0deg);
-        transition: transform 0.2s linear;
-    }
-
-    @keyframes curClose-Spin {
-        0% { transform: rotateZ(-180deg); }
-        100% { transform: rotateZ(0deg); }
-    }
-
-    &.hover:not(.hidden) {
-        stroke-width: 2.75;
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1.325);
-        transition: transform 0.4s cubic-bezier(0.5, 0.7, 0, 1),
-                    stroke-width 0.1s ease,
-                    opacity 0s;
-
-        & svg {
-            animation: curClose-Spin 0.4s cubic-bezier(0.25, 0.85, 0, 1);
-        }
-    }
-
-    &.click {
-        & svg {
-            stroke-width: 4.5 !important;
-            transform: scale(1.25);
-            transition: transform 0.4s cubic-bezier(0, 0.7, 0, 1),
-                        stroke-width 0.4s cubic-bezier(0, 0.7, 0, 1);
         }
     }
 }
@@ -462,6 +417,58 @@ nav.menu {
     }
 }
 
+
+// CURSOR CROSS
+.cursor-cross {
+    position: fixed;
+    transform: translate(-50%, -50%) scale(0);
+    width: 3.3rem;
+    height: 3.3rem;
+    stroke: var(--y-w1);
+    stroke-width: 0;
+    opacity: 0;
+    transition: transform 0.6s cubic-bezier(0.2, 0.75, 0, 1),
+                stroke-width 0.5s cubic-bezier(0.1, 0.6, 0, 1),
+                opacity 0.4s;
+    pointer-events: none;
+    user-select: none;
+
+    & svg,
+    & svg > g {
+        transform: rotateZ(0deg);
+        transition: transform 0.2s linear;
+    }
+
+    @keyframes curClose-Spin {
+        0% { transform: rotateZ(-180deg); }
+        100% { transform: rotateZ(0deg); }
+    }
+
+    &.hover:not(.hidden) {
+        stroke-width: 2.75;
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.325);
+        transition: transform 0.4s cubic-bezier(0.5, 0.7, 0, 1),
+                    stroke-width 0.1s ease,
+                    opacity 0s;
+
+        & svg > g {
+            animation: curClose-Spin 0.4s cubic-bezier(0.25, 0.85, 0, 1);
+            transform-origin: center;
+        }
+    }
+
+    &.click {
+        & svg {
+            stroke-width: 4.5 !important;
+            transform: scale(1.25);
+            transition: transform 0.4s cubic-bezier(0, 0.7, 0, 1),
+                        stroke-width 0.4s cubic-bezier(0, 0.7, 0, 1);
+        }
+    }
+}
+
+
 // QUICK VIDEO POPUPS
 [video-popups-container] {
     position: fixed;
@@ -569,6 +576,7 @@ nav.menu {
         }
     }
 }
+
 
 // YT PLAYER
 .ytplayer-c {

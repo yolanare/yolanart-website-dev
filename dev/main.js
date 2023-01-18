@@ -480,65 +480,6 @@ function boomAnim(
 }
 
 
-// CURSOR CROSS
-function cursorCrossShow(curCrossEl, force) {
-    curCrossEl.classList.add("hover");
-    if (force) { curCrossEl.classList.remove("hidden"); }
-}
-function cursorCrossHide(curCrossEl, force) {
-    curCrossEl.classList.remove("hover");
-    curCrossEl.classList.remove("click");
-
-    if (force) { curCrossEl.classList.add("hidden"); }
-    else { curCrossEl.classList.remove("hidden"); }
-}
-function cursorCrossClick(curCrossEl, click) {
-    if (click) { curCrossEl.classList.add("click"); }
-    else { curCrossEl.classList.remove("click"); }
-}
-function cursorCrossMove(e, curCrossEl) {
-    curCrossEl.style.left = e.clientX + 'px';
-    curCrossEl.style.top = e.clientY + 'px';
-}
-
-function cursorCrossCreate(surface, container) {
-    if(touchDevice == false) {
-        // by default, the container will be the parent of the target surface, but it can be specified
-        container = (container) ? container : surface.parentElement;
-
-        // generate
-        var curCrossEl;
-        curCrossEl = document.createElement("div");
-        curCrossEl.classList.add("cursor-cross");
-        curCrossEl.innerHTML = `
-            <svg viewBox="0 0 32 32">
-                <line x1="26.3" y1="26.3" x2="5.7" y2="5.7"/>
-                <line x1="5.7" y1="26.3" x2="26.3" y2="5.7"/>
-            </svg>
-        `;
-
-        // create
-        container.appendChild(curCrossEl);
-
-        surface.style.cursor = "none";
-
-        // events
-        surface.addEventListener("mouseover", () => { cursorCrossShow(curCrossEl); });
-        surface.addEventListener("mouseout", () => { cursorCrossHide(curCrossEl); });
-        surface.addEventListener("mousedown", () => { cursorCrossClick(curCrossEl, true); });
-        surface.addEventListener("mouseup", () => { cursorCrossClick(curCrossEl, false); });
-        surface.addEventListener("mousemove", (e) => { cursorCrossMove(e, curCrossEl); });
-
-        //TODO cursor cross is unable to detect it is on surface when starting (while on V6 it could with pp-curclose)
-
-        //container.addEventListener("mousemove", (e) => { cursorCrossMove(e, curCrossEl); });
-        //setTimeout(() => { container.removeEventListener("mousemove", (e) => { cursorCrossMove(e, curCrossEl); }), 800});
-
-        return curCrossEl;
-    }
-}
-
-
 // BUBBLE TIPS
 function bubbleTipInit({target, delayAnimIn, force}) {
     var bubbleTipEl_;
@@ -625,11 +566,75 @@ function bubbleTipRemove(bubbleTipEl) {
     addEvTrEnd(bubbleTipEl, () => { bubbleTipEl.remove(); }, {property : "opacity", once : false});
 }
 
+
+// CURSOR CROSS
+function cursorCrossShow(curCrossEl) {
+    curCrossEl.classList.add("hover");
+}
+function cursorCrossHide(curCrossEl, force, surface) {
+    curCrossEl.classList.remove("hover");
+
+    // needs to be called when : removing element, force when creating element (then un-force after delay)
+    if (force) { // force hide
+        curCrossEl.classList.add("hidden");
+        if (surface) { surface.style.cursor = "pointer"; }
+    }
+    else { // restore
+        curCrossEl.classList.remove("hidden");
+        if (surface) { surface.style.cursor = "none"; }
+    }
+}
+function cursorCrossClick(curCrossEl, click) {
+    if (click) { curCrossEl.classList.add("click"); }
+    else { curCrossEl.classList.remove("click"); }
+}
+function cursorCrossMove(e, curCrossEl) {
+    curCrossEl.classList.add("hover");
+    curCrossEl.style.left = e.clientX + 'px';
+    curCrossEl.style.top = e.clientY + 'px';
+}
+
+function cursorCrossCreate(surface, container, cursorEv) {
+    if(touchDevice == false) {
+        // by default, the container will be the parent of the target surface, but it can be specified
+        container = (container) ? container : surface.parentElement;
+
+        // generate
+        var curCrossEl;
+        curCrossEl = document.createElement("div");
+        curCrossEl.classList.add("cursor-cross");
+        curCrossEl.innerHTML = `
+            <svg viewBox="0 0 32 32">
+                <g>
+                    <line x1="26.3" y1="26.3" x2="5.7" y2="5.7"/>
+                    <line x1="5.7" y1="26.3" x2="26.3" y2="5.7"/>
+                </g>
+            </svg>
+        `;
+
+        // create
+        container.appendChild(curCrossEl);
+
+        surface.style.cursor = "none";
+
+        // events
+        if (cursorEv) { cursorCrossMove(cursorEv, curCrossEl); }
+        surface.addEventListener("mousemove", (ev) => { cursorCrossMove(ev, curCrossEl); });
+        surface.addEventListener("mouseover", () => { cursorCrossShow(curCrossEl); });
+        surface.addEventListener("mouseout", () => { cursorCrossHide(curCrossEl); });
+        container.addEventListener("mousedown", () => { cursorCrossClick(curCrossEl, true); });
+        container.addEventListener("mouseup", () => { cursorCrossClick(curCrossEl, false); });
+
+        return curCrossEl;
+    }
+}
+
+
 // QUICK VIDEO POPUPS
 function quickPopupVideoInit(target, projectID, originEl) {
-    target.addEventListener("click", () => { quickPopupVideoCreate(projectID, originEl); });
+    target.addEventListener("click", (cursorEv) => { quickPopupVideoCreate(projectID, originEl, cursorEv); });
 }
-function quickPopupVideoCreate(projectID, originEl) { // popup video projects anywhere
+function quickPopupVideoCreate(projectID, originEl, cursorEv) { // popup video projects anywhere
     const PROJECT = pData[projectID];
 
     // generate
@@ -648,6 +653,8 @@ function quickPopupVideoCreate(projectID, originEl) { // popup video projects an
 
     // create
     document.querySelector("[video-popups-container]").appendChild(popVid);
+
+    const popVidBG = popVid.querySelector(".bg");
 
     // animation in : get from position
     // if target element, from center of element
@@ -672,16 +679,20 @@ function quickPopupVideoCreate(projectID, originEl) { // popup video projects an
     }, 100);
 
     // out
-    const curCrossEl = cursorCrossCreate(popVid.querySelector(".bg"));
-    cursorCrossHide(curCrossEl, true);
+    const curCrossEl = cursorCrossCreate(popVidBG, false, cursorEv);
+    cursorCrossHide(curCrossEl, "force", popVidBG);
 
     setTimeout(() => {
-        cursorCrossHide(curCrossEl, false);
-        popVid.querySelector(".bg").addEventListener("click", () => { quickPopupVideoRemove(popVid); })
+        cursorCrossHide(curCrossEl, false, popVidBG);
+        popVidBG.addEventListener("click", () => { quickPopupVideoRemove(popVid, curCrossEl); })
     }, 300);
 }
-function quickPopupVideoRemove(popVid) {
-    scrollbarMainSetShowState(); // default
+function quickPopupVideoRemove(popVid, curCrossEl) {
+    // hide curCross
+    if (curCrossEl) { cursorCrossHide(curCrossEl, "force"); }
+    // enable back main page scrolling
+    scrollbarMainSetShowState();
+    // remove pop-up
     popVid.classList.add("anim-clear");
     addEvTrEnd(popVid, () => { popVid.remove(); }, {property : "opacity", once : false});
 }
@@ -725,7 +736,7 @@ function StickIt() {
 function generateFPill({
     filterID = undefined,
     type = "",
-    forceState = undefined,
+    state = undefined,
     plural = false, // true|false
     customClass = "",
     customStaticLabel = "", // custom static label, will never contextually change, is used in priority if specified
@@ -742,10 +753,10 @@ function generateFPill({
 
     labelTranslateID = (labelTranslateID) ? `translate-id="${labelTranslateID}"` : "";
     filterID = (filterID) ? `filter-id="${filterID}"` : "";
-    forceState = (forceState) ? `state="${forceState}"` : "";
+    state = (state) ? `state="${state}"` : "";
 
 
-    return `<div ${filterID} class="f-pill ${type} ${customClass}" ${forceState} plural="${plural}">
+    return `<div ${filterID} class="f-pill ${type} ${customClass}" ${state} plural="${plural}">
         ${(customIcon) ? customIcon : ``}
         <span ${labelTranslateID}>${label}</span>
     </div>`
