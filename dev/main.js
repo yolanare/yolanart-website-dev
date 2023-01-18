@@ -725,7 +725,7 @@ function StickIt() {
 function generateFPill({
     filterID = undefined,
     type = "",
-    forceState = undefined,
+    state = undefined,
     plural = false, // true|false
     customClass = "",
     customStaticLabel = "", // custom static label, will never contextually change, is used in priority if specified
@@ -742,10 +742,10 @@ function generateFPill({
 
     labelTranslateID = (labelTranslateID) ? `translate-id="${labelTranslateID}"` : "";
     filterID = (filterID) ? `filter-id="${filterID}"` : "";
-    forceState = (forceState) ? `state="${forceState}"` : "";
+    state = (state) ? `state="${state}"` : "";
 
 
-    return `<div ${filterID} class="f-pill ${type} ${customClass}" ${forceState} plural="${plural}">
+    return `<div ${filterID} class="f-pill ${type} ${customClass}" ${state} plural="${plural}">
         ${(customIcon) ? customIcon : ``}
         <span ${labelTranslateID}>${label}</span>
     </div>`
