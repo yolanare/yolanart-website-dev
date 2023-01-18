@@ -25,8 +25,7 @@ const projectsDataSample = {
             url_id : "D2_r4q2imnQ",
             embed : "https://yolan.art/",
             aspectRatio : "16:9",
-        title : "<no name>",
-        titleShort : "",
+        title : "",
         titleHide: false,
         date : "----.--",
         color : "#000000",
@@ -48,7 +47,10 @@ const projectsDataSample = {
             embed : "FULL_URL",
             aspectRatio : "16:9|1:1",
         title : "TITLE",
-        titleShort : "SHORT_TITLE",
+        title : {
+            fr : "TITLE_FR",
+            en : "TITLE_EN"
+        },
         titleHide: false|true,
         date : "YYYY.MM",
         color : "COLOR",
@@ -74,8 +76,12 @@ const projectsDataSample = {
             embed : "FULL_URL",
             aspectRatio : "fill|16:9|1:1", // IF TYPE: "vid|embed", else is not computed
         interact : "zoom|off", // DEFAULT: "zoom", better have "off" for others that are embed
-        title : "TITLE",
-        titleShort : "SHORT_TITLE", // to use if title is too long to fit the project card
+        // CAN BE: a NodeList or array,
+        title : "TITLE", // static title
+        title : { // will fallback to other languages if current language not specified
+            fr : "TITLE_FR",
+            en : "TITLE_EN"
+        },
         titleHide: false|true, // choose whether to hide or no the title | DEFAULT: "false"
         date : "YYYY.MM", // CAN BE: "2000-2001" | "2000-2001.00" | "2000.00-2001" | "2000.01-2001.00" | "2000.00" | "2000.00-01"
         color : "COLOR", // CAN BE any CSS color : var(--var) | #ffffff | rgb(0, 0, 0) | hsl(0, 0%, 0%) | hwb(0 0% 0%)
@@ -411,8 +417,10 @@ var projectsData = {
         type : "yt", interact : "off",
             url_id : "66QpHMgmXLM",
             aspectRatio : "16:9",
-        title : "VIDÉO PUBLICITAIRE: \"LES CONNECTÉS\"",
-        titleShort : "PUB: \"LES CONNECTÉS\"",
+        title : {
+            fr : "VIDÉO PUBLICITAIRE: \"LES CONNECTÉS\"",
+            en : "ADVERT: \"LES CONNECTÉS\""
+        },
         date : "2021.02-04",
         color : "#fe670e",
         category : "motion",
@@ -693,7 +701,6 @@ var projectsData = {
         type : "g_pdf", interact : "off",
             url_id : "1J0SOaGtPElDcgNwxXx55vr_E_ah3cZDc",
         title : "CONFÉRENCE HAUT POTENTIEL INTELLECTUEL",
-        titleShort : "CONFÉRENCE H.P.I.",
         date : "2019.11",
         category : "prints",
         context: "order",
@@ -703,7 +710,6 @@ var projectsData = {
         type : "g_pdf", interact : "off",
             url_id : "1bCm600IXEowAT_jnyQLQcYP05QcAATYr",
         title : "FORMATION WISC-V & HAUT POTENTIEL",
-        titleShort : "FORMATION WISC-V & H.P.",
         date : "2019.08",
         category : "prints",
         context: "order",
@@ -715,7 +721,6 @@ var projectsData = {
         type : "embed", interact : "off",
             embed : "https://valentinhebert.com",
         title : "VALENTIN HÉBERT's PORTFOLIO",
-        titleShort : "VALENTIN HÉBERT",
         //titleHide: true,
         date : "2020.10-2021.01",
         category : "web",
@@ -753,7 +758,6 @@ var projectsData = {
     "chara_nain_de_jardin" : {
         type : "img", interact : "zoom",
         title : "NAIN DE JARDIN - Dum Grimnir",
-        titleShort : "NAIN DE JARDIN",
         date : "YYYY.MM",
         category : "artworks|other",
         context: "school",
@@ -770,7 +774,6 @@ var projectsData = {
         type : "g_pdf", interact : "off",
             url_id : "URL_ID",
         title : "CHARTE GRAPHIQUE LOGO LODGE TOURTEREAUX",
-        titleShort : "CHARTE GRPHQ. LOGO LODGE",
         date : "YYYY.MM",
         category : "brandings|prints",
         context: "school",
@@ -802,7 +805,6 @@ var projectsData = {
         type : "yt", interact : "off",
             url_id : "URL_ID",
         title : "ABSTRACT 3D HEART MAKING OFF",
-        titleShort : "ABSTRACT HEART MAKING OFF",
         date : "YYYY.MM",
         category : "motion",
         context: "school",
@@ -818,7 +820,6 @@ var projectsData = {
         type : "yt", interact : "off",
             url_id : "URL_ID",
         title : "CHACUN SES GOÛTS - PUBLICITÉ YOGURT GLACÉ",
-        titleShort : "PUB: CHACUN SES GOÛTS",
         date : "YYYY.MM",
         category : "renders|motion",
         context: "school",
@@ -851,7 +852,6 @@ var projectsData = {
         type : "img", interact : "zoom",
                 ext : "png",
         title : "PSYCHOID: THE INDUSTRIAX LOGO \"EYE\"",
-        titleShort : "PTI. LOGO \"EYE\"",
         titleHide: true,
         date : "YYYY.MM",
         category : "brandings",
@@ -927,7 +927,6 @@ var projectsData = {
             url_id : "URL_ID",
             aspectRatio : "16:9",
         title : "LINK TROUVE UN BADGE D'ACCÈS",
-        titleShort : "LINK TROUVE UN BADGE",
         date : "YYYY.MM",
         category : "motion|other",
         context: "personal|fun",

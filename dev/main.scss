@@ -391,7 +391,7 @@ nav.menu {
     }
 
     &.anim-clear {
-        opacity: 0; // force transition event
+        opacity: 0;
         transition: opacity 0.4s;
 
         .content {

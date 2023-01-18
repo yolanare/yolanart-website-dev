@@ -45,6 +45,9 @@ function constrain(value, low, high) { // Processing's constrain function
     return Math.min(Math.max(value, low), high);
 }
 
+// check if var is string
+function isString(check) { return (typeof check === "string"); }
+
 // call function at end of css transition of element (no propagation, option to do it only once)
 function addEvTrEnd(elem, func, {property = false, once = true, debug = false}) {
     if (!property) { // will check for all css properties
@@ -273,6 +276,19 @@ function projectsSortByDate() {
 // will be a sorted list of tuples of all projects by date
 const projectsSortedDate = projectsSortByDate();
 
+// get the project's tittle (static or translated)
+function getProjectTitle(projectID, DB) {
+    // avoid unnecessary seeking with DB
+    const PRJ = (DB) ? DB : pData[projectID];
+
+    // use translatable title if able to, else use static
+    var title = (PRJ.title) ? PRJ.title : pDataDefault.title;
+    if (!isString(title)) {
+        title = getTextLang({type : "project-id", id : projectID, useLangDB : "projects"});
+    }
+
+    return title;
+}
 
 // LANGUAGE
 const Translations = Lang.translations, // translations data-base
@@ -290,30 +306,36 @@ var language = (langIsNavigatorSupported) ? langNavigator : "en";
 
 // get from the data base the translation of specified entry
 function getTextLang({type : translateType, id : input, useLangDB, DB2nd}) {
-    const isEl = (typeof input === "string" || input instanceof String) ? false : true, // check if input is an element
+    const isEl = (isString(input) || input instanceof String) ? false : true, // check if input is an element
           translateID = (isEl) ? input.getAttribute(translateType) : input;
 
-    // fallback to other language containing the translation
+    // function to fallback to next language containing the translation (substitute)
     function findInOtherLang(DB, DB2) {
         console.error(`Translation [${translateType}] for [${translateID}] doesn't exist in language [${language}].\n`, input);
-        var isFound = false;
-        Object.entries(DB).forEach((lang) => {
-            // get data if nested
-            var isNewLabel = (DB2) ? lang[1][DB2][translateID] : lang[1][translateID];
 
-            if (isNewLabel && !isFound) {
+        // stops right when it finds first substitute (optimization)
+        for (let l = 0; l < Object.entries(DB).length; l++) {
+            const lang = Object.entries(DB)[l];
+
+            var isNewLabel = (isString(lang[1])) ? lang[1]
+                             : (DB2) ? lang[1][DB2][translateID] : lang[1][translateID];
+
+            if (isNewLabel) { // found substitute
                 console.warn(`Found translation substitute in [${lang[0]}] for [${translateID}].`);
                 newLabel = isNewLabel;
-                isFound = !isFound; // found, use the first one found (generally english in order)
+                break; // use the first one found (generally english in order)
             }
-        })
+        }
     }
 
+    // get new label
     if (!useLangDB) {
         var newLabel = Translations[translateType][language][translateID];
 
         if (!newLabel) { findInOtherLang(Translations[translateType]); }
-    } else if (useLangDB == "filters") {
+    }
+
+    else if (useLangDB == "filters") {
         // data is nested, DB2nd is used if specified, else getAttribute of el
         DB2nd = (isEl && !DB2nd) ? input.getAttribute("plural") : DB2nd;
 
@@ -321,6 +343,14 @@ function getTextLang({type : translateType, id : input, useLangDB, DB2nd}) {
 
         if (!newLabel) { findInOtherLang(pFilters, DB2nd); }
     }
+
+    else if (useLangDB == "projects") {
+        const prjTitle = pData[translateID].title;
+
+        var newLabel = prjTitle[language];
+
+        if (!newLabel) { findInOtherLang(prjTitle); }
+}
 
     // if no translation found at all
     if (!newLabel) {
@@ -337,17 +367,30 @@ function getTextLang({type : translateType, id : input, useLangDB, DB2nd}) {
 
 // changes every "translatable" valid elements's innerText to the translation in the database
 function translatePage() {
+    // normal text
     document.querySelectorAll("[translate-id]").forEach((toTranslateEl) => {
         toTranslateEl.innerText = getTextLang({type : "translate-id", id : toTranslateEl});
     })
+    // bubble tips
     document.querySelectorAll("[translate-bubble-id]").forEach((toTranslateEl) => {
         toTranslateEl.setAttribute("tip", getTextLang({type : "translate-bubble-id", id : toTranslateEl}));
     })
+    // filter pills
     document.querySelectorAll(".f-pill[filter-id]").forEach((toTranslateEl) => {
         toTranslateEl.querySelector("span").innerText = getTextLang({type : "filter-id", id : toTranslateEl, useLangDB : "filters"});
     })
-    // TODO pContexts
+    // projects title
+    document.querySelectorAll("[project-id]:not(.actions)").forEach((toTranslateEl) => {
+        // no need to translate if title is static (optimization)
+        if (isString(pData[toTranslateEl.getAttribute("project-id")].title)) {
+            return;
+        }
+        // translate if able to
+        toTranslateEl.querySelector(".project-title").innerText = getTextLang({type : "project-id", id : toTranslateEl, useLangDB : "projects"});
+        //toTranslateEl.querySelector(".project-title").innerText = getProjectTitle(toTranslateEl.getAttribute("project-id"));
+    })
 
+    // TODO pContexts
     const projectPages = document.querySelectorAll("[project-pages-container] .project-page");
     if (projectPages.length > 0) {
         console.debug("project pages", projectPages);
@@ -564,6 +607,7 @@ function bubbleTipCreate({target, delayAnimIn = 500, force = false}) {
 function bubbleTipRemove(bubbleTipEl) {
     bubbleTipEl.classList.add("anim-clear");
     addEvTrEnd(bubbleTipEl, () => { bubbleTipEl.remove(); }, {property : "opacity", once : false});
+    // TODO bubbleTip not removed because transition opacity 0 to 0 doesn't call transition-end event
 }
 
 
@@ -819,7 +863,7 @@ function createRecentProjects() {
             <div project-id="${projectID}" class="recent-slides" style="background-color: ${(PROJECT.color) ? PROJECT.color : pDataDefault.color}">
                 <div class="in">
                     <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"></div>
-                    <span class="project-title">${(PROJECT.title) ? PROJECT.title : pDataDefault.title}</span>
+                    <span class="project-title">${getProjectTitle(projectID, PROJECT)}</span>
                     <div class="filters">
                         ${filters}
                     </div>
@@ -1128,12 +1172,12 @@ function filtersGenerateProjectsList() {
             var filters = ``;
             PROJECT.filter.split("|").forEach((filter) => {
                 filters += generateFPill({filterID : filter, type : "filter", state : ((F.selectedFilters.includes(filter)) ? "true" : false)});
-            })//${(spIndex < F.animateInLinesOfCards) ? `transition-delay:${spIndex / 10}s;` : `transition: none;`}
+            }) //${(spIndex < F.animateInLinesOfCards) ? `transition-delay:${spIndex / 10}s;` : `transition: none;`}
             const projectCardHTML = `
                 <div project-id="${projectID}" list-nb="${spIndex}" class="project-cards" style="transition: none;">
                     <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"></div>
                     <div class="header">
-                        <span class="project-title">${(PROJECT.title) ? PROJECT.title : pDataDefault.title}</span>
+                        <span class="project-title">${getProjectTitle(projectID, PROJECT)}</span>
                         ${(["yt", "vid"].includes((PROJECT.type) ? PROJECT.type : pDataDefault.type)) // if video : add popup button to see the video without leaving the page
                         ? `<div class="video-quick-popup-button" translate-bubble-id="plist-video-quick-popup-btn" tip="${getTextLang({type : "translate-bubble-id", id : "plist-video-quick-popup-btn"})}">
                                 <div class="bg"></div>
@@ -1302,7 +1346,7 @@ function filtersGenerateProjectsList() {
         projectsCards += `
             <div project-id="${projectID}" class="project-cards">
                 <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.jpg"></div>
-                <span class="project-title">${(PROJECT.title) ? PROJECT.title : pDataDefault.title}</span>
+                <span class="project-title">${getProjectTitle(projectID, PROJECT)}</span>
                 <div class="filters">
                     ${filters}
                 </div>
