@@ -1403,6 +1403,10 @@ nav.menu {
                     height: calc(var(--width) * var(--ratio));
                 }
 
+                &[project-type="img"] .project-main[aspect-ratio="1:1"] {
+                    width: auto !important;
+                }
+
                 .data-container {
                     flex-grow: 0;
                     display: flex;

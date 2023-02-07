@@ -724,6 +724,7 @@ var projectsData = {
     "b_l1_wzr" : {
         type : "img", interact : "zoom",
                 ext : "png",
+                aspectRatio : "1:1",
         title : "WzR LOGO",
         titleHide: true,
         date : "2017.09",

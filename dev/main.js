@@ -956,7 +956,7 @@ function createRecentProjects() {
 
         // ACTIONS GENERATION
         actions += `
-            <a project-id="${projectID}" class="actions" style="height: calc(100% / ${RP.projectsNb});" href="#${projectID}"></a>
+            <a project-id="${projectID}" class="actions" style="height: calc(100% / ${RP.projectsNb});"></a>
         `;
     })
 
@@ -981,6 +981,13 @@ function createRecentProjects() {
 
     // scroll to filters button click action
     RP.section.querySelector("#intro-rp .goto_filters-txt").addEventListener("click", scrollToFiltersSection);
+
+    // project file open action
+    RP.section.querySelectorAll("#recent-projects-actions [project-id]").forEach((rpAction) => {
+        rpAction.addEventListener("click", (cursorEv) => {
+            projectFileCreate(rpAction.getAttribute("project-id"), rpAction, cursorEv);
+        });
+    });
 }
 
 function recentProjectsSlides() {
@@ -1763,7 +1770,8 @@ function projectFileCreate(projectID, card, cursorEv) {
         filtersHTML = ``, contextsHTML = ``;
 
     // header main content
-    const aspectRatio = (PROJECT.aspectRatio) ? PROJECT.aspectRatio : pDataDefault.aspectRatio;
+    const aspectRatio = (PROJECT.aspectRatio) ? PROJECT.aspectRatio : pDataDefault.aspectRatio,
+          imgAspectRatioForce = (PROJECT.aspectRatio) ? aspectRatio : false;
 
     if(PROJECT.type == "img") {
         // by default, put the thumbnail as a placeholder for the hd project image (they generally have the same aspect ratio so it's fine)
@@ -1772,7 +1780,7 @@ function projectFileCreate(projectID, card, cursorEv) {
         headerMainContentHTML = `
            <img class="project-main" src="${prjImgLowSrc}" style="background-image: url(${prjImgLowSrc}); ${
                (PROJECT.needBG) ? `background-color: ${(PROJECT.needBG === true) ? "var(--p-needbg-default)" : PROJECT.needBG};` : "" // background color if needed and specified
-           }">
+           }" ${(imgAspectRatioForce) ? `aspect-ratio="${imgAspectRatioForce}"` : ""}>
         `;
     } else if(PROJECT.type == "yt") {
         headerMainContentHTML = `
@@ -1881,13 +1889,13 @@ function projectFileCreate(projectID, card, cursorEv) {
                 //if (prjHighSize[0] > prjHighSize[1] - squarishAdd && prjHighSize[0] < prjHighSize[1] + squarishAdd) { // squarish aspect ratios
                 if (prjHighSize[0] < prjHighSize[1] + squarishAdd && prjHighSize[0] > prjHighSize[1] - squarishAdd) { // squarish aspect ratios
                     console.log("squarish", prjHighSize[0], prjHighSize[1]);
-                    fileMainPrjImgEl.style.maxHeight = "95vh";
+                    fileMainPrjImgEl.style.height = "97.5vh";
                 } else if (prjHighSize[1] > prjHighSize[0]) { // height >
                     console.log("height >", prjHighSize[0], prjHighSize[1]);
-                    fileMainPrjImgEl.style.maxHeight = "110vh";
+                    fileMainPrjImgEl.style.height = "95vh";
                 } else { // width >
                     console.log("width >", prjHighSize[0], prjHighSize[1]);
-                    fileMainPrjImgEl.style.maxWidth = "70%";
+                    fileMainPrjImgEl.style.width = "70%";
                 }
             }
             loopLimit--;
@@ -1914,6 +1922,8 @@ function projectFileCreate(projectID, card, cursorEv) {
         }
     });
 
+    scrollbarPrjFile.scroll(0, 0); // make sure to be at the top
+
     // in
     setTimeout(() => {
         scrollbarMainSetShowState("hide"); // remove main page scroll
@@ -1935,7 +1945,7 @@ function projectFileCreate(projectID, card, cursorEv) {
     projectFile.querySelector(".close-file-btn").addEventListener("click", projectFileRemove);
     window.addEventListener("hashchange", projectFileRemove, { once:true }); // close on history back event (cool for mobile users and grandma <3)
 }
-projectFileCreate("fut_met");
+projectFileCreate("b_l1_wzr");
 
 // UPDATES EVENTS
 function updateAll() {
