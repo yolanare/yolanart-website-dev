@@ -25,6 +25,7 @@ const projectsDataSample = {
             url_id : "D2_r4q2imnQ",
             embed : "https://yolan.art/",
             aspectRatio : "16:9",
+        additional : false, // defaults are the same as main project
         title : "",
         titleHide: false,
         date : "----.--",
@@ -41,11 +42,24 @@ const projectsDataSample = {
     "TEMPLATE" : {
         hidden: false|true,
         type : "img|yt|g_pdf|embed", interact : "zoom|off",
-                ext : "png",
-                needBG : false|"000000"|"var(--y-b1)",
+                ext : "jpg|png",
+                needBG : false|true|"000000"|"var(--y-b1)",
             url_id : "URL_ID",
             embed : "FULL_URL",
             aspectRatio : "16:9|1:1",
+        additional : {
+            "ID" : {
+                type : "img|yt|g_pdf|embed",
+                        ext : "jpg|png",
+                    url_id : "URL_ID",
+                    embed : "FULL_URL",
+                    aspectRatio : "16:9|1:1",
+                    comment : {
+                        fr : `FRENCH_COMMENT`,
+                        en : `ENGLISH_COMMENT`
+                    }
+            },
+        },
         title : "TITLE",
         title : {
             fr : "TITLE_FR",
@@ -58,6 +72,10 @@ const projectsDataSample = {
         context: "personal|fun|order|school|sc|ppm|retrosaturn|pti",
         filter: "experiment|photo|illustration|3D|motion|type|poster|print|logo|vector|layout|ad",
         subtitle : "QUICK_CATCHPHRASE",
+        subtitle : {
+            fr : `FRENCH_CATCHPHRASE`,
+            en : `ENGLISH_CATCHPHRASE`
+        },
         desc : {
             fr : `
                 FRENCH_DESCRIPTION
@@ -70,11 +88,24 @@ const projectsDataSample = {
     Comments : {
         hidden: false|true, // hidden projects will not be processed
         type : "img|yt|g_pdf|embed",
-                ext : "png", // IF TYPE: "img" : if anything other than "jpg" file | DEFAULT: "jpg"
-                needBG : false|true|"000000"|"var(--y-b1)", // useful for monochrome white logos | you can specify the color of choice, CAN BE CSS variable | "true" is default dark | DEFAULT: false
+                ext : "jpg|png", // IF TYPE: "img" : if anything other than "jpg" file | DEFAULT: "jpg"
+                needBG : false|true|"000000"|"var(--y-b1)", // useful for monochrome logos | you can specify the color of choice, CAN BE CSS variable | "true" is default dark | DEFAULT: false
             url_id : "URL_ID", // FOR TYPE: "yt|g_pdf"
             embed : "FULL_URL",
-            aspectRatio : "fill|16:9|1:1", // IF TYPE: "vid|embed", else is not computed
+            aspectRatio : "16:9|1:1",
+        additional : {
+            "ID" : { // will search in folder with project's id
+                type : "img|yt|g_pdf|embed",
+                        ext : "jpg|png", // IF TYPE: "img"
+                    url_id : "URL_ID", // FOR TYPE: "yt|g_pdf"
+                    embed : "FULL_URL",
+                    aspectRatio : "16:9|1:1", // IF TYPE: "vid|embed"
+                    comment : { // CAN BE: empty
+                        fr : `FRENCH_COMMENT`,
+                        en : `ENGLISH_COMMENT`
+                    }
+            },
+        },
         interact : "zoom|off", // DEFAULT: "zoom", better have "off" for others that are embed
         // CAN BE: a NodeList or array,
         title : "TITLE", // static title
@@ -89,6 +120,10 @@ const projectsDataSample = {
         context: "personal|fun|order|school|retrosaturn|pti|sc", // CAN BE: "fun" | "fun|school"]
         filter: "experiment|photo|illustration|3D|motion|type|poster|print|logo|vector|layout|ad", // CAN BE: "experiment" | "experiment|motion"]
         subtitle : "QUICK_CATCHPHRASE", // CAN BE: empty
+        subtitle : {
+            fr : `FRENCH_CATCHPHRASE`,
+            en : `ENGLISH_CATCHPHRASE`
+        },
         desc : { // CAN BE: empty
             fr : `
                 FRENCH_DESCRIPTION
@@ -227,12 +262,41 @@ var projectsData = {
     },
     "fut_met" : {
         type : "img", interact : "zoom",
+        additional : {
+            "fut_met_og" : {
+                type : "img",
+                comment : {
+                    fr : `FRENCH_DESCRIPTION FRENCH_DESCRIPTION FRENCH_DES CRIPTION FRENCH_D ESCRIPTION FR ENCH_DESCR IPTION FREN CH_DESCR IPTION`,
+                    en : `ENGLISH_DESCRIPTION ENGLISH_DESCRIP TION ENGLISH_ DESCRIPTION ENGLIS H_DESCR IPTI ON ENG LISH_DESCRIP TION ENGLISH_DE SCRIPTION EN GLISH_DESCRIPTION ENGLISH_DESCRIPTION`
+                }
+            },
+            "test" : {
+                type : "yt",
+                    url_id : "URL_ID",
+                    comment : {
+                        fr : `FRENCH_DESCRIPTION`,
+                        en : `ENGLISH_DESCRIPTION`
+                    }
+            },
+            "emb" : {
+                type : "embed",
+                    embed : "https://google.com/",
+                    aspectRatio : "1:1",
+                    comment : {
+                        fr : `FRENCH_DEPTION`,
+                        en : `ENGLISH_DESPTION`
+                    }
+            },
+        },
         title : "FUTURISTIC METEORITE",
         date : "2017.06",
         category : "artworks",
         context: "personal",
         filter: "experiment|illustration|3D",
-        subtitle : "From what kind of place is it coming from?",
+        subtitle : {
+            fr : `De quel endroit pourrait-elle bien venir?`,
+            en : `From what kind of place is it coming from?`
+        },
         desc : {
             fr : `
                 <h2>IMAGINATION</h2>
@@ -717,14 +781,14 @@ var projectsData = {
     },
 
 // WEBSITES
-    "w_vh" : {
+    "quad_page_portfolio" : {
         type : "embed", interact : "off",
-            embed : "https://valentinhebert.com",
-        title : "VALENTIN HÉBERT's PORTFOLIO",
+            embed : "https://yolan.art/portfolio-exp-quad/public/",
+        title : "quad-page portfolio",
         //titleHide: true,
         date : "2020.10-2021.01",
         category : "web",
-        context: "order",
+        context: "personal|order",
         filter: "experiment|motion|vector|layout|ad",
         desc : {
             fr : `

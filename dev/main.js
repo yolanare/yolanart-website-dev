@@ -111,6 +111,34 @@ function pID(i) { return thiis.getAttribute("project-id"); }
 // get "filter-id" attribute from an element
 function fID(i) { return i.getAttribute("filter-id"); }
 
+// replace placeholder image with different one when this one is loaded / (stackoverflow.com/a/54123157)
+function imgReplaceWithOnceLoaded(elem, newImgSrc, { dummy, dummyReturn = false, customParent }) {
+    // initial element should have the placeholder image in "src" and "style:background-image"
+    if(elem) {
+        if (!dummy) {
+            dummy = document.createElement("img");
+            dummy.classList.add("dummy");
+            dummy.src = newImgSrc;
+
+            if (customParent) { customParent.appendChild(dummy); }
+        }
+        dummy.addEventListener("load", function() {
+            // when the new one is loaded, replace
+            setTimeout(() => {
+                console.log("replaced with high res");
+                elem.src = newImgSrc;
+                setTimeout(() => { elem.style.backgroundImage = null; }, 500); // remove with delay to avoid flash
+
+                // remove dummy element
+                if (!dummyReturn) { return dummy; }
+            }, 0);
+        });
+        dummy.src = newImgSrc;
+    }
+
+    // in case the dummy element is needed for other purposes
+    if (dummyReturn) { return dummy; }
+};
 
 // - Modules -
 // OVERLAY SCROLLBARS
@@ -176,7 +204,7 @@ const pDataDefault = Prj.projectsDataSample.default,
       pContexts = Lang.contexts,
       pFilters = Lang.filters;
 
-// TODO PROJECTS DATA FILL WITH DEFAULT VALUES
+// TODO PROJECTS DATA FILL WITH DEFAULT VALUES so that we don't need to check everytime if exists
 //function projectDataFillWithDefaults(projectData) {
 //    // find and add default values to non existing/wrong project values
 //    pDataDefault.forEach((pDefaultEntry) => {
@@ -276,18 +304,9 @@ function projectsSortByDate() {
 // will be a sorted list of tuples of all projects by date
 const projectsSortedDate = projectsSortByDate();
 
-// get the project's tittle (static or translated)
-function getProjectTitle(projectID, DB) {
-    // avoid unnecessary seeking with DB
-    const PRJ = (DB) ? DB : pData[projectID];
-
-    // use translatable title if able to, else use static
-    var title = (PRJ.title) ? PRJ.title : pDataDefault.title;
-    if (!isString(title)) {
-        title = getTextLang({type : "project-id", id : projectID, useLangDB : "projects"});
-    }
-
-    return title;
+// get the project's title
+function getProjectTextLang(projectID, nesting = "title") {
+    return getTextLang({type : "project-id", id : projectID, langDB : "project", langDBNesting : nesting});
 }
 
 // LANGUAGE
@@ -305,11 +324,25 @@ const langIsNavigatorSupported = languagesSupported.includes(langNavigator);
 var language = (langIsNavigatorSupported) ? langNavigator : "en";
 
 // get from the data base the translation of specified entry
-function getTextLang({type : translateType, id : input, useLangDB, DB2nd}) {
+function getTextLang({
+    type : translateType, // type of element (asked translation), used to get id dynamically
+    id : input, // recognize the entry in which the translations are
+
+    langDB, // search in specified language data-base with its id ; if not specified will check in global translations
+    // main language data-bases id (string) : "filter", "context", "project"
+    // custom data-base can be passed
+
+    langDBNesting, // array of nested entries (string of key) the search goes through to get the translations (in order)
+    // ignored if not specified
+
+    leaveEmpty = false // if anything wrong happens, will not leave the id as a placeholder
+}) {
     const isEl = (isString(input) || input instanceof String) ? false : true, // check if input is an element
-          translateID = (isEl) ? input.getAttribute(translateType) : input;
+          translateID = (isEl) ? input.getAttribute(translateType) : input,
+          nestedDB = (!!langDBNesting); // check if nested DB
 
     // function to fallback to next language containing the translation (substitute)
+    // DB2 : used when the nested entries where the translations are, are separated globally by language (see "filter" & "context" part)
     function findInOtherLang(DB, DB2) {
         console.error(`Translation [${translateType}] for [${translateID}] doesn't exist in language [${language}].\n`, input);
 
@@ -328,38 +361,78 @@ function getTextLang({type : translateType, id : input, useLangDB, DB2nd}) {
         }
     }
 
-    // get new label
-    if (!useLangDB) {
+    // get with the specified language data-base the entry where the translations are (will go through nested entries)
+    function findUseDB(passedDB) {
+        var findDB = passedDB[translateID]; // recipient in which will be the translations
+
+        if (nestedDB) {
+            // if not an array and nesting is directly specified : [nesting level 2]
+            if (isString(langDBNesting) || !Array.isArray(langDBNesting)) { findDB = findDB[langDBNesting]; }
+
+            else { // multiple nesting levels
+                // go through every nesting level, if error cancel
+                for (let level = 0; level < langDBNesting.length; level++) {
+                    findDB = findDB[langDBNesting[level]];
+                    if (!findDB) { console.error(`Could not find nested translations for [${translateID}] in ${langDB} data (nesting: ${langDBNesting}).`); break; }
+                }
+            }
+        }
+
+        return findDB;
+    }
+
+    // get if translation is only static string instead of per language translation
+    function findIfStaticLoneStringTl(DB) {
+        if (isString(DB)) { newLabel = DB; } // apply string
+        else { return; } // leave as is
+    }
+
+    // TRANSLATING
+    if (!langDB) { // DB depth : 1
+        // default: get new label (from global translations)
         var newLabel = Translations[translateType][language][translateID];
 
         if (!newLabel) { findInOtherLang(Translations[translateType]); }
     }
 
-    else if (useLangDB == "filters") {
-        // data is nested, DB2nd is used if specified, else getAttribute of el
-        DB2nd = (isEl && !DB2nd) ? input.getAttribute("plural") : DB2nd;
+    else if (["filter", "context"].includes(langDB)) { // DB depth : 2
+        // same structure for [filters] and [contexts] so same way for both
+        const useDB = (langDB == "filter") ? pFilters : pContexts;
 
-        var newLabel = pFilters[language][DB2nd][translateID];
+        // data is nested ("format"/"plural"), check if [nesting lvl 2] specified, else get attribute from el
+        const langDB_lv2 = (isEl && !langDBNesting) ? input.getAttribute("plural")
+                         // if langDBNesting is array, use nesting level 2, else is string, so use it
+                         : (isString(langDBNesting) || !Array.isArray(langDBNesting)) ? langDBNesting : langDBNesting[0];
 
-        if (!newLabel) { findInOtherLang(pFilters, DB2nd); }
+        var newLabel = useDB[language][langDB_lv2][translateID];
+
+        // since nested globally under languages, need to go up the nesting to check
+        if (!newLabel) { findInOtherLang(useDB, langDB_lv2); }
     }
 
-    else if (useLangDB == "projects") {
-        const prjTitle = pData[translateID].title;
+    else { // DB depth = 1+
+        var useDB, newLabel;
+        if (langDB == "project") { useDB = findUseDB(pData); } // projects
+        else { useDB = findUseDB(langDB); } // if not corresponding to any known translation data-base, take the passed parameter
 
-        var newLabel = prjTitle[language];
+        findIfStaticLoneStringTl(useDB);
 
-        if (!newLabel) { findInOtherLang(prjTitle); }
-}
+        if (useDB) {
+            if (!newLabel) { newLabel = useDB[language] }
+            if (!newLabel) { findInOtherLang(useDB); }
+        }
+    }
 
     // if no translation found at all
     if (!newLabel) {
-        console.warn(`Using ID [${translateID}] as placeholder.`);
-        if (isEl) {
-            input.setAttribute("no-translation-found", "");
+        if (!leaveEmpty) {
+            console.warn(`Using ID [${translateID}] as placeholder.`);
+            if (isEl) {
+                input.setAttribute("no-translation-found", "");
+            }
             return `[${translateID}]`;
         }
-        else { return `[${translateID}]`; }
+        else { return ""; }
     }
 
     return newLabel;
@@ -376,24 +449,27 @@ function translatePage() {
         toTranslateEl.setAttribute("tip", getTextLang({type : "translate-bubble-id", id : toTranslateEl}));
     })
     // filter pills
-    document.querySelectorAll(".f-pill[filter-id]").forEach((toTranslateEl) => {
-        toTranslateEl.querySelector("span").innerText = getTextLang({type : "filter-id", id : toTranslateEl, useLangDB : "filters"});
+    document.querySelectorAll(".prj-pill[filter-id]").forEach((toTranslateEl) => {
+        toTranslateEl.querySelector("span").innerText = getTextLang({type : "filter-id", id : toTranslateEl, langDB : "filter"});
     })
-    // projects title
+    // context pills
+    document.querySelectorAll(".prj-pill[context-id]").forEach((toTranslateEl) => {
+        toTranslateEl.querySelector("span").innerText = getTextLang({type : "context-id", id : toTranslateEl, langDB : "context"});
+    })
+    // project titles
     document.querySelectorAll("[project-id]:not(.actions)").forEach((toTranslateEl) => {
-        // no need to translate if title is static (optimization)
-        if (isString(pData[toTranslateEl.getAttribute("project-id")].title)) {
-            return;
+        toTranslateEl.querySelector(".project-title").innerText = getProjectTextLang(toTranslateEl.getAttribute("project-id"));
+
+        // project files
+        if (toTranslateEl.classList.contains("file")) {
+            toTranslateEl.querySelector(".catchphrase").innerText = getTextLang({type : "project-id", id : toTranslateEl, langDB : "project", langDBNesting : "subtitle", leaveEmpty : true});
         }
-        // translate if able to
-        toTranslateEl.querySelector(".project-title").innerText = getTextLang({type : "project-id", id : toTranslateEl, useLangDB : "projects"});
-        //toTranslateEl.querySelector(".project-title").innerText = getProjectTitle(toTranslateEl.getAttribute("project-id"));
     })
 
     // TODO pContexts
-    const projectPages = document.querySelectorAll("[project-pages-container] .project-page");
-    if (projectPages.length > 0) {
-        console.debug("project pages", projectPages);
+    const projectFiles = document.querySelectorAll("[project-files-container] .project-file");
+    if (projectFiles.length > 0) {
+        console.debug("translate project files", projectFiles);
     }
 }
 
@@ -745,6 +821,9 @@ function quickPopupVideoRemove(popVid, curCrossEl) {
 // STICK IT
 function StickIt() {
     document.querySelectorAll(".sticky").forEach((stickyEl) => {
+        if (stickyEl.classList.contains("top")) {
+        }
+
         const target = stickyEl.getBoundingClientRect(),
               targetContainer = stickyEl.parentElement.getBoundingClientRect();
 
@@ -777,9 +856,10 @@ function StickIt() {
 
 // FILTER PILLS
 // generate HTML for filter pills with filter ID
-function generateFPill({
-    filterID = undefined,
+function generatePrjPill({
+    ID = undefined,
     type = "",
+    typeClassDisable = false,
     state = undefined,
     plural = false, // true|false
     customClass = "",
@@ -790,17 +870,20 @@ function generateFPill({
 
     plural = (plural) ? "plural" : "format";
 
-    const label = (customStaticLabel) ? customStaticLabel // use custom static label if specified
-                  // get formatted name // use custom label if specified
+    const type_id = `${(type) ? type+"-" : ""}id`,
+          //
+          label = (customStaticLabel) ? customStaticLabel // use custom static label if specified
+                    // get formatted name // use custom label if specified
                   : (labelTranslateID) ? getTextLang({type : "translate-id", id : labelTranslateID})
-                  : getTextLang({type : "filter-id", id : filterID, useLangDB : "filters", DB2nd : plural}) //: pFilters[language][plural][filterID]
+                    : getTextLang({type : type_id, id : ID, langDB : type, langDBNesting : plural});
 
     labelTranslateID = (labelTranslateID) ? `translate-id="${labelTranslateID}"` : "";
-    filterID = (filterID) ? `filter-id="${filterID}"` : "";
+    type = (typeClassDisable) ? "" : type;
+    ID = (ID) ? `${type_id}="${ID}"` : "";
     state = (state) ? `state="${state}"` : "";
 
 
-    return `<div ${filterID} class="f-pill ${type} ${customClass}" ${state} plural="${plural}">
+    return `<div ${ID} class="prj-pill ${type} ${customClass}" ${state} plural="${plural}">
         ${(customIcon) ? customIcon : ``}
         <span ${labelTranslateID}>${label}</span>
     </div>`
@@ -855,7 +938,7 @@ function createRecentProjects() {
         // FILTERS
         var filters = ``;
         ((PROJECT.filter) ? PROJECT.filter : pDataDefault.filter).split("|").forEach((filter) => {
-            filters += generateFPill({filterID : filter, type : "filter"});
+            filters += generatePrjPill({ID : filter, type : "filter"});
         })
 
         // SLIDES GENERATION
@@ -863,7 +946,7 @@ function createRecentProjects() {
             <div project-id="${projectID}" class="recent-slides" style="background-color: ${(PROJECT.color) ? PROJECT.color : pDataDefault.color}">
                 <div class="in">
                     <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"></div>
-                    <span class="project-title">${getProjectTitle(projectID, PROJECT)}</span>
+                    <span class="project-title">${getProjectTextLang(projectID)}</span>
                     <div class="filters">
                         ${filters}
                     </div>
@@ -887,7 +970,7 @@ function createRecentProjects() {
     recentProjectsTrackLength();
 
     // set filter buttons actions
-    RP.section.querySelectorAll("#recent-projects-slides .f-pill").forEach((filterButton) => {
+    RP.section.querySelectorAll("#recent-projects-slides .prj-pill[filter-id]").forEach((filterButton) => {
         filterButton.addEventListener("click", (e) => {filtersAction({caller : e, isolate : "isolate", customScrollToDuration : scrollToDurationElse}); });
     })
 
@@ -1133,7 +1216,7 @@ function filtersGenerateProjectsList() {
     const selectedProjectsNb = selectedProjectsSorted.length;
 
     // date order : false = descending | true = ascending
-    const dateOrder = F.filtersContainer.querySelector(`.main .f-pill[filter-id="date"]`).getAttribute("state");
+    const dateOrder = F.filtersContainer.querySelector(`.main .prj-pill.date`).getAttribute("state");
     if (dateOrder === "true") { selectedProjectsSorted.reverse(); }
 
     // if no filter selected, hide "clear filters" button
@@ -1171,21 +1254,23 @@ function filtersGenerateProjectsList() {
             // generating project card
             var filters = ``;
             PROJECT.filter.split("|").forEach((filter) => {
-                filters += generateFPill({filterID : filter, type : "filter", state : ((F.selectedFilters.includes(filter)) ? "true" : false)});
+                filters += generatePrjPill({ID : filter, type : "filter", state : ((F.selectedFilters.includes(filter)) ? "true" : false)});
             }) //${(spIndex < F.animateInLinesOfCards) ? `transition-delay:${spIndex / 10}s;` : `transition: none;`}
             const projectCardHTML = `
                 <div project-id="${projectID}" list-nb="${spIndex}" class="project-cards" style="transition: none;">
-                    <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"></div>
-                    <div class="header">
-                        <span class="project-title">${getProjectTitle(projectID, PROJECT)}</span>
-                        ${(["yt", "vid"].includes((PROJECT.type) ? PROJECT.type : pDataDefault.type)) // if video : add popup button to see the video without leaving the page
-                        ? `<div class="video-quick-popup-button" translate-bubble-id="plist-video-quick-popup-btn" tip="${getTextLang({type : "translate-bubble-id", id : "plist-video-quick-popup-btn"})}">
-                                <div class="bg"></div>
-                                <svg class="arrow" viewbox="0 0 24 24">
-                                    <path d="M6.55,22.19l14.16-8.17c1.5-0.87,1.5-3.03,0-3.9L6.55,1.95C5.05,1.08,3.18,2.16,3.18,3.9v16.35C3.18,21.97,5.05,23.06,6.55,22.19z"/>
-                                </svg>
-                            </div>`
-                        : ``}
+                    <div class="in">
+                        <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"></div>
+                        <div class="header">
+                            <span class="project-title">${getProjectTextLang(projectID)}</span>
+                            ${(["yt", "vid"].includes((PROJECT.type) ? PROJECT.type : pDataDefault.type)) // if video : add popup button to see the video without leaving the page
+                            ? `<div class="video-quick-popup-button" translate-bubble-id="plist-video-quick-popup-btn" tip="${getTextLang({type : "translate-bubble-id", id : "plist-video-quick-popup-btn"})}">
+                                    <div class="bg"></div>
+                                    <svg class="arrow" viewbox="0 0 24 24">
+                                        <path d="M6.55,22.19l14.16-8.17c1.5-0.87,1.5-3.03,0-3.9L6.55,1.95C5.05,1.08,3.18,2.16,3.18,3.9v16.35C3.18,21.97,5.05,23.06,6.55,22.19z"/>
+                                    </svg>
+                                </div>`
+                            : ``}
+                        </div>
                     </div>
                     <div class="filters">
                         ${filters}
@@ -1287,14 +1372,18 @@ function filtersGenerateProjectsList() {
                 card.style.transitionDelay = i / 10 +"s";
             }
 
-            columnGrp.querySelectorAll(".project-cards").forEach(card => {
-                // bubble tip for video quick popup button
-                const vidPopBtn = card.querySelector(".video-quick-popup-button");
-                if (vidPopBtn) {
-                    bubbleTipInit({target : vidPopBtn});
-                    quickPopupVideoInit(vidPopBtn, card.getAttribute("project-id"), card);
-                }
-            });
+            setTimeout(() => { // leave the time tocreate the cards and be sure it is applied to every of them
+                columnGrp.querySelectorAll(".project-cards").forEach(card => {
+                    projectFileInit(card, card.getAttribute("project-id"));
+
+                    // video quick popup button
+                    const vidPopBtn = card.querySelector(".video-quick-popup-button");
+                    if (vidPopBtn) {
+                        bubbleTipInit({target : vidPopBtn});
+                        quickPopupVideoInit(vidPopBtn, card.getAttribute("project-id"), card);
+                    }
+                });
+            }, 100);
         });
     }
 
@@ -1346,7 +1435,7 @@ function filtersGenerateProjectsList() {
         projectsCards += `
             <div project-id="${projectID}" class="project-cards">
                 <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.jpg"></div>
-                <span class="project-title">${getProjectTitle(projectID, PROJECT)}</span>
+                <span class="project-title">${getProjectTextLang(projectID)}</span>
                 <div class="filters">
                     ${filters}
                 </div>
@@ -1357,7 +1446,7 @@ function filtersGenerateProjectsList() {
     ///*/
 
     // set filter buttons actions
-    F.projectsListContainer.querySelectorAll(".project-cards .f-pill").forEach((filterButton) => {
+    F.projectsListContainer.querySelectorAll(".project-cards .prj-pill[filter-id]").forEach((filterButton) => {
         filterButton.addEventListener("click", (e) => { filtersAction({caller : e, isolate : "isolate", delay : scrollToDurationCard * (5/7), card : true}); });
     })
 
@@ -1399,7 +1488,7 @@ function filtersGenerateProjectsList() {
 function filtersAction({caller, isolate = false, delay = 0, card = false, customScrollToDuration}) {
     // which filter called?
     caller = caller.target;
-    const selectedFilter = F.filtersContainer.querySelector(`.f-pill[filter-id="${caller.getAttribute("filter-id")}"]`);
+    const selectedFilter = F.filtersContainer.querySelector(`.prj-pill[filter-id="${caller.getAttribute("filter-id")}"]`);
 
     // scroll to filters click action
     caller.addEventListener("click", scrollToProjectsListFilters(card, customScrollToDuration));
@@ -1426,7 +1515,7 @@ function filtersAction({caller, isolate = false, delay = 0, card = false, custom
     }, delay);
 }
 
-function filtersUpdateDateBubbleTip(dateEl = F.filtersContainer.querySelectorAll(".main .f-pill.date")) {
+function filtersUpdateDateBubbleTip(dateEl = F.filtersContainer.querySelectorAll(".main .prj-pill.date")) {
     if (dateEl.getAttribute("state") === "false") {
         dateEl.setAttribute("translate-bubble-id", "filters-date-false");
     } else {
@@ -1439,9 +1528,9 @@ function createFilters() {
     // generate filter pills
     var allButtonsHTML = ``;
     F.allFilterIDs.forEach((filter) => {
-        allButtonsHTML += generateFPill({filterID : filter, type : "filter", plural : true});
+        allButtonsHTML += generatePrjPill({ID : filter, type : "filter", plural : true});
     })
-    allButtonsHTML += generateFPill({filterID : "date", type : "date", plural : false,
+    allButtonsHTML += generatePrjPill({ID : "date", type : "filter", typeClassDisable : true, customClass : "date", plural : false,
         customIcon : `<svg viewBox="0 0 24 24">
             <path d="M11,22.02l-8.42-6.2c-0.75-0.55-0.91-1.6-0.36-2.35l0,0c0.55-0.75,1.6-0.91,2.35-0.36l3.98,2.94c2.05,1.51,4.83,1.51,6.88,0l3.98-2.94c0.75-0.55,1.8-0.39,2.35,0.36l0,0c0.55,0.75,0.39,1.8-0.36,2.35L13,22.02C12.4,22.46,11.6,22.46,11,22.02z"/>
             <path d="M12,22.35c-0.93,0-1.68-0.75-1.68-1.68V3.33c0-0.93,0.75-1.68,1.68-1.68s1.68,0.75,1.68,1.68v17.33C13.68,21.59,12.93,22.35,12,22.35z"/>
@@ -1454,7 +1543,7 @@ function createFilters() {
             <div class="secondary">
                 <div class="left">
                     <div class="animate">
-                        ${generateFPill({customClass : "clear-filters-button", labelTranslateID : "filters-clear-filters",
+                        ${generatePrjPill({customClass : "clear-filters-button", labelTranslateID : "filters-clear-filters",
                             customIcon : `<svg viewBox="0 0 24 24">
                                 <path d="M22.04,5.31L22.04,5.31c0-0.9-0.73-1.63-1.63-1.63H3.59c-0.9,0-1.63,0.73-1.63,1.63v0c0,0.9,0.73,1.63,1.63,1.63h16.82C21.31,6.94,22.04,6.21,22.04,5.31z"/>
                                 <path d="M10.45,2.38h3.11c0.51,0,0.92-0.41,0.92-0.92v0c0-0.51-0.41-0.92-0.92-0.92h-3.11c-0.51,0-0.92,0.41-0.92,0.92v0C9.53,1.97,9.94,2.38,10.45,2.38z"/>
@@ -1469,11 +1558,11 @@ function createFilters() {
     `;
 
     // store filters
-    F.allFilterBtns = F.filtersContainer.querySelectorAll(".main .f-pill.filter");
+    F.allFilterBtns = F.filtersContainer.querySelectorAll(".main .prj-pill.filter");
     // store other buttons (date)
-    F.allOtherBtns = F.filtersContainer.querySelectorAll(".main .f-pill:not(.filter)");
+    F.allOtherBtns = F.filtersContainer.querySelectorAll(".main .prj-pill:not(.filter)");
     // store all buttons
-    F.allBtns = F.filtersContainer.querySelectorAll(".main .f-pill");
+    F.allBtns = F.filtersContainer.querySelectorAll(".main .prj-pill");
 
     // set filter buttons actions & states
     F.allBtns.forEach((filterButton) => {
@@ -1483,7 +1572,7 @@ function createFilters() {
 
     // bubble tips
     // date -> tell if "most recent" or "oldest"
-    const fDateEl = F.filtersContainer.querySelector(".main .f-pill.date");
+    const fDateEl = F.filtersContainer.querySelector(".main .prj-pill.date");
     fDateEl.addEventListener("mouseenter", () => {
         filtersUpdateDateBubbleTip(fDateEl);
     });
@@ -1652,6 +1741,202 @@ function projectListColumnsByRatio(ColumnsNb = F.projectsListContentElements.len
 }
 
 
+// PROJECTS FILE
+function projectFileInit(target, projectID) {
+    target.addEventListener("click", (cursorEv) => {
+        // only if clicked .in
+        if (cursorEv.target !== target.querySelector(".in")) { return; }
+
+        projectFileCreate(projectID, target, cursorEv);
+    });
+}
+function projectFileCreate(projectID, card, cursorEv) {
+    const PROJECT = pData[projectID];
+
+    // generate
+    var projectFile = document.createElement("div");
+    projectFile.classList.add("project-files");
+    projectFile.classList.add("anim-pre");
+
+    // HTML recipients
+    var headerMainContentHTML = ``, headerSecondaryContentHTML = ``,
+        filtersHTML = ``, contextsHTML = ``;
+
+    // header main content
+    const aspectRatio = (PROJECT.aspectRatio) ? PROJECT.aspectRatio : pDataDefault.aspectRatio;
+
+    if(PROJECT.type == "img") {
+        // by default, put the thumbnail as a placeholder for the hd project image (they generally have the same aspect ratio so it's fine)
+        const prjImgLowSrc = `./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}`;
+
+        headerMainContentHTML = `
+           <img class="project-main" src="${prjImgLowSrc}" style="background-image: url(${prjImgLowSrc}); ${
+               (PROJECT.needBG) ? `background-color: ${(PROJECT.needBG === true) ? "var(--p-needbg-default)" : PROJECT.needBG};` : "" // background color if needed and specified
+           }">
+        `;
+    } else if(PROJECT.type == "yt") {
+        headerMainContentHTML = `
+            <div class="project-main" aspect-ratio="${aspectRatio}">
+                <iframe width="1280" height="720" src="https://www.youtube.com/embed/${(PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id}?rel=0&color=white&loop=1" frameborder="0" allowfullscreen></iframe>
+            </div>
+        `;
+    } else if(PROJECT.type == "embed") {
+        headerMainContentHTML = `
+            <div class="project-main" aspect-ratio="${aspectRatio}">
+                <iframe src="${((PROJECT.embed) ? PROJECT.embed : pDataDefault.embed)}" width="1920px" height="1080px" frameborder="0"></iframe>
+            </div>
+        `;
+    }
+
+    // header secondary content
+    if (PROJECT.additional) {
+        // add every additionnal content one after the other
+        Object.entries(PROJECT.additional).forEach((addPrj) => {
+            const PRJADD = addPrj[1]; // data
+
+            // add comment if exists
+            if (PRJADD.comment) {
+                headerSecondaryContentHTML += `
+                    <div class="secondary-head">${getTextLang({type : "project-id", id : projectID, langDB : "project", langDBNesting : ["additional", addPrj[0], "comment"]})}</div>
+                `;
+            }
+            // add by type
+            if (PRJADD.type == "img") {
+                headerSecondaryContentHTML += `
+                    <img src="./assets/medias/projects/high/${projectID}/${addPrj[0]}.${(PRJADD.ext) ? PRJADD.ext : pDataDefault.ext}">
+                `;
+            }
+        })
+    }
+    // filters
+    PROJECT.filter.split("|").forEach((filter) => { filtersHTML += generatePrjPill({ID : filter, type : "filter"}); })
+    // contexts
+    PROJECT.context.split("|").forEach((context) => { contextsHTML += generatePrjPill({ID : context, type : "context"}); })
+
+    // final html
+    projectFile.innerHTML = `
+        <div class="close-file-btn">
+            <svg viewBox="0 0 24 24">
+                <line class="cls-1" x1="0" y1="0" x2="24" y2="24" />
+                <line class="cls-1" x1="24" y1="0" y2="24" />
+            </svg>
+        </div>
+        <div class="file" project-id="${projectID}">
+            <div class="title-container">
+                <div class="project-title">${getProjectTextLang(projectID)}</div>
+            </div>
+            <div class="project-main-container">
+                ${headerMainContentHTML}
+                <div class="data-container">
+                    <div class="top">
+                        <div class="contexts">${contextsHTML}</div>
+                        <div class="filters">${filtersHTML}</div>
+                        <div class="date"><span>${(PROJECT.date) ? PROJECT.date : pDataDefault.date}</span></div>
+                    </div>
+                    <div class="bottom">
+                        <div class="catchphrase">${(PROJECT.subtitle) ? getProjectTextLang(projectID, "subtitle") : pDataDefault.subtitle}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="project-secondary-container">
+                <div class="secondary">${headerSecondaryContentHTML}</div>
+            </div>
+            <div class="description">
+                <div></div>
+            </div>
+        </div>
+    `
+    // TODO make main data top & bottom sticky
+
+    // create
+    document.querySelector("[project-files-container]").appendChild(projectFile);
+
+    projectFile.querySelector(".project-main-container").setAttribute("project-type", PROJECT.type);
+
+    // after "create" code
+    if (PROJECT.type == "img") {
+        const fileMainPrjImgEl = projectFile.querySelector("img.project-main"),
+              prjImgHighSrc = `./assets/medias/projects/high/${projectID}.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}`;
+
+        // replace the placeholder thumbnail when the hd project image is loaded
+        // and get back dummy element to get values (which will be removed with project file at the end since it's its parent so no worries)
+        var prjImgHighDummy = imgReplaceWithOnceLoaded(fileMainPrjImgEl, prjImgHighSrc, { dummy : prjImgHighDummy, dummyReturn : true, customParent : projectFile });
+
+        // set size of main project img
+        // get size of high res project img
+        var loopLimit = 1000, loopGetPrjHighRes = setInterval(function () { // loop until found
+            if (prjImgHighDummy.naturalWidth) {
+                clearInterval(loopGetPrjHighRes); // stop loop
+
+                const prjHighSize = [prjImgHighDummy.naturalWidth, prjImgHighDummy.naturalHeight];
+                fileMainPrjImgEl.style.width = prjHighSize[0] + doc.clientWidth; // add vp size to ensure it fills container
+                fileMainPrjImgEl.style.height = prjHighSize[1] + doc.clientHeight;
+
+                // not needed anymore
+                prjImgHighDummy.remove();
+
+                // check which side is longer to fill correctly
+                var squarishAdd = prjHighSize[0] * 0.1;
+                console.log("test --", squarishAdd);
+                //if (prjHighSize[0] > prjHighSize[1] - squarishAdd && prjHighSize[0] < prjHighSize[1] + squarishAdd) { // squarish aspect ratios
+                if (prjHighSize[0] < prjHighSize[1] + squarishAdd && prjHighSize[0] > prjHighSize[1] - squarishAdd) { // squarish aspect ratios
+                    console.log("squarish", prjHighSize[0], prjHighSize[1]);
+                    fileMainPrjImgEl.style.maxHeight = "95vh";
+                } else if (prjHighSize[1] > prjHighSize[0]) { // height >
+                    console.log("height >", prjHighSize[0], prjHighSize[1]);
+                    fileMainPrjImgEl.style.maxHeight = "110vh";
+                } else { // width >
+                    console.log("width >", prjHighSize[0], prjHighSize[1]);
+                    fileMainPrjImgEl.style.maxWidth = "70%";
+                }
+            }
+            loopLimit--;
+            if (loopLimit < 0) { console.error("main project img high res not found"); clearInterval(loopGetPrjHighRes); } // stop loop if not found after loopLimit*loopGetPrjHighRes ms
+        }, 15);
+
+    }
+
+    // scrollbar
+    var scrollbarPrjFile = OverlayScrollbars(projectFile, {
+        autoUpdate : o1[0],
+        autoUpdateInterval : o1[1],
+        overflowBehavior : {
+            x : "hidden",
+            y : "scroll"
+        },
+        scrollbars : {
+            visibility : "auto",
+            autoHide : "move", // "scroll" "move" "never"
+            autoHideDelay : OScrHDelay
+        },
+        callbacks : {
+            onScroll : scrollPrjFileEvents,
+        }
+    });
+
+    // in
+    setTimeout(() => {
+        scrollbarMainSetShowState("hide"); // remove main page scroll
+
+        // animation in
+        projectFile.classList.remove("anim-pre");
+    }, 100);
+
+    // out
+    function projectFileRemove() { // no need to have this function out of main
+        scrollbarPrjFile.destroy(); // remove project file's scroll instance
+        scrollbarMainSetShowState(); // restore main page scroll
+
+        // animation out
+        projectFile.classList.add("anim-clear");
+        addEvTrEnd(projectFile, () => { projectFile.remove(); }, {property : "opacity", once : false});
+    }
+
+    projectFile.querySelector(".close-file-btn").addEventListener("click", projectFileRemove);
+    window.addEventListener("hashchange", projectFileRemove, { once:true }); // close on history back event (cool for mobile users and grandma <3)
+}
+projectFileCreate("fut_met");
+
 // UPDATES EVENTS
 function updateAll() {
 }
@@ -1679,6 +1964,9 @@ function scrollEvents() {
 //function scrollStopEvents() {
 //    isScrollingToPrevPos = [];
 //}
+function scrollPrjFileEvents() {
+    //StickIt();
+}
 window.addEventListener("resize", () => {
     //updateAll();
 

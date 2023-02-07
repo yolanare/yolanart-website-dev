@@ -90,7 +90,7 @@ const filters = {
     },
     fr : {
         format : {
-            "experiment" : "Expérimentation",
+            "experiment" : "Exercice",
             "photo" : "Photographie",
             "illustration" : "Illustration",
             "3D" : "3D",
@@ -105,7 +105,7 @@ const filters = {
             "date" : "Date"
         },
         plural : {
-            "experiment" : "Expérimentations",
+            "experiment" : "Exercices",
             "photo" : "Photographie",
             "illustration" : "Illustrations",
             "3D" : "3D",
