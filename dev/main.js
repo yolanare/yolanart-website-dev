@@ -1934,18 +1934,20 @@ function projectFileCreate(projectID, card, cursorEv) {
 
     // out
     function projectFileRemove() { // no need to have this function out of main
-        scrollbarPrjFile.destroy(); // remove project file's scroll instance
         scrollbarMainSetShowState(); // restore main page scroll
 
         // animation out
         projectFile.classList.add("anim-clear");
-        addEvTrEnd(projectFile, () => { projectFile.remove(); }, {property : "opacity", once : false});
+        addEvTrEnd(projectFile, () => {
+            scrollbarPrjFile.destroy(); // remove project file's scroll instance
+            projectFile.remove();
+        }, {property : "opacity", once : false});
     }
 
     projectFile.querySelector(".close-file-btn").addEventListener("click", projectFileRemove);
     window.addEventListener("hashchange", projectFileRemove, { once:true }); // close on history back event (cool for mobile users and grandma <3)
 }
-projectFileCreate("b_l1_wzr");
+projectFileCreate("pub_sc_lc");
 
 // UPDATES EVENTS
 function updateAll() {
