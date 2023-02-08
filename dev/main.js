@@ -836,9 +836,6 @@ function quickPopupVideoRemove(popVid, curCrossEl) {
 // STICK IT
 function StickIt() {
     document.querySelectorAll(".sticky").forEach((stickyEl) => {
-        if (stickyEl.classList.contains("top")) {
-        }
-
         const target = stickyEl.getBoundingClientRect(),
               targetContainer = stickyEl.parentElement.getBoundingClientRect();
 
@@ -849,6 +846,7 @@ function StickIt() {
             stickyEl.style.position = null;
             stickyEl.style.top = null;
             stickyEl.style.bottom = null;
+
         } else if (target.bottom >= targetContainer.bottom-1 // if sticky element hits the bottom
                 && target.top <= 0) { // and if the element's top is under the top of viewport (scroll sticky)
             // position sticked to bottom
@@ -857,6 +855,7 @@ function StickIt() {
             stickyEl.style.position = "absolute";
             stickyEl.style.top = "auto";
             stickyEl.style.bottom = 0 +"px";
+
         } else {
             // position sticked to scroll
             stickyEl.classList.add("sticky-fixed");
@@ -868,6 +867,75 @@ function StickIt() {
     });
 }
 
+function StickIt_FlexSiblingsSpaceBetween() { // alternate for perfomance reasons
+    document.querySelectorAll(".sticky-fssb").forEach((stickyElContainer) => {
+        // there should only be 2 children
+        const stickyElSib1 = stickyElContainer.firstElementChild,
+              stickyElSib2 = stickyElContainer.lastElementChild,
+              targetContainer = stickyElContainer.getBoundingClientRect(),
+              target1 = stickyElSib1.getBoundingClientRect(),
+              stickySib2Height = stickyElSib2.getBoundingClientRect().height;
+
+        if (doc.clientHeight < targetContainer.bottom) {
+            // 2
+            // position sticked to bottom of scroll
+            stickyElSib2.classList.add("sticky-fixed-end");
+            stickyElSib2.style.position = "fixed";
+            stickyElSib2.style.left = targetContainer.left +"px";
+            stickyElSib2.style.bottom = 0 +"px";
+            stickyElSib2.style.width = targetContainer.width +"px";
+        } else {
+            stickyElSib2.style.position = null;
+            stickyElSib2.style.left = null;
+            stickyElSib2.style.bottom = null;
+            stickyElSib2.style.width = null;
+        }
+
+        if (0 < targetContainer.top) { // if container goes out viewport at the top
+            // 1
+            // position normal
+            stickyElSib1.classList.remove("sticky-fixed");
+            stickyElSib1.classList.remove("sticky-end");
+            stickyElSib1.style.position = null;
+            stickyElSib1.style.top = null;
+            stickyElSib1.style.left = null;
+            stickyElSib1.style.bottom = null;
+            stickyElSib1.style.width = null;
+
+            // 2
+            stickyElContainer.style.justifyContent = null;
+
+        } else if (target1.bottom >= targetContainer.bottom-1 - stickySib2Height // if sticky element hits the bottom (or hits sibling)
+                && target1.top <= 0) { // and if the element's top is under the top of viewport (scroll sticky)
+            // 1
+            // position sticked to bottom
+            stickyElSib1.classList.remove("sticky-fixed");
+            stickyElSib1.classList.add("sticky-end");
+            stickyElSib1.style.position = "absolute";
+            stickyElSib1.style.top = "auto";
+            stickyElSib1.style.left = null;
+            stickyElSib1.style.bottom = stickySib2Height +"px";
+            stickyElSib1.style.width = null;
+
+            // 2
+            stickyElContainer.style.justifyContent = "flex-end";
+
+        } else {
+            //1
+            // position sticked to scroll
+            stickyElSib1.classList.add("sticky-fixed");
+            stickyElSib1.classList.remove("sticky-end");
+            stickyElSib1.style.position = "fixed";
+            stickyElSib1.style.top = 0 +"px";
+            stickyElSib1.style.left = targetContainer.left +"px";
+            stickyElSib1.style.bottom = null;
+            stickyElSib1.style.width = targetContainer.width +"px";
+
+            // 2
+            stickyElContainer.style.justifyContent = "flex-end";
+        }
+    });
+}
 
 // FILTER PILLS
 // generate HTML for filter pills with filter ID
@@ -1856,7 +1924,7 @@ function projectFileCreate(projectID, card, cursorEv) {
             <div class="separator-line"></div>
             <div class="project-main-container">
                 ${headerMainContentHTML}
-                <div class="data-container">
+                <div class="data-container sticky-fssb">
                     <div class="top">
                         <div class="contexts">${contextsHTML}</div>
                         <div class="filters">${filtersHTML}</div>
@@ -1875,7 +1943,7 @@ function projectFileCreate(projectID, card, cursorEv) {
             </div>
         </div>
     `
-    // TODO make main data top & bottom sticky
+    // TODO if no catchphrase, remove padding of bottom
 
     // create
     document.querySelector("[project-files-container]").appendChild(projectFile);
@@ -1943,14 +2011,22 @@ function projectFileCreate(projectID, card, cursorEv) {
         }
     });
     function scrollPrjFileEvents() {
+        //StickIt();
+        StickIt_FlexSiblingsSpaceBetween();
         patternBgMoveAll(scrollbarPrjFile);
     }
 
-    scrollbarPrjFile.scroll(0, 0); // make sure to be at the top
     patternBgMoveAll(scrollbarPrjFile);
 
     // in
     setTimeout(() => {
+        for (let i = 0; i < 8; i++) { // for loop to make sure it's applied correctly
+            setTimeout(() => {
+                StickIt_FlexSiblingsSpaceBetween();
+            }, 400 * i);
+        }
+
+        scrollbarPrjFile.scroll(0, 0); // make sure to be at the top
         scrollbarMainSetShowState("hide"); // remove main page scroll
 
         // animation in

@@ -7,7 +7,7 @@
     --y-w1: rgb(236, 239, 242);
     --y-w2: rgb(250, 253, 255);
     --y-b1: rgb(15, 15, 15);
-    --y-b2: rgb(29, 28, 29);
+    --y-b2: rgb(37, 35, 35);
     --y-rv: 239, 59, 102;
     --y-r1: rgb(var(--y-rv));
 
@@ -1339,6 +1339,10 @@ nav.menu {
             background-color: var(--project-color-accent, transparent);
         }
 
+        .embed-player-placeholder {
+            background-color: var(--project-color-fill);
+        }
+
         .file {
             display: block;
             //display: flex;
@@ -1426,6 +1430,7 @@ nav.menu {
             }
 
             .project-main-container {
+                --width-main: 75%;
                 z-index: 1;
                 display: inline-flex;
                 position: relative;
@@ -1435,11 +1440,11 @@ nav.menu {
                 //height: calc(80vh - (var(--file-padding-topbottom) + (var(--header-ptitle-size) * var(--title-lineH)) + var(--header-ptitle-margin-bottom)));
 
                 .project-main {
-                    flex-shrink: 0.3;
+                    flex-shrink: 0;
                     user-select: none;
                 }
                 &[project-type="img"] .project-main {
-                    max-width: 75%;
+                    max-width: var(--width-main);
                     //max-height: 110vh;
                     object-fit: contain;
                     background-position: center;
@@ -1481,21 +1486,32 @@ nav.menu {
                     width: auto !important;
                 }
 
-                .data-container {
-                    flex-grow: 0;
+                .sticky-fssb { // TODO move elsewhere
                     display: flex;
                     flex-direction: column;
                     justify-content: space-between;
-                    //min-width: clamp(15em, 30vw, 25em);
-                    padding: 1rem 1.5rem;
+                }
+                .data-container {
+                    position: relative;
+                    flex-grow: 0;
+                    width: var(--width-main);
+
+                    > * {
+                        padding: 0 1.5rem;
+                    }
 
                     .top, .bottom {
                         position: relative;
                         right: 0;
                         width: 100%;
                     }
+                    .top {
+                        padding-top: 0.5em;
+                    }
                     .bottom {
                         bottom: 0;
+                        padding-top: 1em;
+                        padding-bottom: 0.75em;
                     }
 
                     .contexts, .filters {
