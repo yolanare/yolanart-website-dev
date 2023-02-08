@@ -29,7 +29,8 @@ const projectsDataSample = {
         title : "",
         titleHide: false,
         date : "----.--",
-        color : "#000000",
+        colorFill : "#000000",
+        colorAccent : "var(--y-r1)",
         category : "other",
         context: "",
         filter: "",
@@ -55,8 +56,12 @@ const projectsDataSample = {
                     embed : "FULL_URL",
                     aspectRatio : "16:9|1:1",
                     comment : {
-                        fr : `FRENCH_COMMENT`,
-                        en : `ENGLISH_COMMENT`
+                        fr : `
+                            FRENCH_COMMENT
+                        `,
+                        en : `
+                            ENGLISH_COMMENT
+                        `
                     }
             },
         },
@@ -67,7 +72,8 @@ const projectsDataSample = {
         },
         titleHide: false|true,
         date : "YYYY.MM",
-        color : "COLOR",
+        colorFill : "COLOR_FILL",
+        colorAccent : "COLOR_ACCENT",
         category : "artworks|renders|motion|brandings|prints|web|other",
         context: "personal|fun|order|school|sc|ppm|retrosaturn|pti",
         filter: "experiment|photo|illustration|3D|motion|type|poster|print|logo|vector|layout|ad",
@@ -101,8 +107,12 @@ const projectsDataSample = {
                     embed : "FULL_URL",
                     aspectRatio : "16:9|1:1", // IF TYPE: "vid|embed"
                     comment : { // CAN BE: empty
-                        fr : `FRENCH_COMMENT`,
-                        en : `ENGLISH_COMMENT`
+                        fr : `
+                            FRENCH_COMMENT
+                        `,
+                        en : `
+                            ENGLISH_COMMENT
+                        `
                     }
             },
         },
@@ -115,7 +125,8 @@ const projectsDataSample = {
         },
         titleHide: false|true, // choose whether to hide or no the title | DEFAULT: "false"
         date : "YYYY.MM", // CAN BE: "2000-2001" | "2000-2001.00" | "2000.00-2001" | "2000.01-2001.00" | "2000.00" | "2000.00-01"
-        color : "COLOR", // CAN BE any CSS color : var(--var) | #ffffff | rgb(0, 0, 0) | hsl(0, 0%, 0%) | hwb(0 0% 0%)
+        colorFill : "COLOR_FILL", // CAN BE any CSS color : var(--var) | #ffffff | rgb(0, 0, 0) | hsl(0, 0%, 0%) | hwb(0 0% 0%)
+        colorAccent : "COLOR_ACCENT", // same thing
         category : "artworks|renders|motion|brandings|prints|web|other", // CAN BE: "artworks" | "brandings|web"]
         context: "personal|fun|order|school|retrosaturn|pti|sc", // CAN BE: "fun" | "fun|school"]
         filter: "experiment|photo|illustration|3D|motion|type|poster|print|logo|vector|layout|ad", // CAN BE: "experiment" | "experiment|motion"]
@@ -486,7 +497,8 @@ var projectsData = {
             en : "ADVERT: \"LES CONNECTÉS\""
         },
         date : "2021.02-04",
-        color : "#fe670e",
+        colorFill : "#fe670e",
+        colorAccent : "#fe670e",
         category : "motion",
         context: "sc",
         filter: "motion|ad",

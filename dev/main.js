@@ -765,7 +765,8 @@ function quickPopupVideoCreate(projectID, originEl, cursorEv) { // popup video p
     popVid.innerHTML = `
         <div class="bg"></div>
         <div class="ytplayer-c">
-            <div class="ytplayer" style="background-color: ${(PROJECT.color) ? PROJECT.color : pDataDefault.color}" aspect-ratio="${(PROJECT.aspectRatio) ? PROJECT.aspectRatio : pDataDefault.aspectRatio}">
+            <div class="ytplayer" style="background-color: ${(PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill}" aspect-ratio="${(PROJECT.aspectRatio) ? PROJECT.aspectRatio : pDataDefault.aspectRatio}">
+                <div class="embed-player-loading"></div>
                 <iframe width="1280" height="720" src="https://www.youtube.com/embed/${(PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id}?rel=0&color=white&loop=1" frameborder="0" allowfullscreen></iframe>
             </div>
         </div>
@@ -943,7 +944,7 @@ function createRecentProjects() {
 
         // SLIDES GENERATION
         slides += `
-            <div project-id="${projectID}" class="recent-slides" style="background-color: ${(PROJECT.color) ? PROJECT.color : pDataDefault.color}">
+            <div project-id="${projectID}" class="recent-slides" style="background-color: ${(PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill}">
                 <div class="in">
                     <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"></div>
                     <span class="project-title">${getProjectTextLang(projectID)}</span>
@@ -1360,6 +1361,7 @@ function filtersGenerateProjectsList() {
     // code used after creation
     if (selectedProjectsNb > 0) {
         // for each columns groups
+                console.log(F.projectsListContentElements);
         F.projectsListContentElements.forEach((columnGrp) => {
             const colGrpIndex = parseInt(columnGrp.getAttribute("column-group"));
 
@@ -1374,23 +1376,21 @@ function filtersGenerateProjectsList() {
             // animate in the first F.animateInLinesOfCards amount of lines of cards
             for (let i = 0; i < colGrpIndex * F.animateInLinesOfCards; i++) {
                 const card = columnGrp.querySelector(`.project-cards[list-nb="${i}"]`);
-                if (!card) { return; } // stop if no more cards
+                if (!card) { break; } // stop if no more cards
                 card.style.transition = null; // cancel the "transition: none;" put by default when generating
                 card.style.transitionDelay = i / 10 +"s";
             }
 
-            setTimeout(() => { // leave the time tocreate the cards and be sure it is applied to every of them
-                columnGrp.querySelectorAll(".project-cards").forEach(card => {
-                    projectFileInit(card, card.getAttribute("project-id"));
+            columnGrp.querySelectorAll(".project-cards").forEach(card => {
+                projectFileInit(card, card.getAttribute("project-id"));
 
-                    // video quick popup button
-                    const vidPopBtn = card.querySelector(".video-quick-popup-button");
-                    if (vidPopBtn) {
-                        bubbleTipInit({target : vidPopBtn});
-                        quickPopupVideoInit(vidPopBtn, card.getAttribute("project-id"), card);
-                    }
-                });
-            }, 100);
+                // video quick popup button
+                const vidPopBtn = card.querySelector(".video-quick-popup-button");
+                if (vidPopBtn) {
+                    bubbleTipInit({target : vidPopBtn});
+                    quickPopupVideoInit(vidPopBtn, card.getAttribute("project-id"), card);
+                }
+            });
         });
     }
 
@@ -1785,12 +1785,16 @@ function projectFileCreate(projectID, card, cursorEv) {
     } else if(PROJECT.type == "yt") {
         headerMainContentHTML = `
             <div class="project-main" aspect-ratio="${aspectRatio}">
+                <div class="embed-player-loading"></div>
+                <div class="embed-player-placeholder"></div>
                 <iframe width="1280" height="720" src="https://www.youtube.com/embed/${(PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id}?rel=0&color=white&loop=1" frameborder="0" allowfullscreen></iframe>
             </div>
         `;
     } else if(PROJECT.type == "embed") {
         headerMainContentHTML = `
             <div class="project-main" aspect-ratio="${aspectRatio}">
+                <div class="embed-player-loading"></div>
+                <div class="embed-player-placeholder"></div>
                 <iframe src="${((PROJECT.embed) ? PROJECT.embed : pDataDefault.embed)}" width="1920px" height="1080px" frameborder="0"></iframe>
             </div>
         `;
@@ -1823,16 +1827,19 @@ function projectFileCreate(projectID, card, cursorEv) {
 
     // final html
     projectFile.innerHTML = `
-        <div class="close-file-btn">
-            <svg viewBox="0 0 24 24">
-                <line class="cls-1" x1="0" y1="0" x2="24" y2="24" />
-                <line class="cls-1" x1="24" y1="0" y2="24" />
-            </svg>
-        </div>
         <div class="file" project-id="${projectID}">
-            <div class="title-container">
-                <div class="project-title">${getProjectTextLang(projectID)}</div>
+            <div class="head">
+                <div class="title-container">
+                    <div class="project-title">${getProjectTextLang(projectID)}</div>
+                </div>
+                <div class="close-file-btn">
+                    <svg viewBox="0 0 24 24">
+                        <line class="cls-1" x1="0" y1="0" x2="24" y2="24" />
+                        <line class="cls-1" x1="24" y1="0" y2="24" />
+                    </svg>
+                </div>
             </div>
+            <div class="separator-line"></div>
             <div class="project-main-container">
                 ${headerMainContentHTML}
                 <div class="data-container">
@@ -1860,6 +1867,8 @@ function projectFileCreate(projectID, card, cursorEv) {
     document.querySelector("[project-files-container]").appendChild(projectFile);
 
     projectFile.querySelector(".project-main-container").setAttribute("project-type", PROJECT.type);
+    projectFile.style.setProperty("--project-color-accent", (PROJECT.colorAccent) ? PROJECT.colorAccent : pDataDefault.colorAccent);
+    projectFile.style.setProperty("--project-color-fill", (PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill);
 
     // after "create" code
     if (PROJECT.type == "img") {
@@ -1895,7 +1904,7 @@ function projectFileCreate(projectID, card, cursorEv) {
                     fileMainPrjImgEl.style.height = "95vh";
                 } else { // width >
                     console.log("width >", prjHighSize[0], prjHighSize[1]);
-                    fileMainPrjImgEl.style.width = "70%";
+                    fileMainPrjImgEl.style.width = "75%";
                 }
             }
             loopLimit--;
@@ -1947,7 +1956,7 @@ function projectFileCreate(projectID, card, cursorEv) {
     projectFile.querySelector(".close-file-btn").addEventListener("click", projectFileRemove);
     window.addEventListener("hashchange", projectFileRemove, { once:true }); // close on history back event (cool for mobile users and grandma <3)
 }
-projectFileCreate("pub_sc_lc");
+projectFileCreate("fut_met");
 
 // UPDATES EVENTS
 function updateAll() {
