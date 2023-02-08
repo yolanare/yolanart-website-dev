@@ -1282,6 +1282,19 @@ nav.menu {
     }
 }
 
+.pattern-bg {
+    z-index: -100;
+    position: fixed;
+    inset: 0;
+    opacity: 0.15;
+    background-repeat: repeat;
+    background-position: center;
+    transition: opacity 0.4s ease,
+                background-position 0s;
+    pointer-events: none;
+    user-select: none;
+    // everything else is set by JS
+}
 
 // PROJECT FILES
 [project-files-container] {
@@ -1506,7 +1519,7 @@ nav.menu {
             }
 
             .project-secondary-container {
-                .secondary-head {
+                .secondary-comment {
 
                 }
 

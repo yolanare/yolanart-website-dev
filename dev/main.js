@@ -34,6 +34,12 @@ if (!!window.chrome) { document.querySelector("html").classList.add("isTouch"); 
 // convert to float and round to .01
 function float(str) { return parseFloat(str.toFixed(2)) }
 
+// get random integer between two values (inclusive)
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    return Math.floor(Math.random() * (Math.floor(max) - min + 1) + min);
+}
+
 // take a value, convert it from a range to another range, and rounded to .01
 function mapRange(value, low1, high1, low2, high2) { // Processing's map function
     return float(low2 + (high2 - low2) * (value - low1) / (high1 - low1));
@@ -124,14 +130,13 @@ function imgReplaceWithOnceLoaded(elem, newImgSrc, { dummy, dummyReturn = false,
         }
         dummy.addEventListener("load", function() {
             // when the new one is loaded, replace
-            setTimeout(() => {
-                console.log("replaced with high res");
+            // setTimeout(() => { // debug
                 elem.src = newImgSrc;
                 setTimeout(() => { elem.style.backgroundImage = null; }, 500); // remove with delay to avoid flash
 
                 // remove dummy element
                 if (!dummyReturn) { return dummy; }
-            }, 0);
+            // }, 0);
         });
         dummy.src = newImgSrc;
     }
@@ -458,11 +463,20 @@ function translatePage() {
     })
     // project titles
     document.querySelectorAll("[project-id]:not(.actions)").forEach((toTranslateEl) => {
-        toTranslateEl.querySelector(".project-title").innerText = getProjectTextLang(toTranslateEl.getAttribute("project-id"));
+        const pID = toTranslateEl.getAttribute("project-id");
+        toTranslateEl.querySelector(".project-title").innerText = getProjectTextLang(pID);
 
         // project files
-        if (toTranslateEl.classList.contains("file")) {
-            toTranslateEl.querySelector(".catchphrase").innerText = getTextLang({type : "project-id", id : toTranslateEl, langDB : "project", langDBNesting : "subtitle", leaveEmpty : true});
+        if (toTranslateEl.classList.contains("project-files")) {
+            toTranslateEl.querySelector(".catchphrase").innerText = getTextLang({type : "project-id", id : pID, langDB : "project", langDBNesting : "subtitle", leaveEmpty : true});
+
+            // project secondary (additional) comments
+            const secondaryComments = toTranslateEl.querySelectorAll(".secondary-comment");
+            if (secondaryComments) {
+                secondaryComments.forEach((comment) => {
+                    comment.innerText = getTextLang({type : "project-id", id : pID, langDB : "project", langDBNesting : ["additional", comment.getAttribute("project-secondary-id"), "comment"], leaveEmpty : true});
+                })
+            }
         }
     })
 
@@ -1361,7 +1375,6 @@ function filtersGenerateProjectsList() {
     // code used after creation
     if (selectedProjectsNb > 0) {
         // for each columns groups
-                console.log(F.projectsListContentElements);
         F.projectsListContentElements.forEach((columnGrp) => {
             const colGrpIndex = parseInt(columnGrp.getAttribute("column-group"));
 
@@ -1764,6 +1777,7 @@ function projectFileCreate(projectID, card, cursorEv) {
     var projectFile = document.createElement("div");
     projectFile.classList.add("project-files");
     projectFile.classList.add("anim-pre");
+    projectFile.setAttribute("project-id", projectID);
 
     // HTML recipients
     var headerMainContentHTML = ``, headerSecondaryContentHTML = ``,
@@ -1806,16 +1820,16 @@ function projectFileCreate(projectID, card, cursorEv) {
         Object.entries(PROJECT.additional).forEach((addPrj) => {
             const PRJADD = addPrj[1]; // data
 
-            // add comment if exists
-            if (PRJADD.comment) {
-                headerSecondaryContentHTML += `
-                    <div class="secondary-head">${getTextLang({type : "project-id", id : projectID, langDB : "project", langDBNesting : ["additional", addPrj[0], "comment"]})}</div>
-                `;
-            }
             // add by type
             if (PRJADD.type == "img") {
                 headerSecondaryContentHTML += `
                     <img src="./assets/medias/projects/high/${projectID}/${addPrj[0]}.${(PRJADD.ext) ? PRJADD.ext : pDataDefault.ext}">
+                `;
+            }
+            // add comment if exists
+            if (PRJADD.comment) {
+                headerSecondaryContentHTML += `
+                    <div class="secondary-comment" project-secondary-id="${addPrj[0]}">${getTextLang({type : "project-id", id : projectID, langDB : "project", langDBNesting : ["additional", addPrj[0], "comment"], leaveEmpty : true})}</div>
                 `;
             }
         })
@@ -1827,7 +1841,7 @@ function projectFileCreate(projectID, card, cursorEv) {
 
     // final html
     projectFile.innerHTML = `
-        <div class="file" project-id="${projectID}">
+        <div class="file">
             <div class="head">
                 <div class="title-container">
                     <div class="project-title">${getProjectTextLang(projectID)}</div>
@@ -1870,6 +1884,8 @@ function projectFileCreate(projectID, card, cursorEv) {
     projectFile.style.setProperty("--project-color-accent", (PROJECT.colorAccent) ? PROJECT.colorAccent : pDataDefault.colorAccent);
     projectFile.style.setProperty("--project-color-fill", (PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill);
 
+    patternBgCreate(projectFile, {fileSrc : "./assets/medias/files-bg-pattern.png", size : 4, randomizePos : false});
+
     // after "create" code
     if (PROJECT.type == "img") {
         const fileMainPrjImgEl = projectFile.querySelector("img.project-main"),
@@ -1894,16 +1910,12 @@ function projectFileCreate(projectID, card, cursorEv) {
 
                 // check which side is longer to fill correctly
                 var squarishAdd = prjHighSize[0] * 0.1;
-                console.log("test --", squarishAdd);
                 //if (prjHighSize[0] > prjHighSize[1] - squarishAdd && prjHighSize[0] < prjHighSize[1] + squarishAdd) { // squarish aspect ratios
                 if (prjHighSize[0] < prjHighSize[1] + squarishAdd && prjHighSize[0] > prjHighSize[1] - squarishAdd) { // squarish aspect ratios
-                    console.log("squarish", prjHighSize[0], prjHighSize[1]);
                     fileMainPrjImgEl.style.height = "97.5vh";
                 } else if (prjHighSize[1] > prjHighSize[0]) { // height >
-                    console.log("height >", prjHighSize[0], prjHighSize[1]);
                     fileMainPrjImgEl.style.height = "95vh";
                 } else { // width >
-                    console.log("width >", prjHighSize[0], prjHighSize[1]);
                     fileMainPrjImgEl.style.width = "75%";
                 }
             }
@@ -1930,8 +1942,12 @@ function projectFileCreate(projectID, card, cursorEv) {
             onScroll : scrollPrjFileEvents,
         }
     });
+    function scrollPrjFileEvents() {
+        patternBgMoveAll(scrollbarPrjFile);
+    }
 
     scrollbarPrjFile.scroll(0, 0); // make sure to be at the top
+    patternBgMoveAll(scrollbarPrjFile);
 
     // in
     setTimeout(() => {
@@ -1957,6 +1973,37 @@ function projectFileCreate(projectID, card, cursorEv) {
     window.addEventListener("hashchange", projectFileRemove, { once:true }); // close on history back event (cool for mobile users and grandma <3)
 }
 projectFileCreate("fut_met");
+
+
+function patternBgRandomizePos(patternBgEl) {
+    patternBgEl.setAttribute("start-x", getRandomInt(-2000, 2000));
+    patternBgEl.setAttribute("start-y", getRandomInt(-2000, 2000));
+}
+function patternBgMoveAll(scrollEv) {
+    document.querySelectorAll(".pattern-bg").forEach((patternBgEl) => {
+        const patternStartPos = [parseInt(patternBgEl.getAttribute("start-x")), parseInt(patternBgEl.getAttribute("start-y"))];
+        patternBgEl.style.backgroundPosition = `${patternStartPos[0]}px ${
+                                                  patternStartPos[1] - float(scrollEv.scroll().position.y * 0.075)}px`
+    })
+}
+
+function patternBgCreate(container, PATTERN = {fileSrc : "./assets/medias/files-bg-pattern.png", size : 4, randomizePos : false}) {
+    // generate
+    var patternBgEl = document.createElement("div");
+    patternBgEl.classList.add("pattern-bg");
+    patternBgEl.style.backgroundImage = `url(${PATTERN.fileSrc})`;
+    patternBgEl.style.backgroundSize = `${PATTERN.size}%`;
+    patternBgEl.setAttribute("start-x", 0);
+    patternBgEl.setAttribute("start-y", 0);
+    if (PATTERN.randomizePos) { patternBgRandomizePos(patternBgEl); }
+
+    // create
+    container.appendChild(patternBgEl);
+
+    // interaction
+
+}
+
 
 // UPDATES EVENTS
 function updateAll() {
@@ -1985,9 +2032,6 @@ function scrollEvents() {
 //function scrollStopEvents() {
 //    isScrollingToPrevPos = [];
 //}
-function scrollPrjFileEvents() {
-    //StickIt();
-}
 window.addEventListener("resize", () => {
     //updateAll();
 
