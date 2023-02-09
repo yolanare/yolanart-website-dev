@@ -8,7 +8,7 @@
     --y-w2: rgb(250, 253, 255);
     --y-b1: rgb(15, 15, 15);
     --y-b2: rgb(37, 35, 35);
-    --y-rv: 239, 59, 102;
+    --y-rv: 218, 43, 73;
     --y-r1: rgb(var(--y-rv));
 
     --p-needbg-default: var(--y-b1);
@@ -53,6 +53,10 @@ body {
     line-height: 1;
     -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
+}
+
+p {
+    margin: 0;
 }
 
 .dummy {
@@ -156,6 +160,32 @@ nav.menu {
     line-height: var(--title-lineH);
     user-select: none;
     pointer-events: none;
+}
+
+// HIGHLIGHT WORDS
+// all the text should be in a <p> and the highlights ones in <h>
+[highlight-words="true"] {
+    h {
+        --bg-scroll-speed: 1;
+        // &:nth-child(2) { --bg-scroll-speed: 0.25; }
+        // &:nth-child(3) { --bg-scroll-speed: 0.15; }
+        // &:nth-child(4) { --bg-scroll-speed: 0.4; }
+
+        z-index: -1;
+        display: inline-table;
+        position: relative;
+        height: 1em;
+        padding: 0 0.15em;
+        margin: 0 -0.15em;
+        box-decoration-break: clone;
+        font-weight: inherit;
+        color: #ffffff;
+        background-color: var(--y-r1);
+        background-image: url("./assets/medias/highlight-words-pattern.png");
+        background-size: 200%;
+        background-position-x: calc(var(--scroll-pos-y)*var(--bg-scroll-speed));
+        // background-position-y: calc(var(--scroll-pos-y)*0.5*var(--bg-scroll-speed));
+    }
 }
 
 

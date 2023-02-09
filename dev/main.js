@@ -447,7 +447,13 @@ function getTextLang({
 function translatePage() {
     // normal text
     document.querySelectorAll("[translate-id]").forEach((toTranslateEl) => {
-        toTranslateEl.innerText = getTextLang({type : "translate-id", id : toTranslateEl});
+        const tl = getTextLang({type : "translate-id", id : toTranslateEl});
+
+        if (toTranslateEl.getAttribute("highlight-words") === "true") {
+            toTranslateEl.innerHTML = tl;
+        } else {
+            toTranslateEl.innerText = tl;
+        }
     })
     // bubble tips
     document.querySelectorAll("[translate-bubble-id]").forEach((toTranslateEl) => {
@@ -2117,6 +2123,8 @@ function scrollUpdatesEvents() {
     recentProjectsTrackSegments();
 }
 function scrollEvents() {
+    doc.style.setProperty("--scroll-pos-y", scrollbarMain.scroll().position.y +"px");
+
     //updateAll();
 
     //scrollToForceStop();
