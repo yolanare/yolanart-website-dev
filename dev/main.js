@@ -468,7 +468,7 @@ function translatePage() {
 
         // project files
         if (toTranslateEl.classList.contains("project-files")) {
-            toTranslateEl.querySelector(".catchphrase").innerText = getTextLang({type : "project-id", id : pID, langDB : "project", langDBNesting : "subtitle", leaveEmpty : true});
+            toTranslateEl.querySelector(".catchphrase").innerText = getTextLang({type : "project-id", id : pID, langDB : "project", langDBNesting : "catchphrase", leaveEmpty : true});
 
             // project secondary (additional) comments
             const secondaryProjects = toTranslateEl.querySelectorAll("[project-secondary-id]");
@@ -1948,7 +1948,7 @@ function projectFileCreate(projectID, card, cursorEv) {
                         <div class="date"><span>${(PROJECT.date) ? PROJECT.date : pDataDefault.date}</span></div>
                     </div>
                     <div class="bottom">
-                        <div class="catchphrase">${(PROJECT.subtitle) ? getProjectTextLang(projectID, "subtitle") : pDataDefault.subtitle}</div>
+                        <div class="catchphrase">${(PROJECT.catchphrase) ? getProjectTextLang(projectID, "catchphrase") : pDataDefault.catchphrase}</div>
                     </div>
                 </div>
             </div>

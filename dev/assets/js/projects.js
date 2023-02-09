@@ -32,7 +32,7 @@ const projectsDataSample = {
         colorAccent : "var(--y-r1)",
         context: "",
         filter: "",
-        subtitle : "",
+        catchphrase : "",
         desc : {
             fr : "",
             en : ""
@@ -69,8 +69,8 @@ const projectsDataSample = {
         colorAccent : "COLOR_ACCENT",
         context: "personal|fun|order|school|sc|ppm|retrosaturn|pti",
         filter: "experiment|photo|illustration|3D|motion|type|poster|print|logo|vector|layout|ad",
-        subtitle : "QUICK_CATCHPHRASE",
-        subtitle : {
+        catchphrase : "QUICK_CATCHPHRASE",
+        catchphrase : {
             fr : `FRENCH_CATCHPHRASE`,
             en : `ENGLISH_CATCHPHRASE`
         },
@@ -116,8 +116,8 @@ const projectsDataSample = {
         colorAccent : "COLOR_ACCENT", // same thing
         context: "personal|fun|order|school|retrosaturn|pti|sc", // CAN BE: "fun" | "fun|school"]
         filter: "experiment|photo|illustration|3D|motion|type|poster|print|logo|vector|layout|ad", // CAN BE: "experiment" | "experiment|motion"]
-        subtitle : "QUICK_CATCHPHRASE", // CAN BE: empty
-        subtitle : {
+        catchphrase : "QUICK_CATCHPHRASE", // CAN BE: empty
+        catchphrase : {
             fr : `FRENCH_CATCHPHRASE`,
             en : `ENGLISH_CATCHPHRASE`
         },
@@ -157,7 +157,7 @@ var projectsData = {
         colorAccent : "#549ec8",
         context: "personal",
         filter: "experiment|illustration|3D",
-        subtitle : {
+        catchphrase : {
             fr : `De quel endroit pourrait-elle bien venir?`,
             en : `From what kind of place is it coming from?`
         },
@@ -192,7 +192,7 @@ var projectsData = {
         colorAccent : "#7e8482",
         context: "school",
         filter: "3D|motion",
-        subtitle : {
+        catchphrase : {
             fr : `Le temps passe... Mais tous les jours sont pareils.`,
             en : `Time goes on... but everyday is the same.`
         },
@@ -241,7 +241,7 @@ var projectsData = {
         colorAccent : "#3d3d3d",
         context: "school",
         filter: "illustration",
-        subtitle : {
+        catchphrase : {
             fr : `Mais où est-elle ?`,
             en : `But where is it?`
         },
@@ -282,7 +282,7 @@ var projectsData = {
         colorAccent : "#7a7a7a",
         context: "personal",
         filter: "experiment|photo",
-        subtitle : {
+        catchphrase : {
             fr : `Perdu dans les ténèbres, sa lumière brillante de l'intérieur.`,
             en : `Lost in the dark, the light shrieking from within.`
         },
@@ -438,7 +438,7 @@ var projectsData = {
         date : "2018.10",
         context: "retrosaturn",
         filter: "experiment|illustration",
-        subtitle : "Disrupting the stars when they sleep.",
+        catchphrase : "Disrupting the stars when they sleep.",
         desc : {
             fr : `
                 <h2>CONTEXTE</h2>
@@ -595,7 +595,7 @@ var projectsData = {
         date : "2018.09",
         context: "personal|retrosaturn",
         filter: "experiment|motion",
-        subtitle : "Synthwave into the darkest place of the grid!",
+        catchphrase : "Synthwave into the darkest place of the grid!",
         desc : {
             fr : `
                 <h2>CONTEXTE</h2>
