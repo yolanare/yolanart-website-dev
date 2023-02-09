@@ -159,7 +159,7 @@ document.addEventListener("DOMContentLoaded", function() {
         },
         scrollbars : {
             visibility : "auto",
-            autoHide : "move", // "scroll" "move" "never"
+            autoHide : "scroll", // "scroll" "move" "never"
             autoHideDelay : OScrHDelay
         },
         callbacks : {
@@ -471,10 +471,10 @@ function translatePage() {
             toTranslateEl.querySelector(".catchphrase").innerText = getTextLang({type : "project-id", id : pID, langDB : "project", langDBNesting : "subtitle", leaveEmpty : true});
 
             // project secondary (additional) comments
-            const secondaryComments = toTranslateEl.querySelectorAll(".secondary-comment");
-            if (secondaryComments) {
-                secondaryComments.forEach((comment) => {
-                    comment.innerText = getTextLang({type : "project-id", id : pID, langDB : "project", langDBNesting : ["additional", comment.getAttribute("project-secondary-id"), "comment"], leaveEmpty : true});
+            const secondaryProjects = toTranslateEl.querySelectorAll("[project-secondary-id]");
+            if (secondaryProjects) {
+                secondaryProjects.forEach((secondary) => {
+                    secondary.querySelector(".comment").innerText = getTextLang({type : "project-id", id : pID, langDB : "project", langDBNesting : ["additional", secondary.getAttribute("project-secondary-id"), "comment"], leaveEmpty : true});
                 })
             }
         }
@@ -509,7 +509,10 @@ function changeLanguage(e, PARAMS = {specificLanguage : false, callTranslatePage
 function languageButtonCreate() {
     var languageButton = document.createElement("div");
     languageButton.classList.add("change-language-button");
-    languageButton.innerHTML = `<span translate-id="change-language-button">${getTextLang({type : "translate-id", id : "change-language-button"})}</span>`;
+    languageButton.innerHTML = `
+        <span translate-id="change-language-button">${getTextLang({type : "translate-id", id : "change-language-button"})}</span>
+        <svg viewbox="0 0 24 12"></svg>
+        `;
 
     document.querySelector("nav.menu").appendChild(languageButton);
 
@@ -807,7 +810,7 @@ function quickPopupVideoCreate(projectID, originEl, cursorEv) { // popup video p
         popVid.style.top = popOriginY +"px";
     }
 
-    // anim in
+    // animation in
     setTimeout(() => {
         scrollbarMainSetShowState("hide");
         popVid.classList.remove("anim-pre");
@@ -1851,7 +1854,7 @@ function projectFileCreate(projectID, card, cursorEv) {
     var headerMainContentHTML = ``, headerSecondaryContentHTML = ``,
         filtersHTML = ``, contextsHTML = ``;
 
-    // header main content
+    // project main content
     const aspectRatio = (PROJECT.aspectRatio) ? PROJECT.aspectRatio : pDataDefault.aspectRatio,
           imgAspectRatioForce = (PROJECT.aspectRatio) ? aspectRatio : false;
 
@@ -1882,24 +1885,28 @@ function projectFileCreate(projectID, card, cursorEv) {
         `;
     }
 
-    // header secondary content
+    // project secondary content
     if (PROJECT.additional) {
         // add every additionnal content one after the other
         Object.entries(PROJECT.additional).forEach((addPrj) => {
             const PRJADD = addPrj[1]; // data
 
+            headerSecondaryContentHTML += `<div project-secondary-id="${addPrj[0]}">`; // open
+
             // add by type
             if (PRJADD.type == "img") {
                 headerSecondaryContentHTML += `
-                    <img src="./assets/medias/projects/high/${projectID}/${addPrj[0]}.${(PRJADD.ext) ? PRJADD.ext : pDataDefault.ext}">
+                    <img class="project-secondary" src="./assets/medias/projects/high/${projectID}/${addPrj[0]}.${(PRJADD.ext) ? PRJADD.ext : pDataDefault.ext}">
                 `;
             }
             // add comment if exists
             if (PRJADD.comment) {
                 headerSecondaryContentHTML += `
-                    <div class="secondary-comment" project-secondary-id="${addPrj[0]}">${getTextLang({type : "project-id", id : projectID, langDB : "project", langDBNesting : ["additional", addPrj[0], "comment"], leaveEmpty : true})}</div>
+                    <div class="comment">${getTextLang({type : "project-id", id : projectID, langDB : "project", langDBNesting : ["additional", addPrj[0], "comment"], leaveEmpty : true})}</div>
                 `;
             }
+
+            headerSecondaryContentHTML += `</div>`; // close
         })
     }
     // filters
@@ -1907,20 +1914,30 @@ function projectFileCreate(projectID, card, cursorEv) {
     // contexts
     PROJECT.context.split("|").forEach((context) => { contextsHTML += generatePrjPill({ID : context, type : "context"}); })
 
+    // head
+    const headHTML = `
+        <div class="head">
+            <div class="title-container">
+                <div class="project-title">${getProjectTextLang(projectID)}</div>
+            </div>
+            <div class="head-buttons">
+                <div class="close-file-button">
+                    <svg viewBox="0 0 24 24">
+                        <line x1="0" y1="0" x2="24" y2="24" />
+                        <line x1="24" y1="0" y2="24" />
+                    </svg>
+                </div>
+                <div class="change-language-button">
+
+                </div>
+            </div>
+        </div>
+    `;
+
     // final html
     projectFile.innerHTML = `
         <div class="file">
-            <div class="head">
-                <div class="title-container">
-                    <div class="project-title">${getProjectTextLang(projectID)}</div>
-                </div>
-                <div class="close-file-btn">
-                    <svg viewBox="0 0 24 24">
-                        <line class="cls-1" x1="0" y1="0" x2="24" y2="24" />
-                        <line class="cls-1" x1="24" y1="0" y2="24" />
-                    </svg>
-                </div>
-            </div>
+            ${headHTML}
             <div class="separator-line"></div>
             <div class="project-main-container">
                 ${headerMainContentHTML}
@@ -1939,7 +1956,8 @@ function projectFileCreate(projectID, card, cursorEv) {
                 <div class="secondary">${headerSecondaryContentHTML}</div>
             </div>
             <div class="description">
-                <div></div>
+                <!--<div class="head-top">${headHTML}</div>
+                <filler></filler>-->
             </div>
         </div>
     `
@@ -2003,7 +2021,7 @@ function projectFileCreate(projectID, card, cursorEv) {
         },
         scrollbars : {
             visibility : "auto",
-            autoHide : "move", // "scroll" "move" "never"
+            autoHide : "scroll", // "scroll" "move" "never"
             autoHideDelay : OScrHDelay
         },
         callbacks : {
@@ -2031,6 +2049,10 @@ function projectFileCreate(projectID, card, cursorEv) {
 
         // animation in
         projectFile.classList.remove("anim-pre");
+            // animation in content
+            setTimeout(() => {
+                projectFile.classList.remove("anim-pre-content");
+            }, 600);
     }, 100);
 
     // out
@@ -2045,10 +2067,10 @@ function projectFileCreate(projectID, card, cursorEv) {
         }, {property : "opacity", once : false});
     }
 
-    projectFile.querySelector(".close-file-btn").addEventListener("click", projectFileRemove);
+    projectFile.querySelector(".close-file-button").addEventListener("click", projectFileRemove);
     window.addEventListener("hashchange", projectFileRemove, { once:true }); // close on history back event (cool for mobile users and grandma <3)
 }
-projectFileCreate("fut_met");
+// projectFileCreate("futuristic_meteorite");
 
 
 function patternBgRandomizePos(patternBgEl) {
@@ -2059,7 +2081,7 @@ function patternBgMoveAll(scrollEv) {
     document.querySelectorAll(".pattern-bg").forEach((patternBgEl) => {
         const patternStartPos = [parseInt(patternBgEl.getAttribute("start-x")), parseInt(patternBgEl.getAttribute("start-y"))];
         patternBgEl.style.backgroundPosition = `${patternStartPos[0]}px ${
-                                                  patternStartPos[1] - float(scrollEv.scroll().position.y * 0.075)}px`
+                                                  patternStartPos[1] - float(scrollEv.scroll().position.y * 0.08)}px`
     })
 }
 

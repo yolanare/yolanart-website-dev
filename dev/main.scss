@@ -17,6 +17,7 @@
     --title-lineH: 0.95;
 
     --pill_bg: var(var(--y-b2));
+    --global-border-radius: 0.65rem;
 
     --plist-p: 5rem;
     --plist-ptop: 1rem;
@@ -71,15 +72,21 @@ nav.menu { z-index: 90; } // ontop page main content, under everything else
 [boom-main-container] { z-index: 89; } // under nav
 [bubble-tips-container] { z-index: 900; } // ontop everything
 [video-popups-container] { z-index: 500; } // ontop everything, under other tools
-[project-files-container] { z-index: 80; } // ontop page main content
+[project-files-container] { z-index: 100; } // ontop page main content
 
 // NAV
+.menu-button {
+
+}
+
+
 nav.menu {
     position: fixed;
     width: var(--plist-p);
     min-width: 3rem;
     top: 0;
     right: 0;
+    font-size: 1.5em;
     user-select: none;
     pointer-events: none;
 
@@ -93,7 +100,6 @@ nav.menu {
         min-height: 3rem;
         top: 0;
         right: 1px;
-        font-size: 1.5em;
         font-weight: 450;
         outline: var(--y-w1) 1px solid;
         outline-offset: -1px;
@@ -103,6 +109,18 @@ nav.menu {
     }
 }
 
+// LANGUAGE BUTTONS
+.change-language-button {
+    span {
+        padding-bottom: 0.25em;
+    }
+
+    svg {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+}
 
 // CONTENT
 #content-container {
@@ -134,7 +152,6 @@ nav.menu {
 
 [class*="title-"] {
     display: inline-block;
-    text-transform: lowercase;
     font-weight: var(--title-weight);
     line-height: var(--title-lineH);
     user-select: none;
@@ -611,6 +628,7 @@ nav.menu {
         height: 100%;
         top: 0;
         left: 50%;
+        border-radius: var(--global-border-radius);
         transform: translate(-50%, -50%);
         transition-property: transform, padding-bottom;
 
@@ -635,6 +653,7 @@ nav.menu {
             height: calc(100% + 2px);
             //width: 100%;
             //height: 100%;
+            border-radius: var(--global-border-radius);
         }
     }
 }
@@ -671,7 +690,7 @@ nav.menu {
         position: absolute;
         inset: 0;
         opacity: 0.1;
-        border-radius: 0.75rem;
+        border-radius: var(--global-border-radius);
         animation: embedLoading 1s cubic-bezier(0.85, 0.05, 0.15, 0.95) alternate infinite;
     }
     &::before {
@@ -694,7 +713,7 @@ nav.menu {
 
     transform: scale(0.999);
     background-color: #000000;
-    border-radius: 0.75rem;
+    border-radius: var(--global-border-radius);
 }
 
 
@@ -711,7 +730,6 @@ nav.menu {
 .project-title {
     display: block;
     font-weight: 500;
-    text-transform: lowercase; // TODO temporary
 }
 .thumbnail {
     position: relative;
@@ -812,7 +830,7 @@ nav.menu {
             align-items: center;
             margin-top: 2.5em;
             font-size: 0.9em;
-            font-weight: 500;
+            font-weight: 450;
             letter-spacing: 0px;
             cursor: pointer;
             user-select: none;
@@ -825,7 +843,7 @@ nav.menu {
                 left: 0.2em;
                 height: 0.85em;
                 fill: none;
-                stroke-width: 3;
+                stroke-width: 2.6;
                 stroke: var(--y-w1);
                 transition: stroke-width 0.6s cubic-bezier(0.3, 0.6, 0, 1),
                             transform 0.55s cubic-bezier(0.3, 0.7, 0, 1);
@@ -838,7 +856,7 @@ nav.menu {
                             letter-spacing 0.4s cubic-bezier(0.4, 0.4, 0, 1);
 
                 .arrow-right {
-                    stroke-width: 5;
+                    stroke-width: 6.5;
                     transform: translateX(0.45em);
                     transition: stroke-width 0.5s cubic-bezier(0.3, 0.6, 0, 1),
                                 transform 0.4s cubic-bezier(0.2, 0.6, 0, 1);
@@ -883,9 +901,8 @@ nav.menu {
             .project-title {
                 display: block;
                 margin: 0.4em 0 0.3em;
-                font-size: 3.5em;
-                font-weight: 500;
-                text-transform: lowercase;
+                font-size: 3em;
+                font-weight: 550;
             }
         }
     }
@@ -1004,6 +1021,8 @@ nav.menu {
 
                     [anim-count] {
                         display: inline-block;
+                        font-feature-settings: "tnum"; // mono-space numbers
+                        letter-spacing: -1.5px;
                         margin-right: 0;
                         padding-right: 0.3em; // space
                         transition: opacity 0.5s ease, color 0.5s ease,
@@ -1130,13 +1149,13 @@ nav.menu {
                 display: flex;
                 flex-direction: row;
                 justify-content: space-between;
-                font-size: 2em;
+                font-size: 1.65em;
+                margin: 0.45em 0 0.35em;
             }
 
             .project-title {
                 font-size: 1em;
-                font-weight: 400;
-                margin: 0.5em 0;
+                font-weight: 565;
                 position: relative;
                 display: inline-block;
             }
@@ -1146,7 +1165,6 @@ nav.menu {
                 flex-shrink: 0;
                 width: 1em;
                 height: 1em;
-                margin: 0.5em 0;
                 margin-left: 0.33em;
                 border-radius: 50%;
                 overflow: hidden;
@@ -1359,7 +1377,10 @@ nav.menu {
             &, * { box-sizing: border-box; }
             img { user-select: none; }
 
-            .close-file-btn {
+            .head-buttons {
+                padding-left: 2rem;
+            }
+            .close-file-button {
                 z-index: 10;
                 position: relative;
                 width: 1em;
@@ -1442,6 +1463,7 @@ nav.menu {
                 .project-main {
                     flex-shrink: 0;
                     user-select: none;
+                    border-radius: var(--global-border-radius);
                 }
                 &[project-type="img"] .project-main {
                     max-width: var(--width-main);
@@ -1482,6 +1504,9 @@ nav.menu {
                     height: calc(var(--width) * var(--ratio));
                 }
 
+                &[project-type="img"] .project-main[aspect-ratio="1:1"] {
+                    width: auto !important;
+                }
                 &[project-type="img"] .project-main[aspect-ratio="1:1"] {
                     width: auto !important;
                 }
@@ -1549,8 +1574,25 @@ nav.menu {
         }
 
         .description {
-            & > div {
-                height: 1200px; // TEMP
+            margin-bottom: 12.5rem;
+
+            filler {
+                display: block;
+                position: relative;
+                height: 1500px; // TEMP
+            }
+
+            .head-top {
+                position: absolute;
+                inset: 0;
+                overflow: hidden; // WHY ARE FIXED ELEMENTS IGNORING THIS
+
+                .head {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                }
             }
         }
 
