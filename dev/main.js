@@ -10,7 +10,7 @@ import "./index.html"
 import "./main.scss"
 
 
-// - HELPER VARIABLES -
+//#region - HELPER VARIABLES -
 var doc = document.documentElement,
     isMini, // boolean if viewport is small like a phone
     touchDevice = (navigator.maxTouchPoints || "ontouchstart" in document.documentElement), // boolean if touch device
@@ -24,13 +24,21 @@ const deg2rad = Math.PI/180,
 function checkWinSize() { isMini = (window.innerWidth > 727); };
 checkWinSize(); window.addEventListener("resize", checkWinSize);
 
-// - CSS HELPERS -
+// CURSOR POSITION AT ANY TIME
+window.addEventListener("mousemove", (cursorEv) => {
+    doc.style.setProperty("--cursor-x", cursorEv.clientX +"px");
+    doc.style.setProperty("--cursor-y", cursorEv.clientY +"px");
+})
+//#endregion
+
+//#region - CSS HELPERS -
 // is browser chromium based
 if (!!window.chrome) { document.querySelector("html").classList.add("isChr"); }
 // is touch device
 if (!!window.chrome) { document.querySelector("html").classList.add("isTouch"); }
+//#endregion
 
-// - HELPER FUNCTIONS -
+//#region - HELPER FUNCTIONS -
 // convert to float and round to .01
 function float(str) { return parseFloat(str.toFixed(2)) }
 
@@ -55,7 +63,7 @@ function constrain(value, low, high) { // Processing's constrain function
 function isString(check) { return (typeof check === "string"); }
 
 // call function at end of css transition of element (no propagation, option to do it only once)
-function addEvTrEnd(elem, func, {property = false, once = true, debug = false}) {
+function eventAtTransitionEnd(elem, func, {property = false, once = true, debug = false}) {
     if (!property) { // will check for all css properties
         elem.addEventListener("transitionend", () => { func(); }, { once : once });
     } else { // will check only for specified css property
@@ -73,26 +81,39 @@ function addEvTrEnd(elem, func, {property = false, once = true, debug = false}) 
     }
 } var trEndAlready = [];
 
-// get scroll speed
-var checkScrollSpeed = (function(){ // (https://stackoverflow.com/a/22599173)
-    var lastPos, newPos, timer, delta, direction, delay = 100;
-    function clear() { lastPos = null; delta = 0; direction = true; }
-    clear();
-    return function(){
-        newPos = scrollbarMain.scroll().position.y;
-        if (lastPos != null ) { delta = newPos -  lastPos; }
-        if (lastPos > newPos) { direction = false; } // true = down ; false = up
-        lastPos = newPos;
-        clearTimeout(timer);
-        timer = setTimeout(clear, delay);
-        return [delta * 2.75, direction]; // [speed, up or down]
-    };
-})();
+// divide an array into chunks with itemsPerChunks number of items max in each chunks (stackoverflow.com/a/37826698)
+function divideArrayByChunks(array, itemsPerChunks = 4) {
+    return array.reduce((all, one, i) => {
+        const ch = Math.floor(i / itemsPerChunks);
+        all[ch] = [].concat((all[ch] || []), one);
+        return all
+     }, [])
+}
 
-// clean url hash, and if specified, after separator
-function cleanURL(sep) {
-    sep = sep || null;
+// get scroll speed
+// var checkScrollSpeed = (function(){ // (stackoverflow.com/a/22599173)
+    // var lastPos, newPos, timer, delta, direction, delay = 100;
+    // function clear() { lastPos = null; delta = 0; direction = true; }
+    // clear();
+    // return function(){
+        // newPos = scrollbarMain.scroll().position.y;
+        // if (lastPos != null ) { delta = newPos -  lastPos; }
+        // if (lastPos > newPos) { direction = false; } // true = down ; false = up
+        // lastPos = newPos;
+        // clearTimeout(timer);
+        // timer = setTimeout(clear, delay);
+        // return [delta * 2.75, direction]; // [speed, up or down]
+    // };
+// })();
+
+// clean url hash, and if specified after separator
+function cleanURL(sep = undefined) {
     history.replaceState({}, "", (!sep) ? window.location.pathname : window.location.hash.split(sep)[0]);
+}
+
+// push string to url hash, and if specified after separator, default: "#"
+function hashURL(ID, sep = "#") {
+    history.pushState({}, "", window.location.hash + sep + ID);
 }
 
 // add/remove class to query selected elements
@@ -113,9 +134,9 @@ function getCenterOfEl(el) {
 }
 
 // get "project-id" attribute from an element
-function pID(i) { return thiis.getAttribute("project-id"); }
+function getProjectID(i) { return i.getAttribute("project-id"); }
 // get "filter-id" attribute from an element
-function fID(i) { return i.getAttribute("filter-id"); }
+function getFilterID(i) { return i.getAttribute("filter-id"); }
 
 // replace placeholder image with different one when this one is loaded / (stackoverflow.com/a/54123157)
 function imgReplaceWithOnceLoaded(elem, newImgSrc, { dummy, dummyReturn = false, customParent }) {
@@ -144,67 +165,10 @@ function imgReplaceWithOnceLoaded(elem, newImgSrc, { dummy, dummyReturn = false,
     // in case the dummy element is needed for other purposes
     if (dummyReturn) { return dummy; }
 };
+//#endregion
 
 // - Modules -
-// OVERLAY SCROLLBARS
-var scrollbarMain,
-    o1 = [null, 33], OScrHDelay = 200; if (!isMini) { o1 = [true, 33]; OScrHDelay = 800; };
-document.addEventListener("DOMContentLoaded", function() {
-    scrollbarMain = OverlayScrollbars(document.querySelector("[scroll-main]"), {
-        autoUpdate : o1[0],
-        autoUpdateInterval : o1[1],
-        overflowBehavior : {
-            x : "hidden",
-            y : "scroll"
-        },
-        scrollbars : {
-            visibility : "auto",
-            autoHide : "scroll", // "scroll" "move" "never"
-            autoHideDelay : OScrHDelay
-        },
-        callbacks : {
-            //onContentSizeChanged : scrollContentSizeEvents,
-            onUpdated : scrollUpdatesEvents,
-            onScroll : scrollEvents,
-            //onScrollStop : scrollStopEvents,
-        }
-    });
-});
-
-// enable/disable scroll
-function scrollbarMainSetShowState(state = false, scrollbar = scrollbarMain) {
-    if (!state) { // default
-        scrollbar.options("overflowBehavior.y", "scroll");
-    } else if (state == "hide") {
-        scrollbar.options("overflowBehavior.y", "hidden");
-    }
-}
-
-// scrollTo variables
-const scrollToDuration = 1250,
-      scrollToDurationCard = 1000,
-      scrollToDurationElse = 2000;
-
-// speed factor for ice scroll
-const iceScrollFactor = (!window.chrome) ? 3 : 7; // chrome has "faster" scroll
-
-// TODO cancel go-to scroll animation if user scrolls the opposite way
-//var isScrollingTo = false, isScrollingToPrevPos = [];
-//function scrollToForceStop() {
-//    if (isScrollingTo) {
-//       if (scrollbarMain.scroll().position.y > Math.min(...isScrollingToPrevPos) ||
-//           scrollbarMain.scroll().position.y < Math.max(...isScrollingToPrevPos)) {
-//           scrollbarMain.scrollStop();
-//           isScrollingTo = false;
-//       }
-//       isScrollingToPrevPos.push(scrollbarMain.scroll().position.y);
-//       if (isScrollingToPrevPos.length > 4) { isScrollingToPrevPos.shift(); }
-//    }
-//    console.lo/g(isScrollingTo, isScrollingToPrevPos, scrollbarMain.scroll().position.y);
-//}
-
-
-// PROJECTS (const shortcuts)
+//#region PROJECTS (const shortcuts)
 const pDataDefault = Prj.projectsDataSample.default,
       pContexts = Lang.contexts,
       pFilters = Lang.filters;
@@ -313,8 +277,9 @@ const projectsSortedDate = projectsSortByDate();
 function getProjectTextLang(projectID, nesting = "title") {
     return getTextLang({type : "project-id", id : projectID, langDB : "project", langDBNesting : nesting});
 }
+//#endregion
 
-// LANGUAGE
+//#region LANGUAGE
 const Translations = Lang.translations, // translations data-base
       langNavigator = (navigator.language).split("-")[0]; // navigator's language
 
@@ -526,9 +491,345 @@ function languageButtonCreate() {
     boomAnimInit(languageButton, false, "languageButton");
 }
 languageButtonCreate();
+//#endregion
+
+//#region LOADING
+var L = {
+    // load essential assets
+    toLoad : {
+        "image" : {
+            "./assets/medias/" : [
+                "pattern-dot-average.png",
+                "pattern-dot-small.png",
+                "highlight-words-pattern.png"
+            ]
+        }
+        // TODO "video" (later when needed)
+    },
+    loaded : {
+        necessary : false, // true if page load event, fonts loaded
+        assetsMajority : false, // true if "loadMajorityThreshold" assets loaded
+        majority : false, // true if "assetsMajority" and "necessary" are true
+        assetsAll : false, // true if all assets loaded
+        everything : false, // true if "assetsAll" and "necessary" are true
+    },
+    assetsLoadMajorityThreshold : 0.75, // should not be higher than 1
+    assetsLoaded : 0, // current amount of assets loaded
+    assetsAmountNb : 0, // amount of assets to load
+}
+
+// add projects thumbnails to assets to load list (considering they all have thumbnail images (they should))
+var projectsFileName = [];
+projectsSortedDate.forEach((p) => { // using sorted list to load the most recent ones first
+    const PROJECT = pData[p[0]];
+    if (PROJECT.hidden != true) {
+        projectsFileName.push(p[0] +"_low."+ ((PROJECT.ext) ? PROJECT.ext : pDataDefault.ext));
+    }
+});
+L.toLoad.image["./assets/medias/projects/low/"] = projectsFileName;
+
+// initialize loading screen
+function loadingScreenDisplay(type) {
+    // create loading screen
+    var loadingScreenEl = document.querySelector("loading-screen");
+    if (!loadingScreenEl) { // only one shoud exist
+        // generate
+        loadingScreenEl = document.createElement("loading-screen");
+        loadingScreenEl.classList.add("anim-pre")
+
+        loadingScreenEl.innerHTML = `
+            <div class="loading-animation-container">
+                <div class="head">
+                    <span>Loading...</span>
+                    <div class="loading-idle-animation"></div>
+                </div>
+
+                <div class="loading-percent">
+                    <div class="loading-bar">
+                        <div class="bar"></div>
+                        <div class="flash-1"></div>
+                        <div class="flash-2"></div>
+                    </div>
+                    <span class="percent"></span>
+                </div>
+                <div class="logs-container"></div>
+            </div>
+        `;
+
+        // create
+        document.body.appendChild(loadingScreenEl);
+    }
+
+    // animation in
+    setTimeout(() => {
+        loadingScreenEl.classList.remove("anim-pre");
+    }, 3000);
+
+    if (type == "main") {
+         // time in ms
+        var loadTimer = 0, // count time
+            loadTimerIncrements = 250;
+
+        // avoid repeating logs
+        var logsAlreadyDisplayed = [];
+        function hasLogAlreadyBeenDisplayed(ID) {
+            const check = (logsAlreadyDisplayed.includes(ID)) ? true : false;
+            if (!check) { logsAlreadyDisplayed.push(ID); }
+            return check;
+        }
+
+        // separating both "checks" and "validation" loops because I want "checks" to finish on its own
+        var loadCheckMain = setInterval(() => {
+            // most of the assets are loaded
+            if (L.assetsLoaded > L.assetsAmountNb * L.assetsLoadMajorityThreshold) { L.loaded.assetsMajority = true; }
+            // all assets are loaded
+            if (L.assetsLoaded >= L.assetsAmountNb) { L.loaded.assetsAll = true; }
+
+            // majority of needed things are loaded (page & most of assets)
+            if (L.loaded.necessary && L.loaded.assetsMajority) { L.loaded.majority = true; }
+            // all of needed things are loaded (page & assets)
+            if (L.loaded.necessary && L.loaded.assetsAll) { L.loaded.everything = true; }
+
+            // check if all checks are all true
+            var stopChecks = true;
+            Object.entries(L.loaded).forEach((loadCheck) => { stopChecks &= loadCheck[1]; });
+
+            if (stopChecks) { clearInterval(loadCheckMain); } // stop checks loop when not needed anymore
+        }, loadTimerIncrements);
+
+        const validationStepsTiming = [1000, 7500, 15000, 20000]; // ["everything", "majority", "necessary", "fail"]
+        var loadValidMain = setInterval(() => {
+            // display current state
+            const progressionPercent = ((L.assetsLoaded / L.assetsAmountNb) * 100).toFixed(0) + "%";
+            loadingScreenEl.style.setProperty("--percent", progressionPercent)
+            loadingScreenEl.querySelector(".loading-percent .percent").innerHTML = progressionPercent;
+
+            // validation
+            function finish() {
+                if (loadValidMain) { clearInterval(loadValidMain); } // stop validation loop
+                loadingScreenDismiss();
+            }
+
+            if (loadTimer >= validationStepsTiming[0] && loadTimer) { if (L.loaded.everything) {
+                finish();
+            }}
+            if (loadTimer >= validationStepsTiming[1] && loadTimer <= validationStepsTiming[2]) { if (L.loaded.majority) {
+                if (!hasLogAlreadyBeenDisplayed("majority")) {
+                    loadingLog({ log : "Majority of assets loaded. Dismissing the loading screen.", duration : 6000, callback : finish});
+                }
+            }}
+            if (loadTimer >= validationStepsTiming[2] && loadTimer <= validationStepsTiming[3]) { if (L.loaded.necessary) {
+                if (!hasLogAlreadyBeenDisplayed("necessary")) {
+                    loadingLog({ log : "Loading is taking too long. Forcefully dismissing the loading screen. Necessary things are loaded.", duration : 7000, callback : finish});
+                }
+            }}
+            if (loadTimer >= validationStepsTiming[3] && loadTimer) { // last resort security (in case of unexpected errors)
+                if (!hasLogAlreadyBeenDisplayed("fail")) {
+                    loadingLog({ log : "Loading is taking WAY too long. Forcefully dismissing the loading screen (what kind of Internet connection is this).", type : "error", duration : 8000, callback : finish});
+                }
+            }
+
+            loadTimer += loadTimerIncrements;
+        }, loadTimerIncrements);
+    }
+}
+
+function loadingScreenDismiss() {
+    // animation out
+    const loadingScreenEl = document.querySelector("loading-screen"); // there should only be one existing
+    if (loadingScreenEl) {
+        loadingScreenEl.classList.add("anim-clear");
+        eventAtTransitionEnd(loadingScreenEl, () => { loadingScreenEl.remove(); }, { property : "opacity"})
+    }
+}
+
+// log anything in the loading UI
+function loadingLog({
+    log,
+    type = "info", // can be "info"|"error"
+    duration = 3500, // duration the log will stay
+    customStyle = "", // custom CSS style if specified (prefer properties: color, background-color, margin-top|bottom)
+    callback, // do something the moment the log disappears
+    callbackDelay, // delay before callback, default is half the log duration
+}) {
+    var loadingScreenEl = document.querySelector("loading-screen");
+    if (loadingScreenEl) { // only if loading screen exists
+        // generate
+        var logEl = document.createElement("div");
+        logEl.classList.add("log");
+        logEl.classList.add("anim-pre");
+        logEl.setAttribute("type", type);
+        logEl.setAttribute("style", customStyle); // custom CSS style if specified
+        logEl.innerText = log;
+
+        // create
+        loadingScreenEl.querySelector(".logs-container").appendChild(logEl);
+
+        // animation in
+        setTimeout(() => {
+            logEl.classList.remove("anim-pre");
+        }, 10);
+
+        // anim out
+        setTimeout(() => {
+            logEl.classList.add('anim-clear');
+            eventAtTransitionEnd(logEl, () => { logEl.remove(); }, {property : "opacity", once : false});
+        }, duration);
+
+        // callback
+        setTimeout(() => {
+            if (callback) { callback(); }
+        }, (callbackDelay) ? callbackDelay : duration / 2);
+    }
+}
+
+function loadAsset({url, type = "image", callbackWhenLoaded}) {
+    // create invisible container for loading assets quietly
+    var loaderAssets = document.querySelector("loader-assets");
+    if (!loaderAssets) {
+        loaderAssets = document.createElement("loader-assets");
+        loaderAssets.classList.add("dummy");
+        document.body.appendChild(loaderAssets);
+    }
+
+    if (type = "image") {
+        var assetEl = document.createElement("img");
+        assetEl.setAttribute("src", url);
+    }
+
+    function finish() {
+        if (callbackWhenLoaded) { callbackWhenLoaded(); }
+        assetEl.remove();
+    }
+
+    // when asset not existing
+    assetEl.onerror = () => {
+        finish();
+        console.warn(`(loader) [${type}] at "${url}" load error.`);
+    };
+
+    // when asset loaded
+    assetEl.addEventListener("load", () => {
+        finish();
+    })
+
+    // create
+    loaderAssets.appendChild(assetEl);
+}
+
+function loadMainAssets() {
+    // load page necessary things
+    var loadNecessaryChecks = [false, false];
+    window.addEventListener("load", () => { // page load event
+        loadingLog({ log : "Page loaded." });
+        loadNecessaryChecks[0] = true;
+        checkNecessaryLoading();
+    });
+    document.fonts.ready.then(() => { // fonts // they are not too fast and not too long to load, that's good enough
+        loadingLog({ log : "Fonts loaded." });
+        loadNecessaryChecks[1] = true;
+        checkNecessaryLoading();
+    });
+    // check if every necessary thing has been loaded
+    function checkNecessaryLoading() {
+        var loadNecessaryChecksFinal = true;
+        loadNecessaryChecks.forEach((nCheck) => { loadNecessaryChecksFinal &= nCheck; });
+        if (loadNecessaryChecksFinal) { L.loaded.necessary = true; } // necessary things have been loaded
+    }
+
+    // load assets
+    var differChunkLoading = 0;
+    Object.entries(L.toLoad).forEach((toLoadType) => { // [type, {directories}]
+        Object.entries(toLoadType[1]).forEach((toLoadDir) => { // [directory, [assets]]
+            // divide by chunks with delay for perfomance reasons
+            const toLoadAssetChunks = divideArrayByChunks(toLoadDir[1], 8);
+
+            toLoadAssetChunks.forEach((toLoadAssets) => {
+                setTimeout(() => {
+                    toLoadAssets.forEach((assetFileName) => {
+                        loadAsset({url : toLoadDir[0] + assetFileName, type : toLoadType[0], callbackWhenLoaded : () => { L.assetsLoaded++; }})
+                    });
+                }, differChunkLoading);
+                differChunkLoading += 100;
+            });
+
+        });
+    });
 
 
-// BOOM
+}
+
+// get total amount of assets to load
+Object.entries(L.toLoad).forEach((toLoadType) => {
+    Object.entries(toLoadType[1]).forEach((toLoadDir) => {
+        L.assetsAmountNb += toLoadDir[1].length;
+    });
+});
+
+// run
+loadingScreenDisplay("main");
+loadMainAssets();
+//#endregion
+
+//#region OVERLAY SCROLLBARS
+var scrollbarMain,
+    o1 = [null, 33], OScrHDelay = 200; if (!isMini) { o1 = [true, 33]; OScrHDelay = 800; };
+document.addEventListener("DOMContentLoaded", function() {
+    scrollbarMain = OverlayScrollbars(document.querySelector("[scroll-main]"), {
+        autoUpdate : o1[0],
+        autoUpdateInterval : o1[1],
+        overflowBehavior : {
+            x : "hidden",
+            y : "scroll"
+        },
+        scrollbars : {
+            visibility : "auto",
+            autoHide : "scroll", // "scroll" "move" "never"
+            autoHideDelay : OScrHDelay
+        },
+        callbacks : {
+            //onContentSizeChanged : scrollContentSizeEvents,
+            onUpdated : scrollUpdatesEvents,
+            onScroll : scrollEvents,
+            //onScrollStop : scrollStopEvents,
+        }
+    });
+});
+
+// enable/disable scroll
+function scrollbarMainSetShowState(state = false, scrollbar = scrollbarMain) {
+    if (!state) { // default
+        scrollbar.options("overflowBehavior.y", "scroll");
+    } else if (state == "hide") {
+        scrollbar.options("overflowBehavior.y", "hidden");
+    }
+}
+
+// scrollTo variables
+const scrollToDuration = 1250,
+      scrollToDurationCard = 1000,
+      scrollToDurationElse = 2000;
+
+// speed factor for ice scroll
+const iceScrollFactor = (!window.chrome) ? 3 : 7; // chrome has "faster" scroll
+
+// TODO cancel go-to scroll animation if user scrolls the opposite way
+//var isScrollingTo = false, isScrollingToPrevPos = [];
+//function scrollToForceStop() {
+//    if (isScrollingTo) {
+//       if (scrollbarMain.scroll().position.y > Math.min(...isScrollingToPrevPos) ||
+//           scrollbarMain.scroll().position.y < Math.max(...isScrollingToPrevPos)) {
+//           scrollbarMain.scrollStop();
+//           isScrollingTo = false;
+//       }
+//       isScrollingToPrevPos.push(scrollbarMain.scroll().position.y);
+//       if (isScrollingToPrevPos.length > 4) { isScrollingToPrevPos.shift(); }
+//    }
+//    console.lo/g(isScrollingTo, isScrollingToPrevPos, scrollbarMain.scroll().position.y);
+//}
+//#endregion
+
+//#region BOOM
 function boomAnimInit(target, container, specialCase) {
     target.addEventListener("mousedown", (ev) => { boomAnim(ev, target, container, specialCase); });
 }
@@ -620,12 +921,12 @@ function boomAnim(
     // else dismiss right away
     else { boomRemove(); }
 }
+//#endregion
 
-
-// BUBBLE TIPS
+//#region BUBBLE TIPS
 function bubbleTipInit({target, delayAnimIn, force}) {
     var bubbleTipEl_;
-    target.addEventListener("mouseenter", () => { bubbleTipEl_ = bubbleTipCreate({target : target}); });
+    target.addEventListener("mouseenter", () => { bubbleTipEl_ = bubbleTipCreate({target : target, delayAnimIn : delayAnimIn, force : force}); });
 
     // out
     target.addEventListener("mouseleave", () => { bubbleTipRemove(bubbleTipEl_); })
@@ -705,12 +1006,12 @@ function bubbleTipCreate({target, delayAnimIn = 500, force = false}) {
 
 function bubbleTipRemove(bubbleTipEl) {
     bubbleTipEl.classList.add("anim-clear");
-    addEvTrEnd(bubbleTipEl, () => { bubbleTipEl.remove(); }, {property : "opacity", once : false});
+    eventAtTransitionEnd(bubbleTipEl, () => { bubbleTipEl.remove(); }, {property : "opacity", once : false});
     // TODO bubbleTip not removed because transition opacity 0 to 0 doesn't call transition-end event
 }
+//#endregion
 
-
-// CURSOR CROSS
+//#region CURSOR CROSS
 function cursorCrossShow(curCrossEl) {
     curCrossEl.classList.add("hover");
 }
@@ -733,8 +1034,9 @@ function cursorCrossClick(curCrossEl, click) {
 }
 function cursorCrossMove(e, curCrossEl) {
     curCrossEl.classList.add("hover");
-    curCrossEl.style.left = e.clientX + 'px';
-    curCrossEl.style.top = e.clientY + 'px';
+    // curCrossEl.style.left = e.clientX + 'px';
+    // curCrossEl.style.top = e.clientY + 'px';
+    // already know the pos of cursor
 }
 
 function cursorCrossCreate(surface, container, cursorEv) {
@@ -771,9 +1073,9 @@ function cursorCrossCreate(surface, container, cursorEv) {
         return curCrossEl;
     }
 }
+//#endregion
 
-
-// QUICK VIDEO POPUPS
+//#region QUICK VIDEO POPUPS
 function quickPopupVideoInit(target, projectID, originEl) {
     target.addEventListener("click", (cursorEv) => { quickPopupVideoCreate(projectID, originEl, cursorEv); });
 }
@@ -790,7 +1092,7 @@ function quickPopupVideoCreate(projectID, originEl, cursorEv) { // popup video p
         <div class="ytplayer-c">
             <div class="ytplayer" style="background-color: ${(PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill}" aspect-ratio="${(PROJECT.aspectRatio) ? PROJECT.aspectRatio : pDataDefault.aspectRatio}">
                 <div class="embed-player-loading"></div>
-                <iframe width="1280" height="720" src="https://www.youtube.com/embed/${(PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id}?rel=0&color=white&loop=1" frameborder="0" allowfullscreen></iframe>
+                <iframe width="1280" height="720" src="https://www.youtube.com/embed/${(PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id}?rel=0&color=white&loop=1&autoplay=1" frameborder="0" allowfullscreen></iframe>
             </div>
         </div>
     `;
@@ -838,11 +1140,11 @@ function quickPopupVideoRemove(popVid, curCrossEl) {
     scrollbarMainSetShowState();
     // remove pop-up
     popVid.classList.add("anim-clear");
-    addEvTrEnd(popVid, () => { popVid.remove(); }, {property : "opacity", once : false});
+    eventAtTransitionEnd(popVid, () => { popVid.remove(); }, {property : "opacity", once : false});
 }
+//#endregion
 
-
-// STICK IT
+//#region STICK IT
 function StickIt() {
     document.querySelectorAll(".sticky").forEach((stickyEl) => {
         const target = stickyEl.getBoundingClientRect(),
@@ -945,8 +1247,9 @@ function StickIt_FlexSiblingsSpaceBetween() { // alternate for perfomance reason
         }
     });
 }
+//#endregion
 
-// FILTER PILLS
+//#region FILTER PILLS
 // generate HTML for filter pills with filter ID
 function generatePrjPill({
     ID = undefined,
@@ -980,9 +1283,9 @@ function generatePrjPill({
         <span ${labelTranslateID}>${label}</span>
     </div>`
 }
+//#endregion
 
-
-// RECENT PROJECTS CREATION
+//#region RECENT PROJECTS SECTION
 var RP = {
     projectsNb : 4,
     //trackDivisor : 2,
@@ -1035,7 +1338,8 @@ function createRecentProjects() {
 
         // SLIDES GENERATION
         slides += `
-            <div project-id="${projectID}" class="recent-slides" style="background-color: ${(PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill}">
+            <div project-id="${projectID}" class="recent-slides">
+                <div class="bg" style="background-color: ${(PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill}"></div>
                 <div class="in">
                     <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"></div>
                     <span class="project-title">${getProjectTextLang(projectID)}</span>
@@ -1061,6 +1365,12 @@ function createRecentProjects() {
     // set the scroll track length
     recentProjectsTrackLength();
 
+    // put scroll-linked pattern in slides background
+    // RP.allSlides.forEach((slide) => {
+    //     patternBgCreate(slide.querySelector(".in"), {fileSrc : "./assets/medias/pattern-dot-average.png", size : 5, speedFactor : 0.1, randomizePos : true});
+    // });
+    // patternBgCreate(RP.section.querySelector("#intro-rp"), {fileSrc : "./assets/medias/pattern-dot-average.png", size : 7, speedFactor : 0.1, randomizePos : true});
+
     // set filter buttons actions
     RP.section.querySelectorAll("#recent-projects-slides .prj-pill[filter-id]").forEach((filterButton) => {
         filterButton.addEventListener("click", (e) => {filtersAction({caller : e, isolate : "isolate", customScrollToDuration : scrollToDurationElse}); });
@@ -1077,7 +1387,7 @@ function createRecentProjects() {
     // project file open action
     RP.section.querySelectorAll("#recent-projects-actions [project-id]").forEach((rpAction) => {
         rpAction.addEventListener("click", (cursorEv) => {
-            projectFileCreate(rpAction.getAttribute("project-id"), rpAction, cursorEv);
+            projectFileCreate(getProjectID(rpAction), rpAction, cursorEv);
         });
     });
 }
@@ -1164,9 +1474,9 @@ function recentProjectsScrollIn() { // shift slides until reach top of vp
     RP.section.querySelector("#recent-projects-slides").style.transform = `translateY(${move}px)`;
     RP.section.querySelector("#recent-projects-actions").style.transform = `translateY(${move}px)`;
 }
+//#endregion
 
-
-// GO TO FILTERS BUTTON
+//#region GO TO FILTERS BUTTON
 function scrollToFiltersSection() {
     //isScrollingTo = true;
 
@@ -1210,9 +1520,9 @@ function scrollToProjectsListFilters(card = false, scrollDuration = scrollToDura
         //() => { isScrollingTo = false; }
         );
 }
+//#endregion
 
-
-// FILTERS SECTION
+//#region FILTERS SECTION
 var F = {
     allFilterIDs : [], // array of filters's id
     selectedFilters : [], // array of selected filters's id
@@ -1255,7 +1565,7 @@ function filtersGetSelected() {
     F.allFilterBtns.forEach((filterButton) => {
         var state = filterButton.getAttribute("state");
         if (state === "true") {
-            selectedFilters.push(filterButton.getAttribute("filter-id"));
+            selectedFilters.push(getFilterID(filterButton));
         }
     });
     return selectedFilters;
@@ -1265,7 +1575,7 @@ function filtersClearProjectsList() {
     // animation out for all (hypothetically) projects list present
     F.projectsListContainer.querySelectorAll(".projects-list").forEach((pl) => {
         pl.classList.add("anim-clear");
-        addEvTrEnd(pl, () => { pl.remove(); }, {property : "transform", once : false});
+        eventAtTransitionEnd(pl, () => { pl.remove(); }, {property : "transform", once : false});
     })
 }
 
@@ -1362,11 +1672,14 @@ function filtersGenerateProjectsList() {
                         <div class="header">
                             <span class="project-title">${getProjectTextLang(projectID)}</span>
                             ${(["yt", "vid"].includes((PROJECT.type) ? PROJECT.type : pDataDefault.type)) // if video : add popup button to see the video without leaving the page
-                            ? `<div class="video-quick-popup-button" translate-bubble-id="plist-video-quick-popup-btn" tip="${getTextLang({type : "translate-bubble-id", id : "plist-video-quick-popup-btn"})}">
-                                    <div class="bg"></div>
-                                    <svg class="arrow" viewbox="0 0 24 24">
-                                        <path d="M6.55,22.19l14.16-8.17c1.5-0.87,1.5-3.03,0-3.9L6.55,1.95C5.05,1.08,3.18,2.16,3.18,3.9v16.35C3.18,21.97,5.05,23.06,6.55,22.19z"/>
-                                    </svg>
+                            ? `<div class="video-quick-popup-button">
+                                    <div class="width"></div>
+                                    <div class="button" translate-bubble-id="plist-video-quick-popup-btn" tip="${getTextLang({type : "translate-bubble-id", id : "plist-video-quick-popup-btn"})}">
+                                        <div class="bg"></div>
+                                        <svg class="arrow" viewbox="0 0 24 24">
+                                            <path d="M6.55,22.19l14.16-8.17c1.5-0.87,1.5-3.03,0-3.9L6.55,1.95C5.05,1.08,3.18,2.16,3.18,3.9v16.35C3.18,21.97,5.05,23.06,6.55,22.19z"/>
+                                        </svg>
+                                    </div>
                                 </div>`
                             : ``}
                         </div>
@@ -1472,13 +1785,15 @@ function filtersGenerateProjectsList() {
             }
 
             columnGrp.querySelectorAll(".project-cards").forEach(card => {
-                projectFileInit(card, card.getAttribute("project-id"));
+                const pID = getProjectID(card),
+                      vidPopBtn = card.querySelector(".video-quick-popup-button");
+
+                projectFileInit(card, pID);
 
                 // video quick popup button
-                const vidPopBtn = card.querySelector(".video-quick-popup-button");
                 if (vidPopBtn) {
-                    bubbleTipInit({target : vidPopBtn});
-                    quickPopupVideoInit(vidPopBtn, card.getAttribute("project-id"), card);
+                    bubbleTipInit({target : vidPopBtn.querySelector(".button"), delayAnimIn : 100});
+                    quickPopupVideoInit(vidPopBtn, pID, card);
                 }
             });
         });
@@ -1585,7 +1900,7 @@ function filtersGenerateProjectsList() {
 function filtersAction({caller, isolate = false, delay = 0, card = false, customScrollToDuration}) {
     // which filter called?
     caller = caller.target;
-    const selectedFilter = F.filtersContainer.querySelector(`.prj-pill[filter-id="${caller.getAttribute("filter-id")}"]`);
+    const selectedFilter = F.filtersContainer.querySelector(`.prj-pill[filter-id="${getFilterID(caller)}"]`);
 
     // scroll to filters click action
     caller.addEventListener("click", scrollToProjectsListFilters(card, customScrollToDuration));
@@ -1595,7 +1910,7 @@ function filtersAction({caller, isolate = false, delay = 0, card = false, custom
 
     setTimeout(() => {
         if (isolate) { // reset every other filter (even date order)
-            if (F.selectedFilters.length == 1 && F.selectedFilters[0] == caller.getAttribute("filter-id")) {
+            if (F.selectedFilters.length == 1 && F.selectedFilters[0] == getFilterID(caller)) {
                  // cancel re-creation of projects list if isolated filter is the same (will keep date order)
                 return;
             }
@@ -1693,7 +2008,7 @@ function createFilters() {
     // set CountUp.js for projects found count
     F.projectsDisplayedNbEl = F.filtersContainer.querySelector(".secondary .filter-projects-number [anim-count]");
     F.countUpProjectsNb = new CountUp(F.projectsDisplayedNbEl, 0, {
-        startVal: 0,
+        startVal: 1,
         decimalPlaces: 0,
         duration: 2,
         useGrouping: true,
@@ -1836,9 +2151,9 @@ function projectListColumnsByRatio(ColumnsNb = F.projectsListContentElements.len
     }
     //console.lo/g(doc.clientWidth, "col Nb:",ColumnsNb, "col index:",F.projectsListColumnGroupCurrentIndex, ColumnsNb > 1);
 }
+//#endregion
 
-
-// PROJECTS FILE
+//#region PROJECTS FILE
 function projectFileInit(target, projectID) {
     target.addEventListener("click", (cursorEv) => {
         // only if clicked .in
@@ -1849,6 +2164,8 @@ function projectFileInit(target, projectID) {
 }
 function projectFileCreate(projectID, card, cursorEv) {
     const PROJECT = pData[projectID];
+
+    cleanURL(); hashURL(projectID);
 
     // generate
     var projectFile = document.createElement("div");
@@ -1976,7 +2293,7 @@ function projectFileCreate(projectID, card, cursorEv) {
     projectFile.style.setProperty("--project-color-accent", (PROJECT.colorAccent) ? PROJECT.colorAccent : pDataDefault.colorAccent);
     projectFile.style.setProperty("--project-color-fill", (PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill);
 
-    patternBgCreate(projectFile, {fileSrc : "./assets/medias/files-bg-pattern.png", size : 4, randomizePos : false});
+    patternBgCreate(projectFile, {fileSrc : "./assets/medias/pattern-dot-small.png", size : 4, randomizePos : false});
 
     // after "create" code
     if (PROJECT.type == "img") {
@@ -2035,12 +2352,11 @@ function projectFileCreate(projectID, card, cursorEv) {
         }
     });
     function scrollPrjFileEvents() {
+        projectFile.style.setProperty("--scroll-pos-y", scrollbarPrjFile.scroll().position.y +"px");
+
         //StickIt();
         StickIt_FlexSiblingsSpaceBetween();
-        patternBgMoveAll(scrollbarPrjFile);
     }
-
-    patternBgMoveAll(scrollbarPrjFile);
 
     // in
     setTimeout(() => {
@@ -2064,54 +2380,58 @@ function projectFileCreate(projectID, card, cursorEv) {
     // out
     function projectFileRemove() { // no need to have this function out of main
         scrollbarMainSetShowState(); // restore main page scroll
+        cleanURL();
+        window.removeEventListener("hashchange", projectFileRemove, { once:true });
 
         // animation out
         projectFile.classList.add("anim-clear");
-        addEvTrEnd(projectFile, () => {
+        eventAtTransitionEnd(projectFile, () => {
             scrollbarPrjFile.destroy(); // remove project file's scroll instance
             projectFile.remove();
         }, {property : "opacity", once : false});
     }
 
+    window.addEventListener("hashchange", projectFileRemove, { once:true }); // close on history back event
     projectFile.querySelector(".close-file-button").addEventListener("click", projectFileRemove);
-    window.addEventListener("hashchange", projectFileRemove, { once:true }); // close on history back event (cool for mobile users and grandma <3)
 }
-// projectFileCreate("futuristic_meteorite");
 
+// open project file corresponding to the URL hash
+function projectFileOpenFromURLHash() {
+    const hashProject = window.location.hash.substring(1); // get hash string
+
+    if (Object.keys(pData).includes(hashProject)) {
+        projectFileCreate(hashProject);
+    }
+}
+//#endregion
 
 function patternBgRandomizePos(patternBgEl) {
-    patternBgEl.setAttribute("start-x", getRandomInt(-2000, 2000));
-    patternBgEl.setAttribute("start-y", getRandomInt(-2000, 2000));
-}
-function patternBgMoveAll(scrollEv) {
-    document.querySelectorAll(".pattern-bg").forEach((patternBgEl) => {
-        const patternStartPos = [parseInt(patternBgEl.getAttribute("start-x")), parseInt(patternBgEl.getAttribute("start-y"))];
-        patternBgEl.style.backgroundPosition = `${patternStartPos[0]}px ${
-                                                  patternStartPos[1] - float(scrollEv.scroll().position.y * 0.08)}px`
-    })
+    patternBgEl.style.setProperty("--start-x", getRandomInt(-2000, 2000) +"px");
+    patternBgEl.style.setProperty("--start-y", getRandomInt(-2000, 2000) +"px");
 }
 
-function patternBgCreate(container, PATTERN = {fileSrc : "./assets/medias/files-bg-pattern.png", size : 4, randomizePos : false}) {
+function patternBgCreate(container, {fileSrc = "./assets/medias/pattern-dot-average.png", size = 4, speedFactor = 0.1, randomizePos = false}) {
     // generate
     var patternBgEl = document.createElement("div");
     patternBgEl.classList.add("pattern-bg");
-    patternBgEl.style.backgroundImage = `url(${PATTERN.fileSrc})`;
-    patternBgEl.style.backgroundSize = `${PATTERN.size}%`;
-    patternBgEl.setAttribute("start-x", 0);
-    patternBgEl.setAttribute("start-y", 0);
-    if (PATTERN.randomizePos) { patternBgRandomizePos(patternBgEl); }
+    // pattern
+    patternBgEl.style.backgroundImage = `url(${fileSrc})`;
+    patternBgEl.style.backgroundSize = `${size}%`;
+    // speed
+    patternBgEl.style.setProperty("--speed-factor", speedFactor);
+    // move
+    patternBgEl.style.setProperty("--start-x", 0 +"px");
+    patternBgEl.style.setProperty("--start-y", 0 +"px");
+    if (randomizePos) { patternBgRandomizePos(patternBgEl); }
 
     // create
     container.appendChild(patternBgEl);
-
-    // interaction
-
 }
 
 
 // UPDATES EVENTS
-function updateAll() {
-}
+// function updateAll() {
+// }
 
 //function scrollContentSizeEvents() {
 //    //filtersColumnLongestUpdate();
@@ -2162,6 +2482,9 @@ function init() {
 
     // FILTERS
     createFilters();
+
+    // PROJECT FILES
+    projectFileOpenFromURLHash()
 
     // STICKY ELEMENTS
     for (let i = 0; i < 8; i++) { // for loop to make sure it's applied correctly

@@ -44,8 +44,8 @@ const buildWebpackConfig = merge(baseWebpackConfig, {
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: DIR.dev+"/assets/medias/projects",
-          to: "assets/medias/projects"
+          from: DIR.dev+"/assets/medias",
+          to: "assets/medias"
         }
       ]
     })

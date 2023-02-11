@@ -151,7 +151,7 @@ const projectsDataSample = {
 var projectsData = {
     "futuristic_meteorite" : {
         type : "img", interact : "zoom",
-        title : "futuristic meteorite",
+        title : "Futuristic meteorite",
         date : "2017.06",
         colorFill : "#082768",
         colorAccent : "#549ec8",
@@ -186,7 +186,7 @@ var projectsData = {
         type : "yt", interact : "off",
             url_id : "Cg0DBZRAbqU",
             aspectRatio : "1:1",
-        title : "white city",
+        title : "White city",
         date : "2019.03-06",
         colorFill : "#3e4148",
         colorAccent : "#7e8482",
@@ -235,7 +235,7 @@ var projectsData = {
     },
     "foresaken_dove" : {
         type : "img", interact : "zoom",
-        title : "foresaken dove",
+        title : "Foresaken dove",
         date : "2019.10",
         colorFill : "#000000",
         colorAccent : "#3d3d3d",
@@ -302,7 +302,7 @@ var projectsData = {
     "retrosaturn" : {
         type : "img", interact : "zoom",
                 ext : "png",
-        title : "retrosaturn",
+        title : "Retrosaturn",
         date : "2018.06",
         colorAccent : "#ac0f3c",
         context: "retrosaturn",
@@ -327,7 +327,7 @@ var projectsData = {
     "retrosaturn_sticker" : {
         type : "img", interact : "zoom",
                 ext : "png",
-        title : "retrosaturn sticker",
+        title : "Retrosaturn sticker",
         date : "2019.01",
         context: "retrosaturn",
         filter: "experiment|logo|vector"
@@ -340,15 +340,16 @@ var projectsData = {
                 type : "img",
             },
         },
-        title : "caloucath \"C\"",
+        title : "Caloucath \"C\"",
         colorAccent : "#5d5c5d",
         date : "2017.07",
         context: "order",
         filter: "type|logo|vector"
     },
     "caloucath_typo_merry" : {
+        hidden : true,
         type : "img", interact : "zoom",
-        title : "caloucath typo banner",
+        title : "Caloucath typo banner",
         date : "2017.05",
         context: "order",
         filter: "3D|type|poster"
@@ -361,7 +362,7 @@ var projectsData = {
                 type : "img",
             },
         },
-        title : "pamplemousse",
+        title : "Pamplemousse",
         colorFill : "#fddb81",
         colorAccent : "#ff3875",
         date : "2018.10",
@@ -370,7 +371,7 @@ var projectsData = {
     },
     "rezartilo" : {
         type : "img", interact : "zoom",
-        title : "rezartilo",
+        title : "Rezartilo",
         colorFill : "#002fa6",
         colorAccent : "#01a0f8",
         date : "2017.01",
@@ -380,8 +381,7 @@ var projectsData = {
     "jethro" : {
         type : "img", interact : "zoom",
                 ext : "png",
-                needBG : true,
-        title : "jethro",
+        title : "Jethro",
         date : "2018.12",
         context: "order",
         filter: "type|logo|vector"
@@ -397,8 +397,9 @@ var projectsData = {
         filter: "type|logo|vector"
     },
     "abstract_shooting_stars" : {
+        hidden: true,
         type : "img", interact : "zoom",
-        title : "abstract shooting stars",
+        title : "Abstract shooting stars",
         colorAccent : "#949494",
         date : "2020.01",
         context: "personal",
@@ -421,7 +422,7 @@ var projectsData = {
     "stargazing_poster1" : {
         type : "img", interact : "zoom",
         additional : {
-            "stargazing_poster1_empty" : {
+            "Stargazing_poster1_empty" : {
                 type : "img",
                 comment : {
                     fr : `
@@ -433,7 +434,7 @@ var projectsData = {
                 }
             },
         },
-        title : "stargazing poster",
+        title : "Stargazing poster",
         colorAccent : "#0e2160",
         date : "2018.10",
         context: "retrosaturn",
@@ -460,7 +461,7 @@ var projectsData = {
     },
     "cyber_district1_mc" : {
         type : "img", interact : "zoom",
-        title : "cyber-district",
+        title : "Cyber-district",
         colorAccent : "#b98b2d",
         date : "2019.08",
         context: "order|ppm",
@@ -488,7 +489,7 @@ var projectsData = {
     },
     "cyber_district2_mc" : {
         type : "img", interact : "zoom",
-        title : "cyber-district (large)",
+        title : "Cyber-district (large)",
         colorAccent : "#b98b2d",
         date : "2019.08",
         context: "order|ppm",
@@ -518,7 +519,7 @@ var projectsData = {
         type : "yt", interact : "off",
             url_id : "jN7L44_-igk",
             aspectRatio : "1:1",
-        title : "factory-92",
+        title : "Factory-92",
         colorFill : "#170b0d",
         colorAccent : "#4e2b2c",
         date : "2021.01",
@@ -550,8 +551,8 @@ var projectsData = {
             url_id : "66QpHMgmXLM",
             aspectRatio : "16:9",
         title : {
-            fr : "spot pub : interventions \"Les Connectés\"",
-            en : "advert: \"Les Connectés\" interventions"
+            fr : "Spot pub : interventions \"Les Connectés\"",
+            en : "Advert: \"Les Connectés\" interventions"
         },
         date : "2021.02-04",
         colorFill : "#fe670e",
@@ -589,7 +590,7 @@ var projectsData = {
         type : "yt", interact : "off",
             url_id : "XOnAthClcEI",
             aspectRatio : "16:9",
-        title : "retrosaturn β",
+        title : "Retrosaturn β",
         colorFill : "#390002",
         colorAccent : "#770113",
         date : "2018.09",
@@ -618,6 +619,7 @@ var projectsData = {
         }
     },
     "jordannefm_anim" : {
+        hidden : true,
         type : "yt", interact : "off",
             url_id : "Gyho58zddwg",
             aspectRatio : "16:9",
@@ -643,8 +645,8 @@ var projectsData = {
             url_id : "UkL4zVUw27Y",
             aspectRatio : "16:9",
         title : {
-            fr : "yolan' ancienne introduction",
-            en : "yolan' old introduction"
+            fr : "Yolan' ancienne introduction",
+            en : "Yolan' old introduction"
         },
         colorFill : "#c0c1c5",
         date : "2017.09",
@@ -652,10 +654,11 @@ var projectsData = {
         filter: "experiment|motion"
     },
     "yolan_clément_intro" : {
+        hidden: true,
         type : "yt", interact : "off",
             url_id : "PR0fVAGbHIQ",
             aspectRatio : "16:9",
-        title : "yolan' & clément introduction",
+        title : "Yolan' & Clément introduction",
         colorFill : "#d0d0d0",
         date : "2017.01",
         context: "personal",
@@ -664,7 +667,7 @@ var projectsData = {
     "quad_page_portfolio" : {
         type : "embed", interact : "off",
             embed : "https://yolan.art/portfolio-exp-quad/public/",
-        title : "quad-page portfolio",
+        title : "Quad-page portfolio",
         colorFill : "#4b4b4b",
         colorAccent : "#4b4b4b",
         date : "2020.10-2021.01",
@@ -683,7 +686,7 @@ var projectsData = {
     },
     "affiche_apc_conf_hpi_wv" : {
         type : "img", interact : "zoom",
-        title : "formation WISC-V & Haut Potentiel Intellectuel",
+        title : "Formation WISC-V & Haut Potentiel Intellectuel",
         colorFill : "#ca382b",
         colorAccent : "#ca382b",
         date : "2019.08",
@@ -691,8 +694,9 @@ var projectsData = {
         filter: "poster|print|vector|layout|ad"
     },
     "affiche_apc_conf_hpi" : {
+        hidden : true,
         type : "img", interact : "zoom",
-        title : "conférence Haut Potentiel Intellectuel",
+        title : "Conférence Haut Potentiel Intellectuel",
         colorFill : "#3aa3d0",
         colorAccent : "#e178b0",
         date : "2019.11",

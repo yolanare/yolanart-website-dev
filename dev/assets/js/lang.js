@@ -7,10 +7,10 @@ const translations = {
 
             "landing-scroll-down-notice" : "Scroll down!",
 
-            "recent-proj-title" : "<p>here are my <h>most recent</h> projects</p>",
+            "recent-proj-title" : "<p>Here are my <h>most recent</h> projects</p>",
             "recent-proj-goto_filters" : "Want to see them all at once?",
 
-            "filters-title": "<p><h>what kind</h> of projects do you want to see?</p>",
+            "filters-title": "<p><h>What kind</h> of projects do you want to see?</p>",
             "filters-nothing-found-title" : "Oops!",
             "filters-nothing-found-txt" : "Seems like there's nothing corresponding to these filters.",
             "filters-clear-filters" : "Clear filters",
@@ -22,10 +22,10 @@ const translations = {
 
             "landing-scroll-down-notice" : "Défilez vers le bas !",
 
-            "recent-proj-title" : "<p>voici mes projets les <h>plus récents</h></p>",
+            "recent-proj-title" : "<p>Voici mes projets les <h>plus récents</h></p>",
             "recent-proj-goto_filters" : "Tous les voir en même temps",
 
-            "filters-title": "<p><h>quels genres</h> de projets voulez-vous voir ?</p>",
+            "filters-title": "<p><h>Quels genres</h> de projets voulez-vous voir ?</p>",
             "filters-nothing-found-title" : "Mince !",
             "filters-nothing-found-txt" : "On dirait qu'il n'y a rien qui corresponde à votre sélection de filtres.",
             "filters-clear-filters" : "Réinitialiser les filtres",

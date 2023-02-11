@@ -2,6 +2,7 @@
 @import './assets/default-custom.scss';
 @import './assets/overlayscrollbars.scss';
 @import './assets/error-frame.scss';
+@import './assets/loading-screen.scss';
 
 :root {
     --y-w1: rgb(236, 239, 242);
@@ -45,7 +46,7 @@ html {
 }
 body {
     margin: 0;
-    background-color: var(--y-b1);
+    background-color: var(--y-b1) !important;
     color: var(--y-w1);
     font-family: "Montserrat", sans-serif;
     font-size: clamp(8px, 0.85vw, 10px);
@@ -60,11 +61,14 @@ p {
 }
 
 .dummy {
-    position: fixed;
-    opacity: 0;
+    position: fixed !important;
+    top: -99vh;
+    left: -99vw;
+    overflow: hidden;
+    opacity: 0 !important;
     transition: none;
-    pointer-events: none;
-    user-select: none;
+    pointer-events: none !important;
+    user-select: none !important;
 }
 
 // HIERARCHY
@@ -172,9 +176,9 @@ nav.menu {
         // &:nth-child(4) { --bg-scroll-speed: 0.4; }
 
         z-index: -1;
-        display: inline-table;
         position: relative;
-        height: 1em;
+        // display: inline-table;
+        // height: 1em;
         padding: 0 0.15em;
         margin: 0 -0.15em;
         box-decoration-break: clone;
@@ -185,6 +189,19 @@ nav.menu {
         background-size: 200%;
         background-position-x: calc(var(--scroll-pos-y)*var(--bg-scroll-speed));
         // background-position-y: calc(var(--scroll-pos-y)*0.5*var(--bg-scroll-speed));
+
+        & {
+            background-clip: text;
+            color: transparent;
+            background-color: var(--y-b1);
+            --outline-color: rgba(255,255,255,1);
+            --stroke-size-p:  1px;
+            --stroke-size-n: -1px;
+            filter: drop-shadow(var(--stroke-size-n) var(--stroke-size-n) 0px var(--outline-color))
+                    drop-shadow(var(--stroke-size-n) var(--stroke-size-p) 0px var(--outline-color))
+                    drop-shadow(var(--stroke-size-p) var(--stroke-size-n) 0px var(--outline-color))
+                    drop-shadow(var(--stroke-size-p) var(--stroke-size-p) 0px var(--outline-color));
+        }
     }
 }
 
@@ -488,6 +505,9 @@ nav.menu {
 
 // CURSOR CROSS
 .cursor-cross {
+    left: var(--cursor-x);
+    top: var(--cursor-y);
+
     position: fixed;
     transform: translate(-50%, -50%) scale(0);
     width: 3.3rem;
@@ -835,6 +855,12 @@ nav.menu {
         }
     }
 
+    .pattern-bg {
+        position: absolute;
+        opacity: 0.15;
+        background-position: calc(var(--start-x) + (var(--scroll-pos-y) * var(--speed-factor))) 0;
+    }
+
     #intro-rp {
         font-size: 2.5em;
 
@@ -906,12 +932,20 @@ nav.menu {
     #recent-projects-slides {
         z-index: 1;
 
+
         .recent-slides {
             position: absolute;
             width: 100%;
             height: 100vh;
             font-size: 1.75em;
             transition: top var(--scroll-quick-tr);
+
+            .bg {
+                z-index: -101;
+                position: absolute;
+                inset: 0;
+                // filter: grayscale(1) brightness(0.35);
+            }
 
             .in {
                 height: inherit;
@@ -933,6 +967,7 @@ nav.menu {
                 margin: 0.4em 0 0.3em;
                 font-size: 3em;
                 font-weight: 550;
+                user-select: none;
             }
         }
     }
@@ -1191,57 +1226,72 @@ nav.menu {
             }
 
             .video-quick-popup-button {
-                position: relative;
+                --size: 1.35em;
                 flex-shrink: 0;
-                width: 1em;
-                height: 1em;
-                margin-left: 0.33em;
-                border-radius: 50%;
-                overflow: hidden;
-                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
 
-                transform: scale(1);
-                transition: 0.6s cubic-bezier(0.15, 0.7, 0, 1);
-
-                & > * {
+                .width {
+                    position: relative;
+                    width: var(--size);
+                    height: 1em;
+                    margin-left: 0.33em;
+                    pointer-events: none;
+                    user-select: none;
+                }
+                .button {
                     position: absolute;
-                    width: 100%;
-                    height: 100%;
-                }
-
-                .bg {
-                    background-color: var(--y-w1);
-                }
-
-                .arrow {
-                    fill: var(--y-b1);
-                    transform: scale(0.5);
-                    transition: transform 0.8s cubic-bezier(0.5, 0.7, 0, 1);
-                }
-                .bg::after {
-                    content: "";
-                    position: absolute;
-                    width: 50%;
-                    height: 50%;
-                    top: 50%;
-                    left: 50%;
+                    width: var(--size);
+                    height: var(--size);
                     border-radius: 50%;
-                    background-color: var(--y-b1);
-                    transform: translate(-50%, -50%) scale(0);
-                    transform-origin: 40% 50%;
-                    transition: transform 0.8s cubic-bezier(0.1, 0.7, 0, 1);
-                }
+                    overflow: hidden;
+                    cursor: pointer;
 
-                &:hover {
-                    transform: scale(1.2);
-                    border-radius: 25%;
-                    transition: 0.7s cubic-bezier(0.05, 0.7, 0, 1);
+                    transform: scale(1);
+                    transition: 0.6s cubic-bezier(0.15, 0.7, 0, 1);
+
+                    & > * {
+                        position: absolute;
+                        width: 100%;
+                        height: 100%;
+                    }
+
+                    .bg {
+                        background-color: var(--y-w1);
+                    }
 
                     .arrow {
-                        transform: scale(0.2);
+                        fill: var(--y-b1);
+                        transform: scale(0.5);
+                        transition: transform 0.8s cubic-bezier(0.5, 0.7, 0, 1);
                     }
                     .bg::after {
-                        transform: translate(-50%, -50%) scale(1);
+                        content: "";
+                        position: absolute;
+                        width: 50%;
+                        height: 50%;
+                        top: 50%;
+                        left: 50%;
+                        border-radius: 50%;
+                        background-color: var(--y-b1);
+                        transform: translate(-50%, -50%) scale(0);
+                        transform-origin: 40% 50%;
+                        transition: transform 0.8s cubic-bezier(0.1, 0.7, 0, 1);
+                    }
+
+                    &:hover {
+                        transform: scale(1.2);
+                        border-radius: 25%;
+                        transition: 0.7s cubic-bezier(0.05, 0.7, 0, 1);
+
+                        .arrow {
+                            transform: scale(0.2);
+                        }
+                        .bg::after {
+                            transform: translate(-50%, -50%) scale(1);
+                        }
                     }
                 }
             }
@@ -1339,9 +1389,10 @@ nav.menu {
     background-position: center;
     transition: opacity 0.4s ease,
                 background-position 0s;
-    pointer-events: none;
-    user-select: none;
+    pointer-events: none !important;
+    user-select: none !important;
     // everything else is set by JS
+    background-position: 0 calc(var(--start-y) - (var(--scroll-pos-y) * var(--speed-factor)));
 }
 
 // PROJECT FILES
