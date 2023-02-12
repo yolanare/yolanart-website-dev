@@ -25,10 +25,10 @@ function checkWinSize() { isMini = (window.innerWidth > 727); };
 checkWinSize(); window.addEventListener("resize", checkWinSize);
 
 // CURSOR POSITION AT ANY TIME
-window.addEventListener("mousemove", (cursorEv) => {
-    doc.style.setProperty("--cursor-x", cursorEv.clientX +"px");
-    doc.style.setProperty("--cursor-y", cursorEv.clientY +"px");
-})
+// window.addEventListener("mousemove", (cursorEv) => {
+    // doc.style.setProperty("--cursor-x", cursorEv.clientX +"px");
+    // doc.style.setProperty("--cursor-y", cursorEv.clientY +"px");
+// })
 //#endregion
 
 //#region - CSS HELPERS -
@@ -1352,8 +1352,7 @@ function recentProjectsCreate() {
 
         // SLIDES GENERATION
         slides += `
-            <div project-id="${projectID}" class="recent-slides">
-                <div class="bg" style="background-color: ${(PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill}"></div>
+            <div project-id="${projectID}" class="recent-slides" style="background-color: ${(PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill}">
                 <div class="in">
                     <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"></div>
                     <span class="project-title">${getProjectTextLang(projectID)}</span>
@@ -1362,7 +1361,7 @@ function recentProjectsCreate() {
                     </div>
                 </div>
             </div>
-        `;
+        `; // <div class="bg"></div>
 
         // ACTIONS GENERATION
         actions += `
@@ -2321,6 +2320,7 @@ function projectFileCreate(projectID, card, cursorEv) {
     // create
     document.querySelector("[project-files-container]").appendChild(projectFile);
 
+    const pFileElMainC = projectFile.querySelector(".project-main-container");
     projectFile.querySelector(".project-main-container").setAttribute("project-type", PROJECT.type);
     projectFile.style.setProperty("--project-color-accent", (PROJECT.colorAccent) ? PROJECT.colorAccent : pDataDefault.colorAccent);
     projectFile.style.setProperty("--project-color-fill", (PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill);
@@ -2376,16 +2376,20 @@ function projectFileCreate(projectID, card, cursorEv) {
     }
     // do the same for additional content, but only if specified
     if (PROJECT.additional) {
+        // styling if additional
+        pFileElMainC.classList.add("has-secondary-content");
+
+        // resizing
         Object.entries(PROJECT.additional).forEach((addPrj) => {
             const PRJADD = addPrj[1], // data
                   fileSecondPrjEl = projectFile.querySelector("[project-secondary-id='"+ addPrj[0] +"'] img.project-secondary");
 
-            console.log(addPrj[0], PRJADD);
             if (PRJADD.sizeFill == "width") { fileSecondPrjEl.style.width = "100%"; }
             else if (PRJADD.sizeFill == "height") { fileSecondPrjEl.style.height = "95vh"; }
 
             if (PRJADD.type == "img" && !["width", "height"].includes(PRJADD.sizeFill)) {
                 getSizeAndResizeToRatioPrjContent({elIMG : fileSecondPrjEl});
+                pFileElMainC.classList.add("has-secondary-content-same-ratio");
             }
         })
     }

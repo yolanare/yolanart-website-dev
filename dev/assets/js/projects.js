@@ -281,6 +281,15 @@ var projectsData = {
     },
     "y_in_dark" : {
         type : "img", interact : "zoom",
+        additional : {
+            "y_in_dark_og" : {
+                type : "img",
+                comment : {
+                    fr : `Photo originale.`,
+                    en : `Original photo.`
+                },
+            },
+        },
         title : "Y in dark",
         date : "2018.09",
         colorFill : "#000000",
@@ -344,6 +353,7 @@ var projectsData = {
         additional : {
             "caloucath_c_banner" : {
                 type : "img",
+                sizeFill : "width"
             },
         },
         title : "Caloucath \"C\"",
@@ -366,6 +376,7 @@ var projectsData = {
         additional : {
             "ppm_banner" : {
                 type : "img",
+                sizeFill : "width"
             },
         },
         title : "Pamplemousse",
