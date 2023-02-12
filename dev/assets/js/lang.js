@@ -56,41 +56,48 @@ const translations = {
 
 
 const filters = {
-    en : {
+    en : {// "motion|3D|vector|type|branding|ad|compo|print|illustration|experiment"
         format : {
+            "comm" : "Communication",
+            "motion" : "Motion-Design",
+            "compo" : "Composition",
+            "illustration" : "Illustration",
+            "3D" : "3D",
+            "vector" : "Vector",
+            "type" : "Typography",
+            "branding" : "Branding",
             "experiment" : "Experiment",
+
+            "print" : "Prints",
+            "ad" : "Advertising",
+            "photo" : "Photography",
+            "poster" : "Poster",
+            "logo" : "Logo",
+            "layout" : "Layout",
+            "date" : "Date",
+        },
+        plural : {
+            "experiment" : "Experiments",
             "photo" : "Photography",
             "illustration" : "Illustration",
             "3D" : "3D",
             "motion" : "Motion-Design",
             "type" : "Typography",
-            "poster" : "Poster",
-            "print" : "Prints",
-            "logo" : "Logo",
-            "vector" : "Vector",
-            "layout" : "Layout",
-            "ad" : "Advertising",
-            "date" : "Date"
-        },
-        plural : {
-            "experiment" : "Experiments",
-            "photo" : "Photography",
-            "illustration" : "Illustrations",
-            "3D" : "3D",
-            "motion" : "Motion-Designs",
-            "type" : "Typography",
             "poster" : "Posters",
             "print" : "Prints",
             "logo" : "Logos",
+            "branding" : "Branding",
             "vector" : "Vectors",
             "layout" : "Layouts",
+            "compo" : "Compositions",
             "ad" : "Advertising",
-            "date" : "Dates"
+            "date" : "Dates",
+            "comm" : "Communication",
         }
     },
     fr : {
         format : {
-            "experiment" : "Exercice",
+            "experiment" : "Expérimentation",
             "photo" : "Photographie",
             "illustration" : "Illustration",
             "3D" : "3D",
@@ -99,25 +106,31 @@ const filters = {
             "poster" : "Affiche",
             "print" : "Print",
             "logo" : "Logo",
+            "branding" : "Branding",
             "vector" : "Vectoriel",
             "layout" : "Mise en forme",
+            "compo" : "Composition",
             "ad" : "Publicité",
-            "date" : "Date"
+            "date" : "Date",
+            "comm" : "Communication",
         },
         plural : {
-            "experiment" : "Exercices",
+            "experiment" : "Expérimentations",
             "photo" : "Photographie",
-            "illustration" : "Illustrations",
+            "illustration" : "Illustration",
             "3D" : "3D",
             "motion" : "Motion-Design",
             "type" : "Typographie",
             "poster" : "Affiches",
             "print" : "Prints",
             "logo" : "Logos",
+            "branding" : "Branding",
             "vector" : "Vectoriel",
-            "layout" : "Mises en formes",
+            "layout" : "Mise en forme",
+            "compo" : "Compositions",
             "ad" : "Publicités",
-            "date" : "Dates"
+            "date" : "Dates",
+            "comm" : "Communication",
         }
     }
 };

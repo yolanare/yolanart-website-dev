@@ -19,6 +19,7 @@ var srcPH = "./assets/medias/projects/high/";
 const projectsDataSample = {
     default : {
         hidden: false,
+        excludeRecent : false,
         type : "img", interact : "zoom",
                 ext : "jpg",
                 needBG : false,
@@ -40,6 +41,7 @@ const projectsDataSample = {
     },
     "TEMPLATE" : {
         hidden: false|true,
+        excludeRecent : false|true,
         type : "img|yt|g_pdf|embed", interact : "zoom|off",
                 ext : "jpg|png",
                 needBG : false|true|"000000"|"var(--y-b1)",
@@ -53,6 +55,7 @@ const projectsDataSample = {
                     url_id : "URL_ID",
                     embed : "FULL_URL",
                     aspectRatio : "16:9|1:1",
+                    sizeFill : "width|height",
                 comment : {
                     fr : `FRENCH_COMMENT`,
                     en : `ENGLISH_COMMENT`
@@ -68,7 +71,7 @@ const projectsDataSample = {
         colorFill : "COLOR_FILL",
         colorAccent : "COLOR_ACCENT",
         context: "personal|fun|order|school|sc|ppm|retrosaturn|pti",
-        filter: "experiment|photo|illustration|3D|motion|type|poster|print|logo|vector|layout|ad",
+        filter: "comm|layout|motion|photo|3D|illustration|vector|type|branding|experiment|poster|print|logo|ad|compo",
         catchphrase : "QUICK_CATCHPHRASE",
         catchphrase : {
             fr : `FRENCH_CATCHPHRASE`,
@@ -85,6 +88,7 @@ const projectsDataSample = {
     },
     Comments : {
         hidden: false|true, // hidden projects will not be processed
+        excludeRecent : false|true, // will not be displayed in "recent" section
         type : "img|yt|g_pdf|embed",
                 ext : "jpg|png", // IF TYPE: "img" : if anything other than "jpg" file | DEFAULT: "jpg"
                 needBG : false|true|"000000"|"var(--y-b1)", // useful for monochrome logos | you can specify the color of choice, CAN BE CSS variable | "true" is default dark | DEFAULT: false
@@ -115,7 +119,7 @@ const projectsDataSample = {
         colorFill : "COLOR_FILL", // CAN BE any CSS color : var(--var) | #ffffff | rgb(0, 0, 0) | hsl(0, 0%, 0%) | hwb(0 0% 0%)
         colorAccent : "COLOR_ACCENT", // same thing
         context: "personal|fun|order|school|retrosaturn|pti|sc", // CAN BE: "fun" | "fun|school"]
-        filter: "experiment|photo|illustration|3D|motion|type|poster|print|logo|vector|layout|ad", // CAN BE: "experiment" | "experiment|motion"]
+        filter: "comm|layout|motion|photo|3D|illustration|vector|type|branding|experiment|poster|print|logo|ad|compo", // CAN BE: "experiment" | "experiment|motion"]
         catchphrase : "QUICK_CATCHPHRASE", // CAN BE: empty
         catchphrase : {
             fr : `FRENCH_CATCHPHRASE`,
@@ -130,6 +134,7 @@ const projectsDataSample = {
             `
         }
     },
+    filtersValid : "comm|layout|motion|photo|3D|illustration|vector|type|branding|experiment", // filters that will be used, in order, unused: |poster|print|logo|ad|compo
     descSamples : `
         <h2>BigTitle</h2>
 
@@ -156,7 +161,7 @@ var projectsData = {
         colorFill : "#082768",
         colorAccent : "#549ec8",
         context: "personal",
-        filter: "experiment|illustration|3D",
+        filter: "experiment|illustration|3D|compo",
         catchphrase : {
             fr : `De quel endroit pourrait-elle bien venir?`,
             en : `From what kind of place is it coming from?`
@@ -191,7 +196,7 @@ var projectsData = {
         colorFill : "#3e4148",
         colorAccent : "#7e8482",
         context: "school",
-        filter: "3D|motion",
+        filter: "3D|motion|compo",
         catchphrase : {
             fr : `Le temps passe... Mais tous les jours sont pareils.`,
             en : `Time goes on... but everyday is the same.`
@@ -240,7 +245,7 @@ var projectsData = {
         colorFill : "#000000",
         colorAccent : "#3d3d3d",
         context: "school",
-        filter: "illustration",
+        filter: "illustration|compo",
         catchphrase : {
             fr : `Mais où est-elle ?`,
             en : `But where is it?`
@@ -281,7 +286,7 @@ var projectsData = {
         colorFill : "#000000",
         colorAccent : "#7a7a7a",
         context: "personal",
-        filter: "experiment|photo",
+        filter: "compo|type|experiment|photo",
         catchphrase : {
             fr : `Perdu dans les ténèbres, sa lumière brillante de l'intérieur.`,
             en : `Lost in the dark, the light shrieking from within.`
@@ -306,7 +311,7 @@ var projectsData = {
         date : "2018.06",
         colorAccent : "#ac0f3c",
         context: "retrosaturn",
-        filter: "experiment|type|logo|vector",
+        filter: "vector|type|branding|experiment|logo",
         desc : {
             fr : `
                 <h2>CONTEXTE</h2>
@@ -330,9 +335,10 @@ var projectsData = {
         title : "Retrosaturn sticker",
         date : "2019.01",
         context: "retrosaturn",
-        filter: "experiment|logo|vector"
+        filter: "vector|branding|experiment|logo",
     },
     "caloucath_logo_c_3d" : {
+        hidden : true,
         type : "img", interact : "zoom",
                 ext : "png",
         additional : {
@@ -344,7 +350,7 @@ var projectsData = {
         colorAccent : "#5d5c5d",
         date : "2017.07",
         context: "order",
-        filter: "type|logo|vector"
+        filter: "3D|branding|logo",
     },
     "caloucath_typo_merry" : {
         hidden : true,
@@ -352,7 +358,7 @@ var projectsData = {
         title : "Caloucath typo banner",
         date : "2017.05",
         context: "order",
-        filter: "3D|type|poster"
+        filter: "3D|type|branding|experiment",
     },
     "ppm" : {
         type : "img", interact : "zoom",
@@ -367,7 +373,7 @@ var projectsData = {
         colorAccent : "#ff3875",
         date : "2018.10",
         context: "order|ppm",
-        filter: "logo|vector"
+        filter: "vector|type|branding|logo",
     },
     "rezartilo" : {
         type : "img", interact : "zoom",
@@ -376,7 +382,7 @@ var projectsData = {
         colorAccent : "#01a0f8",
         date : "2017.01",
         context: "order",
-        filter: "3D|type|poster"
+        filter: "3D|type|branding|logo",
     },
     "jethro" : {
         type : "img", interact : "zoom",
@@ -384,7 +390,7 @@ var projectsData = {
         title : "Jethro",
         date : "2018.12",
         context: "order",
-        filter: "type|logo|vector"
+        filter: "vector|type|branding|logo",
     },
     "wzr" : {
         type : "img", interact : "zoom",
@@ -394,7 +400,7 @@ var projectsData = {
         colorAccent : "#fc8600",
         date : "2017.09",
         context: "order",
-        filter: "type|logo|vector"
+        filter: "vector|type|branding|logo"
     },
     "abstract_shooting_stars" : {
         hidden: true,
@@ -403,7 +409,7 @@ var projectsData = {
         colorAccent : "#949494",
         date : "2020.01",
         context: "personal",
-        filter: "experiment|illustration|vector",
+        filter: "compo|illustration|vector|experiment",
         desc : {
             fr : `
                 <h2>EXPÉRIMENTATION</h2>
@@ -438,7 +444,7 @@ var projectsData = {
         colorAccent : "#0e2160",
         date : "2018.10",
         context: "retrosaturn",
-        filter: "experiment|illustration",
+        filter: "comm|compo|illustration|type|experiment|poster",
         catchphrase : "Disrupting the stars when they sleep.",
         desc : {
             fr : `
@@ -465,7 +471,7 @@ var projectsData = {
         colorAccent : "#b98b2d",
         date : "2019.08",
         context: "order|ppm",
-        filter: "illustration|3D",
+        filter: "compo|illustration|3D",
         desc : {
             fr : `
                 <h2>CONTEXTE</h2>
@@ -493,7 +499,7 @@ var projectsData = {
         colorAccent : "#b98b2d",
         date : "2019.08",
         context: "order|ppm",
-        filter: "illustration|3D",
+        filter: "compo|illustration|3D",
         desc : {
             fr : `
                 <h2>CONTEXTE</h2>
@@ -524,7 +530,7 @@ var projectsData = {
         colorAccent : "#4e2b2c",
         date : "2021.01",
         context: "order|ppm",
-        filter: "3D|motion",
+        filter: "motion|compo|3D",
         desc : {
             fr : `
                 <h2>CONTEXTE</h2>
@@ -551,14 +557,14 @@ var projectsData = {
             url_id : "66QpHMgmXLM",
             aspectRatio : "16:9",
         title : {
-            fr : "Spot pub : interventions \"Les Connectés\"",
+            fr : "Spot pub : Interventions \"Les Connectés\"",
             en : "Advert: \"Les Connectés\" interventions"
         },
         date : "2021.02-04",
         colorFill : "#fe670e",
         colorAccent : "#fe670e",
         context: "sc",
-        filter: "motion|ad",
+        filter: "comm|motion|compo|ad|layout",
         desc : {
             fr : `
                 <h2>CONTEXTE</h2>
@@ -595,7 +601,7 @@ var projectsData = {
         colorAccent : "#770113",
         date : "2018.09",
         context: "personal|retrosaturn",
-        filter: "experiment|motion",
+        filter: "comm|motion|branding|experiment",
         catchphrase : "Synthwave into the darkest place of the grid!",
         desc : {
             fr : `
@@ -628,7 +634,7 @@ var projectsData = {
         colorAccent : "#cb0101",
         date : "2017.12",
         context: "order",
-        filter: "motion",
+        filter: "comm|motion|vector|type|branding|experiment",
         desc : {
             fr : `
                 <h2>CONTEXTE</h2>
@@ -640,18 +646,18 @@ var projectsData = {
             `,
         }
     },
-    "yolan_intro_old" : {
+    "yolan_intro_exp" : {
         type : "yt", interact : "off",
             url_id : "UkL4zVUw27Y",
             aspectRatio : "16:9",
         title : {
-            fr : "Yolan' ancienne introduction",
-            en : "Yolan' old introduction"
+            fr : "Yolan' introduction expérimentale",
+            en : "Yolan' experimental introduction"
         },
         colorFill : "#c0c1c5",
         date : "2017.09",
         context: "personal",
-        filter: "experiment|motion"
+        filter: "comm|motion|vector|branding|experiment"
     },
     "yolan_clément_intro" : {
         hidden: true,
@@ -662,7 +668,7 @@ var projectsData = {
         colorFill : "#d0d0d0",
         date : "2017.01",
         context: "personal",
-        filter: "3D|motion"
+        filter: "comm|motion|3D|vector|branding"
     },
     "quad_page_portfolio" : {
         type : "embed", interact : "off",
@@ -672,7 +678,7 @@ var projectsData = {
         colorAccent : "#4b4b4b",
         date : "2020.10-2021.01",
         context: "personal|order",
-        filter: "experiment|motion|vector|layout|ad",
+        filter: "comm|motion|compo|vector|branding|experiment|layout",
         desc : {
             fr : `
                 <h2>CONTEXTE</h2>
@@ -686,27 +692,400 @@ var projectsData = {
     },
     "affiche_apc_conf_hpi_wv" : {
         type : "img", interact : "zoom",
-        title : "Formation WISC-V & Haut Potentiel Intellectuel",
+        title : {
+            fr : "Affiche : Formation \"WISC-V & Haut Potentiel Intellectuel\"",
+            en : "Poster: Course \"WISC-V & High Intellectual Potential\""
+        },
         colorFill : "#ca382b",
         colorAccent : "#ca382b",
         date : "2019.08",
         context: "order",
-        filter: "poster|print|vector|layout|ad"
+        filter: "comm|compo|vector|poster|print|layout|ad"
     },
     "affiche_apc_conf_hpi" : {
         hidden : true,
         type : "img", interact : "zoom",
-        title : "Conférence Haut Potentiel Intellectuel",
+        title : "",
+        title : {
+            fr : "Affiche : Conférence \"Haut Potentiel Intellectuel\"",
+            en : "Poster: Conference \"High Intellectual Potential\""
+        },
         colorFill : "#3aa3d0",
         colorAccent : "#e178b0",
         date : "2019.11",
         context: "order",
-        filter: "poster|print|vector|layout|ad"
+        filter: "comm|compo|vector|poster|print|layout|ad"
     },
 
+    "photo_alley_dead_end" : {
+        type : "img", interact : "zoom",
+        additional : {
+            "photo_alley_dead_end_original" : {
+                type : "img",
+                comment : {
+                    fr : `Photo originale.`,
+                    en : `Original photo.`
+                }
+            },
+        },
+        title : "Alley dead end",
+        date : "2021.12",
+        colorFill : "#0b1c14",
+        colorAccent : "#804427",
+        context: "school",
+        filter: "compo|photo",
+    },
+    "photo_between" : {
+        type : "img", interact : "zoom",
+        additional : {
+            "photo_between_original" : {
+                type : "img",
+                comment : {
+                    fr : `Photo originale.`,
+                    en : `Original photo.`
+                }
+            },
+        },
+        title : "Between",
+        date : "2021.12",
+        colorFill : "#08142a",
+        colorAccent : "#753142",
+        context: "school",
+        filter: "comm|photo",
+    },
+    "photo_daylight" : {
+        type : "img", interact : "zoom",
+        additional : {
+            "photo_daylight_original" : {
+                type : "img",
+                comment : {
+                    fr : `Photo originale.`,
+                    en : `Original photo.`
+                }
+            },
+        },
+        title : "Day light",
+        date : "2021.12",
+        colorFill : "#7f6749",
+        colorAccent : "#caa976",
+        context: "school",
+        filter: "comm|photo",
+    },
+    "photo_merry_christmas" : {
+        type : "img", interact : "zoom",
+        additional : {
+            "photo_merry_christmas_original" : {
+                type : "img",
+                comment : {
+                    fr : `Photo originale.`,
+                    en : `Original photo.`
+                },
+            },
+        },
+        title : "Merry Christmas",
+        date : "2021.12",
+        colorFill : "#1f1f1f",
+        colorAccent : "#505050",
+        context: "school",
+        filter: "comm|photo",
+    },
+    "liquid_blue_ticket" : {
+        type : "img", interact : "zoom",
+                ext : "png",
+        title : {
+            fr : "\"Liquid blue\" pass 3 jours festival",
+            en : "Liquid blue festival 3 day pass"
+        },
+        date : "2022.01",
+        colorFill : "#0f1d20",
+        colorAccent : "#31b8bb",
+        context: "school",
+        filter: "comm|compo|vector|experiment|print|layout",
+    },
+    "storyboard_schniark" : {
+        type : "img", interact : "zoom",
+        additional : {
+            "p1" : { type : "img", sizeFill : "width" },
+            "p2" : { type : "img", sizeFill : "width" },
+            "p3" : { type : "img", sizeFill : "width" },
+            "p4" : { type : "img", sizeFill : "width" },
+            "p5" : { type : "img", sizeFill : "width" },
+            "p6" : { type : "img", sizeFill : "width" },
+            "p7" : { type : "img", sizeFill : "width" },
+        },
+        title : {
+            fr : "Storyboard: \"Le Tournemire\", l'apparition du Schniark (adaptation)",
+            en : "Storyboard: \"Le Tournemire\", the Schniark's introduction (adaptation)"
+        },
+        date : "2022.03-04",
+        colorFill : "#2d2d2d",
+        colorAccent : "#cd2603",
+        context: "school",
+        filter: "compo|illustration|layout",
+    },
+    "dum_grimnir" : {
+        type : "img", interact : "zoom",
+        title : {
+            fr : "Chara-design : Dum Grimnir",
+            en : "Chara-design: Dum Grimnir"
+        },
+        date : "2022.04",
+        colorFill : "#5a5c71",
+        colorAccent : "#5a5c71",
+        context: "school",
+        filter: "illustration",
+    },
+    "charte_graphique_logo_lodge_tourtereaux" : {
+        type : "img", interact : "zoom",
+        additional : {
+            "p2" :  { type : "img", sizeFill : "width" },
+            "p3" :  { type : "img", sizeFill : "width" },
+            "p4" :  { type : "img", sizeFill : "width" },
+            "p5" :  { type : "img", sizeFill : "width" },
+            "p6" :  { type : "img", sizeFill : "width" },
+            "p7" :  { type : "img", sizeFill : "width" },
+            "p8" :  { type : "img", sizeFill : "width" },
+            "p9" :  { type : "img", sizeFill : "width" },
+            "p10" : { type : "img", sizeFill : "width" },
+            "p11" : { type : "img", sizeFill : "width" },
+            "p12" : { type : "img", sizeFill : "width" },
+            "p13" : { type : "img", sizeFill : "width" },
+            "p14" : { type : "img", sizeFill : "width" },
+            "p15" : { type : "img", sizeFill : "width" },
+            "p16" : { type : "img", sizeFill : "width" },
+            "p17" : { type : "img", sizeFill : "width" },
+            "p18" : { type : "img", sizeFill : "width" },
+            "p19" : { type : "img", sizeFill : "width" },
+            "p20" : { type : "img", sizeFill : "width" },
+            "p21" : { type : "img", sizeFill : "width" },
+            "p22" : { type : "img", sizeFill : "width" },
+            "p23" : { type : "img", sizeFill : "width" },
+        },
+        title : {
+            fr : "Charte graphique : Logo lodge \"La Cabane des Tourtereaux\"",
+            en : "Logo guidelines: Logo lodge \"La Cabane des Tourtereaux\""
+        },
+        date : "2022.06",
+        colorFill : "#297c4e",
+        colorAccent : "#4bb47c",
+        context: "school",
+        filter: "comm|compo|vector|type|branding|print|layout|logo",
+    },
+    "aquila_gradients" : {
+        excludeRecent : true,
+        type : "img", interact : "zoom",
+                ext : "png",
+        title : "Aquila gradients",
+        date : "2022.06",
+        colorFill : "#3d117f",
+        colorAccent : "#ff9c00",
+        context: "personal",
+        filter: "vector|experiment|logo",
+    },
+    "affiche_conference_dev_psycho_affectif" : {
+        excludeRecent : true,
+        type : "img", interact : "zoom",
+        title : {
+            fr : "Affiche : Conférence \"Être parent ou éducateur aujourd'hui, mission impossible ?\"",
+            en : "Poster: Conference \"Psycho-affective development of the child to the adolescent\""
+        },
+        date : "2022.07",
+        colorFill : "#4c539c",
+        colorAccent : "#f9b122",
+        context: "order",
+        filter: "comm|compo|vector|poster|print|layout|ad",
+    },
+    "affiche_formation_dev_psycho_affectif" : {
+        excludeRecent : true,
+        type : "img", interact : "zoom",
+        title : {
+            fr : "Affiche : Formation \"Le développement psycho-affectif de l'enfant à l'adolescent\"",
+            en : "Poster: Course \"Psycho-affective development of the child to the adolescent\""
+        },
+        date : "2022.07",
+        colorFill : "#4c539c",
+        colorAccent : "#ec607e",
+        context: "order",
+        filter: "comm|compo|vector|poster|print|layout|ad",
+    },
 
 // new -----------------------------------------------------------------------
 /*
+    "TEMPLATE" : {
+        type : "img|yt|g_pdf|embed", interact : "zoom|off",
+                ext : "jpg|png",
+                needBG : false|true|"000000"|"var(--y-b1)",
+            url_id : "URL_ID",
+            embed : "FULL_URL",
+            aspectRatio : "16:9|1:1",
+        additional : {
+            "ID" : {
+                type : "img|yt|g_pdf|embed",
+                        ext : "jpg|png",
+                    url_id : "URL_ID",
+                    embed : "FULL_URL",
+                    aspectRatio : "16:9|1:1",
+                comment : {
+                    fr : `FRENCH_COMMENT`,
+                    en : `ENGLISH_COMMENT`
+                }
+            },
+        },
+        title : "TITLE",
+        date : "YYYY.MM",
+        colorFill : "COLOR_FILL",
+        colorAccent : "COLOR_ACCENT",
+        context: "personal|fun|order|school|sc|ppm|retrosaturn|pti",
+        filter: "motion|3D|vector|type|branding|ad|layout|print|photo|illustration|experiment",
+        catchphrase : {
+            fr : `FRENCH_CATCHPHRASE`,
+            en : `ENGLISH_CATCHPHRASE`
+        },
+        desc : {
+            fr : `
+                FRENCH_DESCRIPTION
+            `,
+            en : `
+                ENGLISH_DESCRIPTION
+            `
+        }
+    },
+
+
+
+    "TEMPLATE" : {
+        type : "img|yt|g_pdf|embed", interact : "zoom|off",
+                ext : "jpg|png",
+                needBG : false|true|"000000"|"var(--y-b1)",
+            url_id : "URL_ID",
+            embed : "FULL_URL",
+            aspectRatio : "16:9|1:1",
+        additional : {
+            "ID" : {
+                type : "img|yt|g_pdf|embed",
+                        ext : "jpg|png",
+                    url_id : "URL_ID",
+                    embed : "FULL_URL",
+                    aspectRatio : "16:9|1:1",
+                comment : {
+                    fr : `FRENCH_COMMENT`,
+                    en : `ENGLISH_COMMENT`
+                }
+            },
+        },
+        title : "TITLE",
+        date : "YYYY.MM",
+        colorFill : "COLOR_FILL",
+        colorAccent : "COLOR_ACCENT",
+        context: "personal|fun|order|school|sc|ppm|retrosaturn|pti",
+        filter: "motion|3D|vector|type|branding|ad|layout|print|photo|illustration|experiment",
+        catchphrase : {
+            fr : `FRENCH_CATCHPHRASE`,
+            en : `ENGLISH_CATCHPHRASE`
+        },
+        desc : {
+            fr : `
+                FRENCH_DESCRIPTION
+            `,
+            en : `
+                ENGLISH_DESCRIPTION
+            `
+        }
+    },
+    "TEMPLATE" : {
+        type : "img|yt|g_pdf|embed", interact : "zoom|off",
+                ext : "jpg|png",
+                needBG : false|true|"000000"|"var(--y-b1)",
+            url_id : "URL_ID",
+            embed : "FULL_URL",
+            aspectRatio : "16:9|1:1",
+        additional : {
+            "ID" : {
+                type : "img|yt|g_pdf|embed",
+                        ext : "jpg|png",
+                    url_id : "URL_ID",
+                    embed : "FULL_URL",
+                    aspectRatio : "16:9|1:1",
+                comment : {
+                    fr : `FRENCH_COMMENT`,
+                    en : `ENGLISH_COMMENT`
+                }
+            },
+        },
+        title : "TITLE",
+        date : "YYYY.MM",
+        colorFill : "COLOR_FILL",
+        colorAccent : "COLOR_ACCENT",
+        context: "personal|fun|order|school|sc|ppm|retrosaturn|pti",
+        filter: "motion|3D|vector|type|branding|ad|layout|print|photo|illustration|experiment",
+        catchphrase : {
+            fr : `FRENCH_CATCHPHRASE`,
+            en : `ENGLISH_CATCHPHRASE`
+        },
+        desc : {
+            fr : `
+                FRENCH_DESCRIPTION
+            `,
+            en : `
+                ENGLISH_DESCRIPTION
+            `
+        }
+    },
+    "TEMPLATE" : {
+        type : "img|yt|g_pdf|embed", interact : "zoom|off",
+                ext : "jpg|png",
+                needBG : false|true|"000000"|"var(--y-b1)",
+            url_id : "URL_ID",
+            embed : "FULL_URL",
+            aspectRatio : "16:9|1:1",
+        additional : {
+            "ID" : {
+                type : "img|yt|g_pdf|embed",
+                        ext : "jpg|png",
+                    url_id : "URL_ID",
+                    embed : "FULL_URL",
+                    aspectRatio : "16:9|1:1",
+                comment : {
+                    fr : `FRENCH_COMMENT`,
+                    en : `ENGLISH_COMMENT`
+                }
+            },
+        },
+        title : "TITLE",
+        date : "YYYY.MM",
+        colorFill : "COLOR_FILL",
+        colorAccent : "COLOR_ACCENT",
+        context: "personal|fun|order|school|sc|ppm|retrosaturn|pti",
+        filter: "motion|3D|vector|type|branding|ad|layout|print|photo|illustration|experiment",
+        catchphrase : {
+            fr : `FRENCH_CATCHPHRASE`,
+            en : `ENGLISH_CATCHPHRASE`
+        },
+        desc : {
+            fr : `
+                FRENCH_DESCRIPTION
+            `,
+            en : `
+                ENGLISH_DESCRIPTION
+            `
+        }
+    },
+
+
+
+
+
+
+/*
+    "water_take-off" : {
+        type : "img", interact : "zoom",
+        title : "Water take-off",
+        date : "2021.10",
+        colorFill : "#463426",
+        colorAccent : "#442e28",
+        context: "school",
+        filter: "illustration|experiment",
+    },
     "broch_alien" : {
         type : "g_pdf", interact : "off",
             url_id : "URL_ID",

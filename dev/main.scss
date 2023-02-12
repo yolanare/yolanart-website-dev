@@ -43,6 +43,8 @@ html {
     overflow: hidden;
     width: 100vw;
     height: 100vh;
+
+    --scroll-pos-y: calc(-3 * var(--ice-scroll-offset, 0px)); // for performance reasons, it moves at same speed anyway
 }
 body {
     margin: 0;
@@ -211,23 +213,23 @@ nav.menu {
 .prj-pill {
     --pill-c: var(--y-w1);
     --pill-bg: var(--y-b2);
+    --pill-bg-rgb: var(--y-rv);
 }
 .prj-pill[context-id] {
     border-radius: 0.3em;
 }
 
-[filter-id="experiment"] {
-    --pill-bg: #a50000;
-}
-[filter-id="photo"] {
-    --pill-bg: #008f00;
-}
-[filter-id="illustration"] {
-    --pill-bg: #ba6e16;
-}
-[filter-id="logo"] {
-    --pill-bg: #2278b0;
-}
+[filter-id="motion"] { --pill-bg-rgb: 255, 46, 85; }
+[filter-id="3D"] { --pill-bg-rgb: 255, 110, 110; }
+[filter-id="vector"] { --pill-bg-rgb: 126, 255, 243; }
+[filter-id="type"] { --pill-bg-rgb: 134, 227, 255; }
+[filter-id="branding"] { --pill-bg-rgb: 255, 242, 54; }
+[filter-id="ad"] { --pill-bg-rgb: 255, 189, 64; }
+[filter-id="layout"] { --pill-bg-rgb: 255, 122, 42; }
+[filter-id="print"] { --pill-bg-rgb: 255, 155, 83; }
+[filter-id="photo"] { --pill-bg-rgb: 89, 131, 255; }
+[filter-id="illustration"] { --pill-bg-rgb: 123, 119, 255; }
+[filter-id="experiment"] { --pill-bg-rgb: 127, 84, 147; }
 
 .prj-pill {
     overflow: hidden;
@@ -256,7 +258,7 @@ nav.menu {
     & > * {
         pointer-events: none;
     }
-    & > *:not(:last-child) {
+    & > *:not(span):not(:last-child) {
         margin-right: 0.35em;
     }
     & > svg { // vector icons
@@ -281,15 +283,63 @@ nav.menu {
         white-space: nowrap;
         display: inline-block;
     }
+
+    .cross {
+        font-size: 0.65em;
+        position: relative;
+        top: 0em;
+        margin-left: 0em;
+        width: 0em;
+        height: 1em;
+        transform: scale(0);
+        transform-origin: center;
+        opacity: 0;
+        transition: top 0.4s 0.1s ease,
+                    width 0.4s 0.1s ease,
+                    margin-left 0.4s 0.1s ease,
+                    transform 1s cubic-bezier(0.3, 0.5, 0, 1),
+                    opacity 0.3s ease;
+
+        svg {
+            position: absolute;
+            width: 1em;
+            height: 1em;
+            bottom: 0em;
+            fill: none;
+            stroke-width: 5;
+            stroke: var(--pill-c);
+            overflow: visible;
+        }
+    }
+    &[state="true"] {
+        .cross {
+            top: 0.035em;
+            width: 1em;
+            margin-left: 0.5em;
+            transform: scale(1) rotate(1turn);
+            opacity: 1;
+            transition: top 0.5s ease,
+                        width 0.5s ease,
+                        margin-left 0.5s ease,
+                        transform 1s cubic-bezier(0.5, 0.6, 0, 1),
+                        opacity 0.6s 0.1s ease;
+        }
+    }
+}
+.prj-pill.filter {
+    background-color: rgba(var(--pill-bg-rgb), 0.35);
 }
 .prj-pill.filter:hover,
 .prj-pill.filter[state="true"] {
-    color: var(--y-b1);
-    background-color: var(--y-w1);
+    color: var(--y-w1);
+    background-color: rgba(var(--pill-bg-rgb), 0.6);
     transition: color 0.6s cubic-bezier(0.1, 0.6, 0, 1),
                 background-color 0.6s cubic-bezier(0.1, 0.6, 0, 1);
 }
 .prj-pill.date {
+    background-color: transparent;
+    outline: 1px solid var(--y-w1);
+
     & > svg {
         bottom: 0;
         transform: rotateZ(0deg);
@@ -299,6 +349,8 @@ nav.menu {
         transform: rotateZ(900deg);
     }
 }
+
+
 .prj-pill[context-id]:hover,
 .prj-pill[context-id][state="true"] {
     color: var(--y-w1);
@@ -955,6 +1007,15 @@ nav.menu {
                 --h : calc(100% * (2 / 3));
                 height: var(--h);
                 max-height: var(--h);
+                mask: linear-gradient(180deg,
+                    rgba(0,0,0, 0.2) 0%,
+                    rgba(0,0,0, 0.65) 7.5%,
+                    rgba(0,0,0, 0.9) 12.5%,
+                    rgba(0,0,0, 1) 17.5%,
+                    rgba(0,0,0, 1) 60%,
+                    rgba(0,0,0, 0.9) 65%,
+                    rgba(0,0,0, 0.6) 80%,
+                    rgba(0,0,0, 0.1) 100%);
 
                 & img {
                     width: 100%;
@@ -1038,6 +1099,8 @@ nav.menu {
                 flex-direction: column;
                 width: 100%;
                 user-select: none;
+
+                font-size: 0.9em;
 
                 .prj-pill {
                     pointer-events: all;
@@ -1545,6 +1608,7 @@ nav.menu {
                     flex-shrink: 0;
                     user-select: none;
                     border-radius: var(--global-border-radius);
+                    overflow: hidden;
                 }
                 &[project-type="img"] .project-main {
                     max-width: var(--width-main);

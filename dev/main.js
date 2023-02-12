@@ -270,7 +270,7 @@ function projectsSortByDate() {
     // return sorted list of tuples [project_id, project_date]
     return projectsDate;
 };
-// will be a sorted list of tuples of all projects by date
+// sorted list of tuples of all projects by date
 const projectsSortedDate = projectsSortByDate();
 
 // get the project's title
@@ -495,6 +495,7 @@ languageButtonCreate();
 
 //#region LOADING
 var L = {
+    delayBeforeDisplay : 500,
     // load essential assets
     toLoad : {
         "image" : {
@@ -563,7 +564,7 @@ function loadingScreenDisplay(type) {
     // animation in
     setTimeout(() => {
         loadingScreenEl.classList.remove("anim-pre");
-    }, 3000);
+    }, L.delayBeforeDisplay);
 
     if (type == "main") {
          // time in ms
@@ -615,17 +616,17 @@ function loadingScreenDisplay(type) {
             }}
             if (loadTimer >= validationStepsTiming[1] && loadTimer <= validationStepsTiming[2]) { if (L.loaded.majority) {
                 if (!hasLogAlreadyBeenDisplayed("majority")) {
-                    loadingLog({ log : "Majority of assets loaded. Dismissing the loading screen.", duration : 6000, callback : finish});
+                    loadingLogger({ log : "Majority of assets loaded. Dismissing the loading screen.", duration : 6000, callback : finish});
                 }
             }}
             if (loadTimer >= validationStepsTiming[2] && loadTimer <= validationStepsTiming[3]) { if (L.loaded.necessary) {
                 if (!hasLogAlreadyBeenDisplayed("necessary")) {
-                    loadingLog({ log : "Loading is taking too long. Forcefully dismissing the loading screen. Necessary things are loaded.", duration : 7000, callback : finish});
+                    loadingLogger({ log : "Loading is taking too long. Forcefully dismissing the loading screen. Necessary things are loaded.", duration : 7000, callback : finish});
                 }
             }}
             if (loadTimer >= validationStepsTiming[3] && loadTimer) { // last resort security (in case of unexpected errors)
                 if (!hasLogAlreadyBeenDisplayed("fail")) {
-                    loadingLog({ log : "Loading is taking WAY too long. Forcefully dismissing the loading screen (what kind of Internet connection is this).", type : "error", duration : 8000, callback : finish});
+                    loadingLogger({ log : "Loading is taking WAY too long. Forcefully dismissing the loading screen (what kind of Internet connection is this).", type : "error", duration : 8000, callback : finish});
                 }
             }
 
@@ -644,7 +645,7 @@ function loadingScreenDismiss() {
 }
 
 // log anything in the loading UI
-function loadingLog({
+function loadingLogger({
     log,
     type = "info", // can be "info"|"error"
     duration = 3500, // duration the log will stay
@@ -705,7 +706,7 @@ function loadAsset({url, type = "image", callbackWhenLoaded}) {
     // when asset not existing
     assetEl.onerror = () => {
         finish();
-        console.warn(`(loader) [${type}] at "${url}" load error.`);
+        console.warn(`(loader) Load error of [${type}] "${url}".`);
     };
 
     // when asset loaded
@@ -721,12 +722,12 @@ function loadMainAssets() {
     // load page necessary things
     var loadNecessaryChecks = [false, false];
     window.addEventListener("load", () => { // page load event
-        loadingLog({ log : "Page loaded." });
+        loadingLogger({ log : "Page loaded." });
         loadNecessaryChecks[0] = true;
         checkNecessaryLoading();
     });
     document.fonts.ready.then(() => { // fonts // they are not too fast and not too long to load, that's good enough
-        loadingLog({ log : "Fonts loaded." });
+        loadingLogger({ log : "Fonts loaded." });
         loadNecessaryChecks[1] = true;
         checkNecessaryLoading();
     });
@@ -1256,31 +1257,36 @@ function generatePrjPill({
     type = "",
     typeClassDisable = false,
     state = undefined,
+    stateCross = false, // will show a cross at the right of the text (this one will appear only if [state="true"])
     plural = false, // true|false
     customClass = "",
     customStaticLabel = "", // custom static label, will never contextually change, is used in priority if specified
     labelTranslateID, // custom label but can be translated
     customIcon = ``,
 }) {
-
+    if (!ID && ["filter", "context"].includes(type)) { // cancel if filter/context ID is invalid
+        console.error(`(prj-pill) Pill [${type}] ID [${ID}] invalid.`);
+        return "";
+    }
     plural = (plural) ? "plural" : "format";
 
     const type_id = `${(type) ? type+"-" : ""}id`,
-          //
-          label = (customStaticLabel) ? customStaticLabel // use custom static label if specified
+        //
+        label = (customStaticLabel) ? customStaticLabel // use custom static label if specified
                     // get formatted name // use custom label if specified
-                  : (labelTranslateID) ? getTextLang({type : "translate-id", id : labelTranslateID})
+                : (labelTranslateID) ? getTextLang({type : "translate-id", id : labelTranslateID})
                     : getTextLang({type : type_id, id : ID, langDB : type, langDBNesting : plural});
 
     labelTranslateID = (labelTranslateID) ? `translate-id="${labelTranslateID}"` : "";
     type = (typeClassDisable) ? "" : type;
     ID = (ID) ? `${type_id}="${ID}"` : "";
     state = (state) ? `state="${state}"` : "";
-
+    stateCross = (!stateCross) ? false : `<div class="cross"><svg viewBox="0 0 24 24"><line x1="0" y1="0" x2="24" y2="24" /><line x1="24" y1="0" y2="24" /></svg></div>`;
 
     return `<div ${ID} class="prj-pill ${type} ${customClass}" ${state} plural="${plural}">
         ${(customIcon) ? customIcon : ``}
         <span ${labelTranslateID}>${label}</span>
+        ${(stateCross) ? stateCross : ``}
     </div>`
 }
 //#endregion
@@ -1321,9 +1327,17 @@ function recentProjectsTrackSegments() {
     }
 }
 
-function createRecentProjects() {
+function recentProjectsCreate() {
     // get the most recent projects
-    const recentProjects = projectsSortedDate.slice(0, RP.projectsNb);
+    var recentProjects = [], getRecentPrjCount = 1;
+    for (let i = 0; i < projectsSortedDate.length; i++) {
+        const prj = projectsSortedDate[i];
+        if (pData[prj[0]].excludeRecent != true) { // ignore projects with "excludeRecent" true
+            recentProjects.push(prj);
+            getRecentPrjCount++
+        }
+        if (getRecentPrjCount > RP.projectsNb) { break; }
+    }
 
     var slides = ``, actions = ``;
 
@@ -1425,7 +1439,7 @@ function recentProjectsSlides() {
     // apply positions for previous and after slides
     previousSlides.forEach((pSlide) => {
         if (pSlide != RP.track.querySelector(".recent-slides:last-child")) { // not for last slide so it always stays at the back
-            pSlide.style.top = "-100%";
+            pSlide.style.top = "-102%";
         }
         pSlide.classList.remove("no-f");
     })
@@ -1458,9 +1472,10 @@ function recentProjectsSlides() {
             // keep proportionnality
             const move = mapRange(scrollbarMain.scroll().position.y,
                                   RP.trackSegments[currentSlideNb][0], RP.trackSegments[currentSlideNb][1],
-                                  0, 100)
+                                  0, 105)
             // apply position
             RP.allSlides[currentSlideNb].style.top = -move +"%";
+            // RP.allSlides[currentSlideNb].style.transform = `translateY(${-move}%)`;
         }
     }
 }
@@ -1524,7 +1539,7 @@ function scrollToProjectsListFilters(card = false, scrollDuration = scrollToDura
 
 //#region FILTERS SECTION
 var F = {
-    allFilterIDs : [], // array of filters's id
+    filtersValidIDs : [], // array of filters's id
     selectedFilters : [], // array of selected filters's id
     allFilterBtns : {}, // node list of all filters buttons
     allOtherBtns : {}, // node list of all other filter buttons that are not filters (it makes sense trust me)
@@ -1551,7 +1566,9 @@ var F = {
     animateInLinesOfCards : 3, // number of lines of cards to animate in (decimal values work too)
 }
 // generate array of all valid filters
-Prj.projectsDataSample.TEMPLATE.filter.split("|").forEach((filter) => { F.allFilterIDs.push(filter); });
+Prj.projectsDataSample.filtersValid.split("|").forEach((filter) => {
+    if (filter) { F.filtersValidIDs.push(filter); } // avoid empty filters
+});
 
 // elements
 F.introContainer = F.section.querySelector("#intro-filters");
@@ -1593,7 +1610,7 @@ function filtersGenerateProjectsList() {
         // get project filters
         const pF = projectData[1].filter;
 
-        if (pF) {
+        // if (pF) { // disabled because projects without filters can be useful?
             var verif = [];
             // check for filters one by one
             F.selectedFilters.forEach(sFilter => {
@@ -1609,8 +1626,8 @@ function filtersGenerateProjectsList() {
     // added quirk : if no selected filter, will select all projects since [] is not false
                 selectedProjects.push(projectData[0]);
             }
-        }
-        else { return; } // if no filter then skip
+        // }
+        // else { return; } // if no filter then skip
     });
 
     // remove duplicates (even though it's already quite reliable)
@@ -1662,9 +1679,17 @@ function filtersGenerateProjectsList() {
 
             // generating project card
             var filters = ``;
-            PROJECT.filter.split("|").forEach((filter) => {
-                filters += generatePrjPill({ID : filter, type : "filter", state : ((F.selectedFilters.includes(filter)) ? "true" : false)});
-            }) //${(spIndex < F.animateInLinesOfCards) ? `transition-delay:${spIndex / 10}s;` : `transition: none;`}
+            const projectFiltersList = PROJECT.filter.split("|");
+            F.filtersValidIDs.forEach((filter) => { // only valid filters and in order of filter list
+                if (projectFiltersList.includes(filter)) {
+                    filters += generatePrjPill({ID : filter, type : "filter", state : ((F.selectedFilters.includes(filter)) ? "true" : false)});
+                }
+            })
+            // PROJECT.filter.split("|").forEach((filter) => { // filters in order of in data of project (not consistent)
+                // if (F.allFilterIDs.includes(filter)) { // only if filter is valid
+                    // filters += generatePrjPill({ID : filter, type : "filter", state : ((F.selectedFilters.includes(filter)) ? "true" : false)});
+                // }
+            // }) //${(spIndex < F.animateInLinesOfCards) ? `transition-delay:${spIndex / 10}s;` : `transition: none;`}
             const projectCardHTML = `
                 <div project-id="${projectID}" list-nb="${spIndex}" class="project-cards" style="transition: none;">
                     <div class="in">
@@ -1936,11 +1961,11 @@ function filtersUpdateDateBubbleTip(dateEl = F.filtersContainer.querySelectorAll
     dateEl.setAttribute("tip", getTextLang({type : "translate-bubble-id", id : dateEl}));
 }
 
-function createFilters() {
+function filtersCreateFiltersList() {
     // generate filter pills
     var allButtonsHTML = ``;
-    F.allFilterIDs.forEach((filter) => {
-        allButtonsHTML += generatePrjPill({ID : filter, type : "filter", plural : true});
+    F.filtersValidIDs.forEach((filter) => {
+        allButtonsHTML += generatePrjPill({ID : filter, type : "filter", stateCross : true, plural : true});
     })
     allButtonsHTML += generatePrjPill({ID : "date", type : "filter", typeClassDisable : true, customClass : "date", plural : false,
         customIcon : `<svg viewBox="0 0 24 24">
@@ -2037,7 +2062,7 @@ function getFiltersContainerHeight() {
 function filtersScrollCalcs() {
     const projectsListOffset = F.projectsListContainer.getBoundingClientRect().top,
           docHeight = doc.clientHeight;
-    if (projectsListOffset < docHeight * 2.5) { // avoid unnecessary calculations
+    // if (projectsListOffset < docHeight * 2.5) { // avoid unnecessary calculations // needed for [highlighted-words] (reusing for performance reasons)
         getFiltersContainerHeight();
 
         // TODO update only when necessary (when filtersContainerHeight changes)
@@ -2067,7 +2092,7 @@ function filtersScrollCalcs() {
         //        F.projectsListColumnLongestInGroups[F.projectsListColumnGroupCurrentIndex] + float(projectsListOffset / 3 / 3)
         //        +"px";
         //}
-    }
+    // }
 }
 
 // columns are offset by scroll, need to reduce size of container to avoid empty space at the end
@@ -2166,6 +2191,7 @@ function projectFileCreate(projectID, card, cursorEv) {
     const PROJECT = pData[projectID];
 
     cleanURL(); hashURL(projectID);
+    // TODO change page title with projectID (and translate title)
 
     // generate
     var projectFile = document.createElement("div");
@@ -2232,8 +2258,14 @@ function projectFileCreate(projectID, card, cursorEv) {
             headerSecondaryContentHTML += `</div>`; // close
         })
     }
+
     // filters
-    PROJECT.filter.split("|").forEach((filter) => { filtersHTML += generatePrjPill({ID : filter, type : "filter"}); })
+    const projectFiltersList = PROJECT.filter.split("|");
+    F.filtersValidIDs.forEach((filter) => { // only valid filters and in order of filter list
+        if (projectFiltersList.includes(filter)) {
+            filtersHTML += generatePrjPill({ID : filter, type : "filter"});
+        }
+    })
     // contexts
     PROJECT.context.split("|").forEach((context) => { contextsHTML += generatePrjPill({ID : context, type : "context"}); })
 
@@ -2266,8 +2298,8 @@ function projectFileCreate(projectID, card, cursorEv) {
                 ${headerMainContentHTML}
                 <div class="data-container sticky-fssb">
                     <div class="top">
-                        <div class="contexts">${contextsHTML}</div>
                         <div class="filters">${filtersHTML}</div>
+                        <div class="contexts">${contextsHTML}</div>
                         <div class="date"><span>${(PROJECT.date) ? PROJECT.date : pDataDefault.date}</span></div>
                     </div>
                     <div class="bottom">
@@ -2296,6 +2328,38 @@ function projectFileCreate(projectID, card, cursorEv) {
     patternBgCreate(projectFile, {fileSrc : "./assets/medias/pattern-dot-small.png", size : 4, randomizePos : false});
 
     // after "create" code
+    // set size of project content img
+    function resizeToRatioPrjContent(elToResize, dummy, removeDummy = true) {
+        const prjHighSize = (dummy) ? [dummy.naturalWidth, dummy.naturalHeight] : [elToResize.naturalWidth, elToResize.naturalHeight];
+        if (dummy && removeDummy) { dummy.remove(); } // not needed anymore
+
+        // check which side is longer to fill correctly
+        var squarishAdd = prjHighSize[0] * 0.1;
+        //if (prjHighSize[0] > prjHighSize[1] - squarishAdd && prjHighSize[0] < prjHighSize[1] + squarishAdd) { // squarish aspect ratios
+        if (prjHighSize[0] < prjHighSize[1] + squarishAdd && prjHighSize[0] > prjHighSize[1] - squarishAdd) { // squarish aspect ratios
+            elToResize.style.height = "97.5vh";
+        } else if (prjHighSize[1] > prjHighSize[0]) { // height >
+            elToResize.style.height = "95vh";
+        } else { // width >
+            elToResize.style.width = "75%";
+        }
+    }
+    // loops for some time until it gets the size of img element, then it resizes
+    function getSizeAndResizeToRatioPrjContent({elIMG, dummyElIMG, removeDummy, intensityMs = 30, durationMs = 2000}) {
+        const elToCheck = (dummyElIMG) ? dummyElIMG : elIMG;
+        var loopLimit = (durationMs/intensityMs).toFixed(0), loopGetPrjHighRes = setInterval(function () { // loop until found
+            if (elToCheck.naturalWidth) {
+                resizeToRatioPrjContent(elToCheck, dummyElIMG, removeDummy); // resize
+                clearInterval(loopGetPrjHighRes); // stop loop
+            }
+            loopLimit--;
+            if (loopLimit < 0) { // stop loop if not found after "durationMs" ms
+                console.error(`(project file) <img src> not found "${elToCheck.src}".`);
+                clearInterval(loopGetPrjHighRes);
+            }
+        }, intensityMs);
+    }
+
     if (PROJECT.type == "img") {
         const fileMainPrjImgEl = projectFile.querySelector("img.project-main"),
               prjImgHighSrc = `./assets/medias/projects/high/${projectID}.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}`;
@@ -2304,34 +2368,26 @@ function projectFileCreate(projectID, card, cursorEv) {
         // and get back dummy element to get values (which will be removed with project file at the end since it's its parent so no worries)
         var prjImgHighDummy = imgReplaceWithOnceLoaded(fileMainPrjImgEl, prjImgHighSrc, { dummy : prjImgHighDummy, dummyReturn : true, customParent : projectFile });
 
-        // set size of main project img
-        // get size of high res project img
-        var loopLimit = 1000, loopGetPrjHighRes = setInterval(function () { // loop until found
-            if (prjImgHighDummy.naturalWidth) {
-                clearInterval(loopGetPrjHighRes); // stop loop
+        // get size of low res project img first
+        getSizeAndResizeToRatioPrjContent({elIMG : fileMainPrjImgEl, intensityMs : 20, durationMs : 12000});
 
-                const prjHighSize = [prjImgHighDummy.naturalWidth, prjImgHighDummy.naturalHeight];
-                fileMainPrjImgEl.style.width = prjHighSize[0] + doc.clientWidth; // add vp size to ensure it fills container
-                fileMainPrjImgEl.style.height = prjHighSize[1] + doc.clientHeight;
+        // get size of high res project img after to make sure it corresponds to high res one
+        getSizeAndResizeToRatioPrjContent({elIMG : fileMainPrjImgEl, dummyElIMG : prjImgHighDummy});
+    }
+    // do the same for additional content, but only if specified
+    if (PROJECT.additional) {
+        Object.entries(PROJECT.additional).forEach((addPrj) => {
+            const PRJADD = addPrj[1], // data
+                  fileSecondPrjEl = projectFile.querySelector("[project-secondary-id='"+ addPrj[0] +"'] img.project-secondary");
 
-                // not needed anymore
-                prjImgHighDummy.remove();
+            console.log(addPrj[0], PRJADD);
+            if (PRJADD.sizeFill == "width") { fileSecondPrjEl.style.width = "100%"; }
+            else if (PRJADD.sizeFill == "height") { fileSecondPrjEl.style.height = "95vh"; }
 
-                // check which side is longer to fill correctly
-                var squarishAdd = prjHighSize[0] * 0.1;
-                //if (prjHighSize[0] > prjHighSize[1] - squarishAdd && prjHighSize[0] < prjHighSize[1] + squarishAdd) { // squarish aspect ratios
-                if (prjHighSize[0] < prjHighSize[1] + squarishAdd && prjHighSize[0] > prjHighSize[1] - squarishAdd) { // squarish aspect ratios
-                    fileMainPrjImgEl.style.height = "97.5vh";
-                } else if (prjHighSize[1] > prjHighSize[0]) { // height >
-                    fileMainPrjImgEl.style.height = "95vh";
-                } else { // width >
-                    fileMainPrjImgEl.style.width = "75%";
-                }
+            if (PRJADD.type == "img" && !["width", "height"].includes(PRJADD.sizeFill)) {
+                getSizeAndResizeToRatioPrjContent({elIMG : fileSecondPrjEl});
             }
-            loopLimit--;
-            if (loopLimit < 0) { console.error("main project img high res not found"); clearInterval(loopGetPrjHighRes); } // stop loop if not found after loopLimit*loopGetPrjHighRes ms
-        }, 15);
-
+        })
     }
 
     // scrollbar
@@ -2443,7 +2499,7 @@ function scrollUpdatesEvents() {
     recentProjectsTrackSegments();
 }
 function scrollEvents() {
-    doc.style.setProperty("--scroll-pos-y", scrollbarMain.scroll().position.y +"px");
+    // doc.style.setProperty("--scroll-pos-y", scrollbarMain.scroll().position.y +"px"); // using "--ice-scroll-offset" for performance reasons
 
     //updateAll();
 
@@ -2477,11 +2533,11 @@ function init() {
     translatePage();
 
     // RECENT PROJECTS
-    createRecentProjects();
+    recentProjectsCreate();
     recentProjectsSlides();
 
     // FILTERS
-    createFilters();
+    filtersCreateFiltersList();
 
     // PROJECT FILES
     projectFileOpenFromURLHash()
