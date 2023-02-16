@@ -12,8 +12,8 @@ import "./main.scss"
 
 //#region - HELPER VARIABLES -
 var doc = document.documentElement,
-    isMini, // boolean if viewport is small like a phone
-    touchDevice = (navigator.maxTouchPoints || "ontouchstart" in document.documentElement), // boolean if touch device
+    isMini, isTablet, // boolean if viewport is small like a phone
+    isTouchDevice = (() => { try { document.createEvent("TouchEvent"); return true; } catch (e) { return false; } })(), // boolean if touch device
     pageContentContainer = document.querySelector("main#content-container"); // main container of page
 
 // convert to radian or to degrees
@@ -21,13 +21,13 @@ const deg2rad = Math.PI/180,
       rad2deg = 180/Math.PI;
 
 // check the viewport size, set boolean "isMini" if vp goes small
-function checkWinSize() { isMini = (window.innerWidth > 727); };
+function checkWinSize() { isMini = (window.innerWidth < 800); isTablet = (window.innerWidth < 950); };
 checkWinSize(); window.addEventListener("resize", checkWinSize);
 
 // CURSOR POSITION AT ANY TIME
 // window.addEventListener("mousemove", (cursorEv) => {
-    // doc.style.setProperty("--cursor-x", cursorEv.clientX +"px");
-    // doc.style.setProperty("--cursor-y", cursorEv.clientY +"px");
+//     doc.style.setProperty("--cursor-x", cursorEv.clientX +"px");
+//     doc.style.setProperty("--cursor-y", cursorEv.clientY +"px");
 // })
 //#endregion
 
@@ -35,7 +35,7 @@ checkWinSize(); window.addEventListener("resize", checkWinSize);
 // is browser chromium based
 if (!!window.chrome) { document.querySelector("html").classList.add("isChr"); }
 // is touch device
-if (!!window.chrome) { document.querySelector("html").classList.add("isTouch"); }
+if (isTouchDevice) { document.querySelector("html").classList.add("isTouch"); }
 //#endregion
 
 //#region - HELPER FUNCTIONS -
@@ -145,6 +145,7 @@ function imgReplaceWithOnceLoaded(elem, newImgSrc, { dummy, dummyReturn = false,
         if (!dummy) {
             dummy = document.createElement("img");
             dummy.classList.add("dummy");
+            dummy.setAttribute("fetchpriority", "high");
             dummy.src = newImgSrc;
 
             if (customParent) { customParent.appendChild(dummy); }
@@ -274,8 +275,8 @@ function projectsSortByDate() {
 const projectsSortedDate = projectsSortByDate();
 
 // get the project's title
-function getProjectTextLang(projectID, nesting = "title") {
-    return getTextLang({type : "project-id", id : projectID, langDB : "project", langDBNesting : nesting});
+function getProjectTextLang(projectID, nesting = "title", leaveEmpty) {
+    return getTextLang({type : "project-id", id : projectID, langDB : "project", langDBNesting : nesting, leaveEmpty : leaveEmpty});
 }
 //#endregion
 
@@ -439,23 +440,25 @@ function translatePage() {
 
         // project files
         if (toTranslateEl.classList.contains("project-files")) {
-            toTranslateEl.querySelector(".catchphrase").innerText = getTextLang({type : "project-id", id : pID, langDB : "project", langDBNesting : "catchphrase", leaveEmpty : true});
+            const catchphrase = toTranslateEl.querySelector(".catchphrase"),
+                  secondaryProjects = toTranslateEl.querySelectorAll("[project-secondary-id]"), // project secondary (additional) comments
+                  projectFilesDesc = toTranslateEl.querySelector(".desc-content");
 
-            // project secondary (additional) comments
-            const secondaryProjects = toTranslateEl.querySelectorAll("[project-secondary-id]");
+
+            if (catchphrase) {
+                catchphrase.innerText = getTextLang({type : "project-id", id : pID, langDB : "project", langDBNesting : "catchphrase", leaveEmpty : true});
+            }
+
             if (secondaryProjects) {
                 secondaryProjects.forEach((secondary) => {
                     secondary.querySelector(".comment").innerText = getTextLang({type : "project-id", id : pID, langDB : "project", langDBNesting : ["additional", secondary.getAttribute("project-secondary-id"), "comment"], leaveEmpty : true});
                 })
             }
+
+            projectFilesDesc.innerHTML = getProjectTextLang(pID, "desc", true);
         }
     })
 
-    // TODO pContexts
-    const projectFiles = document.querySelectorAll("[project-files-container] .project-file");
-    if (projectFiles.length > 0) {
-        console.debug("translate project files", projectFiles);
-    }
 }
 
 // call to change to the next language
@@ -488,9 +491,9 @@ function languageButtonCreate() {
     document.querySelector("nav.menu").appendChild(languageButton);
 
     languageButton.addEventListener("click", () => { setTimeout(() => { changeLanguage(); }, 100); });
-    boomAnimInit(languageButton, false, "languageButton");
+    boomAnimInit({target : languageButton, specialCase : "languageButton"});
 }
-languageButtonCreate();
+//languageButtonCreate();
 //#endregion
 
 //#region LOADING
@@ -514,7 +517,7 @@ var L = {
         assetsAll : false, // true if all assets loaded
         everything : false, // true if "assetsAll" and "necessary" are true
     },
-    assetsLoadMajorityThreshold : 0.75, // should not be higher than 1
+    assetsLoadMajorityThreshold : 0.66, // should not be higher than 1
     assetsLoaded : 0, // current amount of assets loaded
     assetsAmountNb : 0, // amount of assets to load
 }
@@ -524,8 +527,11 @@ var projectsFileName = [];
 projectsSortedDate.forEach((p) => { // using sorted list to load the most recent ones first
     const PROJECT = pData[p[0]];
     if (PROJECT.hidden != true) {
+        if (PROJECT.type != "vid") {
         projectsFileName.push(p[0] +"_low."+ ((PROJECT.ext) ? PROJECT.ext : pDataDefault.ext));
+        }
     }
+
 });
 L.toLoad.image["./assets/medias/projects/low/"] = projectsFileName;
 
@@ -598,7 +604,7 @@ function loadingScreenDisplay(type) {
             if (stopChecks) { clearInterval(loadCheckMain); } // stop checks loop when not needed anymore
         }, loadTimerIncrements);
 
-        const validationStepsTiming = [1000, 7500, 15000, 20000]; // ["everything", "majority", "necessary", "fail"]
+        const validationStepsTiming = [1000, 5000, 15000, 30000]; // ["everything", "majority", "necessary", "fail"]
         var loadValidMain = setInterval(() => {
             // display current state
             const progressionPercent = ((L.assetsLoaded / L.assetsAmountNb) * 100).toFixed(0) + "%";
@@ -723,9 +729,10 @@ function loadMainAssets() {
     var loadNecessaryChecks = [false, false];
     window.addEventListener("load", () => { // page load event
         loadingLogger({ log : "Page loaded." });
-        loadNecessaryChecks[0] = true;
-        checkNecessaryLoading();
+        // loadNecessaryChecks[0] = true;
+        // checkNecessaryLoading();
     });
+    loadNecessaryChecks[0] = true; // skipping pagel oad for the moment because when loading projectFile it waits to load all iframes (will need a workaround to set to true when project main loaded)
     document.fonts.ready.then(() => { // fonts // they are not too fast and not too long to load, that's good enough
         loadingLogger({ log : "Fonts loaded." });
         loadNecessaryChecks[1] = true;
@@ -774,7 +781,7 @@ loadMainAssets();
 
 //#region OVERLAY SCROLLBARS
 var scrollbarMain,
-    o1 = [null, 33], OScrHDelay = 200; if (!isMini) { o1 = [true, 33]; OScrHDelay = 800; };
+    o1 = [null, 33], OScrHDelay = 200; if (isMini) { o1 = [true, 33]; OScrHDelay = 800; };
 document.addEventListener("DOMContentLoaded", function() {
     scrollbarMain = OverlayScrollbars(document.querySelector("[scroll-main]"), {
         autoUpdate : o1[0],
@@ -785,7 +792,7 @@ document.addEventListener("DOMContentLoaded", function() {
         },
         scrollbars : {
             visibility : "auto",
-            autoHide : "scroll", // "scroll" "move" "never"
+            autoHide : "never", // "scroll" "move" "never"
             autoHideDelay : OScrHDelay
         },
         callbacks : {
@@ -798,7 +805,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // enable/disable scroll
-function scrollbarMainSetShowState(state = false, scrollbar = scrollbarMain) {
+function scrollbarSetShowState(scrollbar = scrollbarMain, state = false) {
     if (!state) { // default
         scrollbar.options("overflowBehavior.y", "scroll");
     } else if (state == "hide") {
@@ -831,11 +838,11 @@ const iceScrollFactor = (!window.chrome) ? 3 : 7; // chrome has "faster" scroll
 //#endregion
 
 //#region BOOM
-function boomAnimInit(target, container, specialCase) {
-    target.addEventListener("mousedown", (ev) => { boomAnim(ev, target, container, specialCase); });
+function boomAnimInit({target, container, specialCase, eventType = "mousedown"}) {
+    target.addEventListener(eventType, (ev) => { boomAnim({boomOrigin : ev, target : target, container : container, specialCase : specialCase, eventType : eventType}); });
 }
 
-function boomAnim(
+function boomAnim({
     // if specified ("mousedown" event var) will appear from cursor position,
     // else from center of target if specified,
     // else center of container
@@ -849,8 +856,10 @@ function boomAnim(
     // custom styling (css class name goes here)
     specialCase = false,
     // dismiss delay (ms)
-    fadeOutTime = 1300
-) {
+    fadeOutTime = 1300,
+
+    eventType
+}) {
 
     // container selector
     if (!container) { // if not specified, default to page viewport
@@ -893,7 +902,18 @@ function boomAnim(
     boom.style.setProperty("--boom-y", originY +"px");
 
     // create
-    document.querySelector("[boom-main-container]").appendChild(boom);
+    if (container) {
+        var boomContainer = container.querySelector("[boom-container]")
+        if (!boomContainer) {
+            boomContainer = document.createElement("div");
+            boomContainer.setAttribute("boom-container", "")
+            container.appendChild(boomContainer);
+        }
+        boomContainer.appendChild(boom);
+    } else {
+        document.querySelector("[boom-main-container]").appendChild(boom);
+    }
+
     boom.appendChild(boomCircle);
 
     // animation in
@@ -914,12 +934,15 @@ function boomAnim(
         }, 10);
     }
 
-    // if there is a target element, wait for these events
-    if(target) {
-        target.addEventListener("mouseup", () => { boomRemove(); });
-        target.addEventListener("mouseleave", () => { boomRemove(); });
+    if (eventType == "mousedown") {
+        // if there is a target element, wait for these events
+        if(target) {
+            target.addEventListener("mouseup", () => { boomRemove(); });
+            target.addEventListener("mouseleave", () => { boomRemove(); });
+        }
+        // else dismiss right away
+        else { boomRemove(); }
     }
-    // else dismiss right away
     else { boomRemove(); }
 }
 //#endregion
@@ -942,7 +965,7 @@ function bubbleTipCreate({target, delayAnimIn = 500, force = false}) {
     if (!label) { console.error("no bubble tip specified"); return; }
 
     // not on touch devices
-    if (!touchDevice && force) { return; }
+    if (!isTouchDevice && force) { return; }
 
     // generate
     var bubbleTipEl;
@@ -1035,13 +1058,12 @@ function cursorCrossClick(curCrossEl, click) {
 }
 function cursorCrossMove(e, curCrossEl) {
     curCrossEl.classList.add("hover");
-    // curCrossEl.style.left = e.clientX + 'px';
-    // curCrossEl.style.top = e.clientY + 'px';
-    // already know the pos of cursor
+    curCrossEl.style.left = e.clientX + 'px';
+    curCrossEl.style.top = e.clientY + 'px';
 }
 
 function cursorCrossCreate(surface, container, cursorEv) {
-    if(touchDevice == false) {
+    if(!isTouchDevice) {
         // by default, the container will be the parent of the target surface, but it can be specified
         container = (container) ? container : surface.parentElement;
 
@@ -1076,12 +1098,42 @@ function cursorCrossCreate(surface, container, cursorEv) {
 }
 //#endregion
 
+//#region CURSOR GLOW
+function cursorGlowInit({target, applyTo = [], sizeREM = 65, onlyHover = true}) {
+    if (!isTouchDevice) {
+        if (onlyHover) {
+            target.addEventListener("mousemove", (cursorEv) => { cursorGlowMove(cursorEv, target, applyTo, sizeREM); });
+        }
+    }
+}
+function cursorGlowMove(cursorEv, target, applyTo = [], sizeREM) {
+    const targetRect = target.getBoundingClientRect();
+    applyTo = (applyTo.length > 0) ? applyTo : target;
+
+    Array.from(applyTo).forEach((appTo) => {
+        appTo.style.setProperty("--cglow-size", `${sizeREM}rem`);
+        appTo.style.setProperty("--cglow-x", `calc(${cursorEv.clientX - targetRect.left}px - (var(--cglow-size) / 2))`);
+        appTo.style.setProperty("--cglow-y", `calc(${cursorEv.clientY - targetRect.top}px - (var(--cglow-size) / 2))`);
+    })
+
+}
+//#endregion
+
+
+function videoElPlayOnHover(video, hoverEl) {
+    hoverEl.addEventListener("mouseover", function (e) { video.play(); })
+    hoverEl.addEventListener("mouseout", function (e) { video.pause(); })
+}
+
+
 //#region QUICK VIDEO POPUPS
 function quickPopupVideoInit(target, projectID, originEl) {
     target.addEventListener("click", (cursorEv) => { quickPopupVideoCreate(projectID, originEl, cursorEv); });
 }
 function quickPopupVideoCreate(projectID, originEl, cursorEv) { // popup video projects anywhere
     const PROJECT = pData[projectID];
+
+    cleanURL(); hashURL(projectID + "?vid");
 
     // generate
     var popVid;
@@ -1093,7 +1145,7 @@ function quickPopupVideoCreate(projectID, originEl, cursorEv) { // popup video p
         <div class="ytplayer-c">
             <div class="ytplayer" style="background-color: ${(PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill}" aspect-ratio="${(PROJECT.aspectRatio) ? PROJECT.aspectRatio : pDataDefault.aspectRatio}">
                 <div class="embed-player-loading"></div>
-                <iframe width="1280" height="720" src="https://www.youtube.com/embed/${(PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id}?rel=0&color=white&loop=1&autoplay=1" frameborder="0" allowfullscreen></iframe>
+                <iframe width="1920" height="1080" src="https://www.youtube.com/embed/${(PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id}?rel=0&color=white&loop=1&autoplay=1" frameborder="0" allowfullscreen></iframe>
             </div>
         </div>
     `;
@@ -1121,24 +1173,29 @@ function quickPopupVideoCreate(projectID, originEl, cursorEv) { // popup video p
 
     // animation in
     setTimeout(() => {
-        scrollbarMainSetShowState("hide");
+        scrollbarSetShowState(scrollbarMain, "hide");
         popVid.classList.remove("anim-pre");
     }, 100);
 
     // out
     const curCrossEl = cursorCrossCreate(popVidBG, false, cursorEv);
-    cursorCrossHide(curCrossEl, "force", popVidBG);
+    if (curCrossEl) { cursorCrossHide(curCrossEl, "force", popVidBG); }
+
+    window.addEventListener("hashchange", () => { quickPopupVideoRemove(popVid, curCrossEl) }, { once:true }); // close on history back event
 
     setTimeout(() => {
-        cursorCrossHide(curCrossEl, false, popVidBG);
+        if (curCrossEl) { cursorCrossHide(curCrossEl, false, popVidBG); }
         popVidBG.addEventListener("click", () => { quickPopupVideoRemove(popVid, curCrossEl); })
     }, 300);
 }
 function quickPopupVideoRemove(popVid, curCrossEl) {
+    cleanURL();
+    window.removeEventListener("hashchange", () => { quickPopupVideoRemove(popVid, curCrossEl) }, { once:true });
+
     // hide curCross
     if (curCrossEl) { cursorCrossHide(curCrossEl, "force"); }
     // enable back main page scrolling
-    scrollbarMainSetShowState();
+    scrollbarSetShowState(scrollbarMain);
     // remove pop-up
     popVid.classList.add("anim-clear");
     eventAtTransitionEnd(popVid, () => { popVid.remove(); }, {property : "opacity", once : false});
@@ -1183,10 +1240,10 @@ function StickIt_FlexSiblingsSpaceBetween() { // alternate for perfomance reason
     document.querySelectorAll(".sticky-fssb").forEach((stickyElContainer) => {
         // there should only be 2 children
         const stickyElSib1 = stickyElContainer.firstElementChild,
-              stickyElSib2 = stickyElContainer.lastElementChild,
-              targetContainer = stickyElContainer.getBoundingClientRect(),
-              target1 = stickyElSib1.getBoundingClientRect(),
-              stickySib2Height = stickyElSib2.getBoundingClientRect().height;
+            stickyElSib2 = stickyElContainer.lastElementChild,
+            targetContainer = stickyElContainer.getBoundingClientRect(),
+            target1 = stickyElSib1.getBoundingClientRect(),
+            stickySib2Height = stickyElSib2.getBoundingClientRect().height;
 
         if (doc.clientHeight < targetContainer.bottom) {
             // 2
@@ -1291,40 +1348,20 @@ function generatePrjPill({
 }
 //#endregion
 
+
+//#region LANDING
+cursorGlowInit({target : document.querySelector(".content-sections#landing .y-logo-pattern"), applyTo : document.querySelectorAll(".content-sections#landing .cursor-glow"), sizeREM : 88, onlyHover : true});
+document.querySelector(".content-sections#landing .scroll-down-notice").addEventListener("click", scrollToFiltersSection);
+
+//#endregion
+
+/*
 //#region RECENT PROJECTS SECTION
 var RP = {
     projectsNb : 4,
-    //trackDivisor : 2,
     section : document.querySelector("#recent-projects"),
+    slidesContainer : document.querySelector("#recent-projects #recent-projects-slides"),
     allSlides : {},
-    track : document.querySelector("#recent-projects"),
-    trackLength : 0,
-    trackSegments : [],
-}
-
-function recentProjectsTrackLength() {
-    // TRACK LENGTH
-    RP.trackLength = doc.clientHeight * RP.projectsNb; // if using trackDivisor: / rP.trackDivisor
-    RP.track.style.height = RP.trackLength +"px"; // if using trackDivisor: - doc.clientHeight / rP.projectsNb
-}
-function recentProjectsTrackSegments() {
-    // cut track in segments to get start and end position for slides to occur
-    RP.trackSegments = []; // clear segments before updating
-
-    const offset = RP.section.offsetTop; // offset with start position in the page
-    var tSegmentAdd = 0; // point jumper
-
-    // make segments with start and end point of each project
-    for (let i = 0; i < RP.projectsNb; i++) {
-        // set first point
-        var add = [tSegmentAdd + offset]
-        // next point calc, also start point for next loop
-        tSegmentAdd += (RP.trackLength / RP.projectsNb); // if using trackDivisor: - doc.clientHeight / rP.projectsNb
-        // set next point
-        add.push(tSegmentAdd + offset);
-        // store tuple of start/end points
-        RP.trackSegments.push(add);
-    }
 }
 
 function recentProjectsCreate() {
@@ -1339,156 +1376,99 @@ function recentProjectsCreate() {
         if (getRecentPrjCount > RP.projectsNb) { break; }
     }
 
-    var slides = ``, actions = ``;
+    var slides = ``; // recipient
 
+    // generate
     recentProjects.forEach((recentProject) => {
         const projectID = recentProject[0], PROJECT = pData[projectID];
 
-        // FILTERS
         var filters = ``;
-        ((PROJECT.filter) ? PROJECT.filter : pDataDefault.filter).split("|").forEach((filter) => {
-            filters += generatePrjPill({ID : filter, type : "filter"});
+        const projectFiltersList = ((PROJECT.filter) ? PROJECT.filter : pDataDefault.filter).split("|");
+        F.filtersValidIDs.forEach((filter) => { // only valid filters and in order of filter list
+            if (projectFiltersList.includes(filter)) {
+                filters += generatePrjPill({ID : filter, type : "filter"});
+            }
         })
 
-        // SLIDES GENERATION
+        var thumbnail = ``;
+        if (PROJECT.type == "vid") {
+            const ext = (PROJECT.ext) ? PROJECT.ext : pDataDefault.ext;
+            thumbnail = `
+                <video loop muted poster="./assets/medias/projects/low/${projectID}_low.jpg">
+                    <source src="./assets/medias/projects/high/${projectID}.${ext}" type="video/${ext}">
+                    <img fetchpriority="high" src="./assets/medias/projects/low/${projectID}_low.jpg">
+                </video>
+            `;
+        } else {
+            thumbnail = `<img fetchpriority="high" src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}">`;
+        }
+
         slides += `
-            <div project-id="${projectID}" class="recent-slides" style="background-color: ${(PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill}">
+            <div project-id="${projectID}" class="recent-slides cursor-glow-before" style="--project-color-accent: ${(PROJECT.colorAccent) ? PROJECT.colorAccent : pDataDefault.colorAccent}; --project-color-fill: ${(PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill}">
                 <div class="in">
-                    <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"></div>
-                    <span class="project-title">${getProjectTextLang(projectID)}</span>
-                    <div class="filters">
-                        ${filters}
+                    <div class="bg-slide"></div>
+                    <div class="thumbnail">${thumbnail}</div>
+                    <div class="data">
+                        <span class="project-title">${getProjectTextLang(projectID)}</span>
+                        <div class="filters">
+                            ${filters}
+                        </div>
                     </div>
                 </div>
             </div>
-        `; // <div class="bg"></div>
-
-        // ACTIONS GENERATION
-        actions += `
-            <a project-id="${projectID}" class="actions" style="height: calc(100% / ${RP.projectsNb});"></a>
         `;
     })
 
-    // CREATION
-    RP.section.querySelector("#recent-projects-slides").innerHTML = slides;
-    RP.section.querySelector("#recent-projects-actions .in").innerHTML = actions;
+    // create
+    RP.slidesContainer.innerHTML = slides;
 
     // store recent slides elements
-    RP.allSlides = RP.track.querySelectorAll(".recent-slides");
-    // set the scroll track length
-    recentProjectsTrackLength();
-
-    // put scroll-linked pattern in slides background
-    // RP.allSlides.forEach((slide) => {
-    //     patternBgCreate(slide.querySelector(".in"), {fileSrc : "./assets/medias/pattern-dot-average.png", size : 5, speedFactor : 0.1, randomizePos : true});
-    // });
-    // patternBgCreate(RP.section.querySelector("#intro-rp"), {fileSrc : "./assets/medias/pattern-dot-average.png", size : 7, speedFactor : 0.1, randomizePos : true});
+    RP.allSlides = RP.slidesContainer.querySelectorAll(".recent-slides");
 
     // set filter buttons actions
-    RP.section.querySelectorAll("#recent-projects-slides .prj-pill[filter-id]").forEach((filterButton) => {
-        filterButton.addEventListener("click", (e) => {filtersAction({caller : e, isolate : "isolate", customScrollToDuration : scrollToDurationElse}); });
+    RP.slidesContainer.querySelectorAll(".prj-pill[filter-id]").forEach((filterButton) => {
+        filterButton.addEventListener("click", (e) => { filtersAction({caller : e, isolate : true, customScrollToDuration : scrollToDurationElse}); });
     })
 
     // apply z-index in order of slides
-    for (let i = 1; i <= RP.projectsNb; i++) {
-        RP.allSlides[RP.projectsNb - i].style.zIndex = i;
-    }
+    for (let i = 1; i <= RP.projectsNb; i++) { RP.allSlides[RP.projectsNb - i].style.zIndex = i; }
 
     // scroll to filters button click action
     RP.section.querySelector("#intro-rp .goto_filters-txt").addEventListener("click", scrollToFiltersSection);
 
-    // project file open action
-    RP.section.querySelectorAll("#recent-projects-actions [project-id]").forEach((rpAction) => {
-        rpAction.addEventListener("click", (cursorEv) => {
-            projectFileCreate(getProjectID(rpAction), rpAction, cursorEv);
+
+    RP.slidesContainer.querySelectorAll("[project-id]").forEach((rpSlide) => {
+        const rpSlideClickable = rpSlide.querySelector(".bg-slide");
+
+        // project file open action
+        rpSlideClickable.addEventListener("click", (cursorEv) => {
+            projectFileCreate(getProjectID(rpSlide), rpSlide, cursorEv);
         });
+
+        // video thumbnails
+        if (pData[rpSlide.getAttribute("project-id")].type == "vid") {
+            videoElPlayOnHover(rpSlide.querySelector(".thumbnail video"), rpSlideClickable);
+        }
     });
+
+    // cursor glow
+    // RP.allSlides.forEach((slide) => { cursorGlowInit({target : slide, sizeREM : 150}) });
 }
 
-function recentProjectsSlides() {
-    // get the current slide focused
-    function findSegment(segments, scrollPos) {
-        for (let i = 0; i < RP.projectsNb; i++) {
-            const [start, end] = segments[i];
-            if (scrollPos >= start && scrollPos <= end) {
-                return i;
-            }
-        }
-        if (scrollPos <= segments[0][0]) {
-            return "before"
-        } else if (scrollPos >= segments.at(-1)[1]) {
-            return "after"
-        }
+// shift slides until reach top of vp
+function recentProjectsScrollIn() {
+    const scrollY = scrollbarMain.scroll().position.y;
+    if (scrollY < doc.clientHeight + 200) {
+        // apply position
+        RP.section.querySelector("#recent-projects-slides").style.transform =
+            `translateY(max(${mapRange(scrollbarMain.scroll().position.y,
+                                0, doc.clientHeight,
+                                doc.clientHeight / 3, 0)
+                        }px, 0px))`;
     }
-    var currentSlideNb = findSegment(RP.trackSegments, scrollbarMain.scroll().position.y);
-
-    // get the previous and after slides
-    var previousSlides = Array.from(RP.allSlides).slice(0,currentSlideNb),
-        nextSlides = Array.from(RP.allSlides).slice(currentSlideNb+1);
-
-    // outside states
-    if (currentSlideNb == "before") {
-        previousSlides = [];
-        nextSlides = RP.allSlides;
-    } else if (currentSlideNb == "after") {
-        previousSlides = RP.allSlides;
-        nextSlides = [];
-    }
-
-    // apply positions for previous and after slides
-    previousSlides.forEach((pSlide) => {
-        if (pSlide != RP.track.querySelector(".recent-slides:last-child")) { // not for last slide so it always stays at the back
-            pSlide.style.top = "-102%";
-        }
-        pSlide.classList.remove("no-f");
-    })
-    nextSlides.forEach((nSlide) => {
-        nSlide.style.top = 0; //(currentSlideNb != "before") ? 0 : "100%";
-
-        // enable pointer events for next slide when elements are displayed
-        // because can't scroll with mouse on top of fixed elements (thanks overlayscrollbars v1)
-        // so I disabled pointer events and made "actions" elements under to allow scrolling
-        if (nSlide != RP.allSlides[0]) { // not for the first slide because always ontop
-            if (nSlide == RP.allSlides[currentSlideNb + 1]) { // for the next slide only
-                if (nSlide.querySelector(".filters").getBoundingClientRect().bottom > RP.allSlides[currentSlideNb].getBoundingClientRect().bottom) {
-                    // when filters start appearing
-                    nSlide.classList.remove("no-f");
-                } else {
-                    nSlide.classList.add("no-f");
-                }
-            } else {
-                nSlide.classList.add("no-f");
-            }
-        } else {
-            nSlide.classList.remove("no-f");
-        } // i hope i can fix this later because that's way too hacky
-    })
-
-    // slide animation for current slide
-    if (typeof currentSlideNb == "number") { // || currentSlideNb == "before"
-        // calculate position
-        if (currentSlideNb != RP.projectsNb-1) { // not for last slide so it always stays at the back
-            // keep proportionnality
-            const move = mapRange(scrollbarMain.scroll().position.y,
-                                  RP.trackSegments[currentSlideNb][0], RP.trackSegments[currentSlideNb][1],
-                                  0, 105)
-            // apply position
-            RP.allSlides[currentSlideNb].style.top = -move +"%";
-            // RP.allSlides[currentSlideNb].style.transform = `translateY(${-move}%)`;
-        }
-    }
-}
-
-function recentProjectsScrollIn() { // shift slides until reach top of vp
-    const move = constrain(mapRange(scrollbarMain.scroll().position.y,
-                                    0, doc.clientHeight,
-                                    doc.clientHeight / 3, 0),
-                   0, doc.clientHeight / 3);
-    // apply position
-    RP.section.querySelector("#recent-projects-slides").style.transform = `translateY(${move}px)`;
-    RP.section.querySelector("#recent-projects-actions").style.transform = `translateY(${move}px)`;
 }
 //#endregion
+*/
 
 //#region GO TO FILTERS BUTTON
 function scrollToFiltersSection() {
@@ -1501,38 +1481,43 @@ function scrollToFiltersSection() {
         //() => { isScrollingTo = false; }
         );
 }
-function scrollToProjectsListFilters(card = false, scrollDuration = scrollToDurationCard) {
-    //isScrollingTo = true;
+function scrollToProjectsListFilters({scrollToForce = false, scrollDuration = scrollToDurationCard, scrollToQuick = false, scrollToTitle = false}) {
+    const filtersBarRect = F.filtersContainer.getBoundingClientRect(),
+          projectsListRect = F.projectsListContainer.getBoundingClientRect();
 
-    // default scrollTo pos : top of projects list
-    var scrollToPos = F.projectsListContainer.getBoundingClientRect().top;
-
-    // default behavior : button off-screen so we do animations and tralala
-    F.filterBtnIsOnScreen = false;
-
-    // if project card, scroll only if main filter buttons not in view
-    if (card == true) {
-        // scroll to top of filter buttons
-        scrollToPos -= F.filtersContainer.offsetHeight + 30;
-
-        // take first button, check if off-screen
-        const filtersPos = F.allFilterBtns[0].getBoundingClientRect().top;
-        if (filtersPos > 0 && filtersPos < doc.clientHeight) {
-            F.filterBtnIsOnScreen = true; // true to skip delay
-            return; // skip if on-screen
+    // will trigger only if filters bar is not on fully on screen
+    if (filtersBarRect.top < 0 || filtersBarRect.bottom > doc.clientHeight || scrollToForce) {
+        // scroll for filter bar buttons : need to scrollTo if projects list is far away, else skip
+        if (scrollToForce == "main") {
+            if (projectsListRect.top - filtersBarRect.bottom <= 30) {
+                return;
+            }
         }
-    } else {
-        // default : scroll to top of filters intro
-        getFiltersContainerHeight();
-        scrollToPos -= F.filtersContainerHeight + 30;
+
+        // buttons are off-screen
+        F.filterBtnsOnScreen = false;
+
+        //isScrollingTo = true;
+
+        // scrollTo base position (filters bar's position changes with scroll so we offset the scrollTo with height)
+        var scrollToPos = projectsListRect.top;
+
+        // default scrollTo pos : top of filters bar
+        scrollToPos -= filtersBarRect.height;
+        // top of filters title
+        if (scrollToTitle) { scrollToPos -= F.introContainer.querySelector(".title-filters").offsetHeight + 30; }
+    }
+    else { // skip if on screen
+        F.filterBtnsOnScreen = true; // skip delay to generate projects list
+        return;
     }
 
     scrollbarMain.scroll(
-        `+= ${scrollToPos}px`,
+        { y : `+= ${scrollToPos}px` },
         scrollDuration,
-        (card == true) ? "easeOutQuint" : "easeInOutQuart"
+        (scrollToQuick == true) ? "easeOutQuint" : "easeInOutQuart"
         //() => { isScrollingTo = false; }
-        );
+    );
 }
 //#endregion
 
@@ -1551,7 +1536,7 @@ var F = {
 
     filtersContainer : null,
     filtersContainerHeight : 0, // needed for positions calculations
-    filterBtnIsOnScreen : false, // check if filters buttons are on screen or not (to scroll-to or not)
+    filterBtnsOnScreen : false, // check if filter buttons are on screen or not (to scroll-to or not)
 
     projectsListContainer : null,
     projectsDisplayedNbEl : null, // number of projects found
@@ -1689,10 +1674,24 @@ function filtersGenerateProjectsList() {
                     // filters += generatePrjPill({ID : filter, type : "filter", state : ((F.selectedFilters.includes(filter)) ? "true" : false)});
                 // }
             // }) //${(spIndex < F.animateInLinesOfCards) ? `transition-delay:${spIndex / 10}s;` : `transition: none;`}
+
+            var thumbnail = ``;
+            if (PROJECT.type == "vid") {
+                const ext = (PROJECT.ext) ? PROJECT.ext : pDataDefault.ext;
+                thumbnail = `
+                    <video loop muted poster="./assets/medias/projects/low/${projectID}_low.jpg">
+                        <source src="./assets/medias/projects/high/${projectID}.${ext}" type="video/${ext}">
+                        <img fetchpriority="high" src="./assets/medias/projects/low/${projectID}_low.jpg">
+                    </video>
+                `;
+            } else {
+                thumbnail = `<img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}">`;
+            }
+
             const projectCardHTML = `
-                <div project-id="${projectID}" list-nb="${spIndex}" class="project-cards" style="transition: none;">
+                <div project-id="${projectID}" list-nb="${spIndex}" class="project-cards" style="transition: none; --project-color-accent: ${(PROJECT.colorAccent) ? PROJECT.colorAccent : pDataDefault.colorAccent}; --project-color-fill: ${(PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill}">
                     <div class="in">
-                        <div class="thumbnail"><img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}"></div>
+                        <div class="thumbnail">${thumbnail}</div>
                         <div class="header">
                             <span class="project-title">${getProjectTextLang(projectID)}</span>
                             ${(["yt", "vid"].includes((PROJECT.type) ? PROJECT.type : pDataDefault.type)) // if video : add popup button to see the video without leaving the page
@@ -1708,6 +1707,7 @@ function filtersGenerateProjectsList() {
                             : ``}
                         </div>
                     </div>
+                    <div class="bg-card cursor-glow-before"></div>
                     <div class="filters">
                         ${filters}
                     </div>
@@ -1813,6 +1813,12 @@ function filtersGenerateProjectsList() {
                       vidPopBtn = card.querySelector(".video-quick-popup-button");
 
                 projectFileInit(card, pID);
+                cursorGlowInit({target : card.querySelector(".in"), applyTo : [card.querySelector(".cursor-glow-before")]});
+
+                // video thumbnails
+                if (pData[pID].type == "vid") {
+                    videoElPlayOnHover(card.querySelector(".thumbnail video"), card.querySelector(".in"));
+                }
 
                 // video quick popup button
                 if (vidPopBtn) {
@@ -1883,7 +1889,7 @@ function filtersGenerateProjectsList() {
 
     // set filter buttons actions
     F.projectsListContainer.querySelectorAll(".project-cards .prj-pill[filter-id]").forEach((filterButton) => {
-        filterButton.addEventListener("click", (e) => { filtersAction({caller : e, isolate : "isolate", delay : scrollToDurationCard * (5/7), card : true}); });
+        filterButton.addEventListener("click", (e) => { filtersAction({caller : e, isolate : true, delay : scrollToDurationCard * (5/7), scrollToQuick : true}); });
     })
 
     // TODO do not re generate if filters give the same results (especially if no projects are found (selectedProjectsNb = 0)
@@ -1921,16 +1927,19 @@ function filtersGenerateProjectsList() {
     F.previousDateOrder = dateOrder;
 }
 
-function filtersAction({caller, isolate = false, delay = 0, card = false, customScrollToDuration}) {
+function filtersAction({caller, isolate = false, delay = 0, scrollToForce, customScrollToDuration, scrollToQuick, scrollToTitle}) {
     // which filter called?
     caller = caller.target;
     const selectedFilter = F.filtersContainer.querySelector(`.prj-pill[filter-id="${getFilterID(caller)}"]`);
 
     // scroll to filters click action
-    caller.addEventListener("click", scrollToProjectsListFilters(card, customScrollToDuration));
+    if (F.filtersContainer) {
+
+    }
+    caller.addEventListener("click", scrollToProjectsListFilters({scrollToForce : scrollToForce, scrollToQuick : scrollToQuick, scrollDuration : customScrollToDuration, scrollToTitle : scrollToTitle}));
 
     // if button is on screen, skip scrollTo animation delay
-    delay = (F.filterBtnIsOnScreen == true) ? 0 : delay;
+    delay = (F.filterBtnsOnScreen == true) ? 0 : delay;
 
     setTimeout(() => {
         if (isolate) { // reset every other filter (even date order)
@@ -2003,7 +2012,7 @@ function filtersCreateFiltersList() {
     // set filter buttons actions & states
     F.allBtns.forEach((filterButton) => {
         filterButton.setAttribute("state", false); // by default, every filter is false
-        filterButton.addEventListener("click", (e) => { filtersAction({caller : e}); });
+        filterButton.addEventListener("click", (e) => { filtersAction({caller : e, scrollToForce : "main", scrollToTitle : true}); });
     })
 
     // bubble tips
@@ -2071,80 +2080,83 @@ function filtersScrollCalcs() {
               endAnim = docHeight / 4 + F.filtersContainerHeight / 2;
 
         filtersIntro.style.height = `calc(25% + ${F.filtersContainerHeight / 2}px)`;
-        // nice slow scroll down (this is why height at 25%, we translate 25% too)
+        // nice slow filters scroll down (this is why height at 25%, we translate 25% too)
         filtersIntro.style.transform = `translateY(${
             constrain(mapRange(projectsListOffset, docHeight, endAnim,
                 docHeight / 4, 0), 0, docHeight / 4)}px)`;
-        // nice slow text going smol
+
+        // nice slow filters text size going smol
         //filtersIntro.style.fontSize =
         //    constrain(mapRange(projectsListOffset, docHeight, endAnim,
         //        2, 1.7), 1.7, 2) +"em";
 
-        // columns scroll offset
-        doc.style.setProperty("--ice-scroll-offset", float(projectsListOffset / iceScrollFactor) +"px");
+        if (!isTouchDevice) {
 
-        // resize projects list with columns scroll offset because it leaves empty space at the end
-            // but it recalculates at every frames, it's not good
-            // so I opted for calculating the final offset right away (see filtersColumnLongestUpdate)
-        //if (F.projectsListContentElements.length > 0) {
-        //    F.projectsListContentElements[F.projectsListColumnGroupCurrentIndex].style.height =
-        //        F.projectsListColumnLongestInGroups[F.projectsListColumnGroupCurrentIndex] + float(projectsListOffset / 3 / 3)
-        //        +"px";
-        //}
-    // }
+            // columns scroll offset
+            doc.style.setProperty("--ice-scroll-offset", float(projectsListOffset / iceScrollFactor) +"px");
+
+            // resize projects list with columns scroll offset because it leaves empty space at the end
+                // but it recalculates at every frames, it's not good
+                // so I opted for calculating the final offset right away (see filtersColumnLongestUpdate)
+            //if (F.projectsListContentElements.length > 0) {
+            //    F.projectsListContentElements[F.projectsListColumnGroupCurrentIndex].style.height =
+            //        F.projectsListColumnLongestInGroups[F.projectsListColumnGroupCurrentIndex] + float(projectsListOffset / 3 / 3)
+            //        +"px";
+            //}
+        }
 }
 
 // columns are offset by scroll, need to reduce size of container to avoid empty space at the end
-function filtersColumnLongestUpdate() {
-    //if (F.projectsListContentElements[F.projectsListColumnGroupCurrentIndex]) {
-        // getting the longest column of each group
-        //F.projectsListColumnLongestInGroups = []; // reset
-        //if (F.projectsListContentElements.length > 0) {
-        //    F.projectsListContentElements.forEach((columnGroup) => {
-        //        // geting the longest column's index
-        //        // get all column's height
-        //        var columnsHeight = [];
-        //        columnGroup.querySelectorAll("[column]").forEach((column) => { columnsHeight.push(column.offsetHeight); });
-        //        // store longest column's height
-        //        F.projectsListColumnLongestInGroups.push(Math.max(...columnsHeight));
-        //    });
+function filtersColumnLongestUpdate(iceScrolling = true) {
+        if (!isTouchDevice) {
+        //if (F.projectsListContentElements[F.projectsListColumnGroupCurrentIndex]) {
+            // getting the longest column of each group
+            //F.projectsListColumnLongestInGroups = []; // reset
+            //if (F.projectsListContentElements.length > 0) {
+            //    F.projectsListContentElements.forEach((columnGroup) => {
+            //        // geting the longest column's index
+            //        // get all column's height
+            //        var columnsHeight = [];
+            //        columnGroup.querySelectorAll("[column]").forEach((column) => { columnsHeight.push(column.offsetHeight); });
+            //        // store longest column's height
+            //        F.projectsListColumnLongestInGroups.push(Math.max(...columnsHeight));
+            //    });
+            //}
+
+            // getting the track length of each group, each column is same length because "display: grid/flex"
+            F.projectsListColumnLongestInGroups = []; // reset
+            if (F.projectsListContentElements.length > 0) {
+                F.projectsListContentElements.forEach((element) => {
+                    if (element.querySelector("[column]")) {
+                        iceScrolling = "column";
+                        // we take any column and store its height
+                        F.projectsListColumnLongestInGroups.push(element.querySelector("[column]").offsetHeight);
+                    }
+                    else { // not a column
+                        iceScrolling = false;
+                        F.projectsListColumnLongestInGroups.push(element.querySelector(".content-container").offsetHeight);
+                    }
+                });
+            }
+
+            // calculate the offset with track length and ice scrolling offset value
+            const trackLength = F.projectsListColumnLongestInGroups[F.projectsListColumnGroupCurrentIndex],
+                finalColumnsOffset = trackLength / iceScrollFactor - F.filtersContainerHeight / 2;
+
+            // resize value dependant on ice scrolling
+            var resize;
+            //if (iceScrolling == "column") { // columns ice scroll
+            //    resize = float(trackLength - finalColumnsOffset / 3) + 50;
+            //} else
+            if (iceScrolling) { // ice scroll
+                resize = float(trackLength - finalColumnsOffset / iceScrollFactor) + 50;
+            } else { // no ice scroll
+                resize = trackLength;
+            }
+            F.projectsListContentElements[F.projectsListColumnGroupCurrentIndex].style.height = resize +"px";
+            F.projectsListContainer.style.height = `calc(${resize}px + var(--plist-ptop) + var(--plist-pbottom)`; // to animate length changes
         //}
-
-        var iceScrolling = true;
-
-        // getting the track length of each group, each column is same length because "display: grid/flex"
-        F.projectsListColumnLongestInGroups = []; // reset
-        if (F.projectsListContentElements.length > 0) {
-            F.projectsListContentElements.forEach((element) => {
-                if (element.querySelector("[column]")) {
-                    iceScrolling = "column";
-                    // we take any column and store its height
-                    F.projectsListColumnLongestInGroups.push(element.querySelector("[column]").offsetHeight);
-                }
-                else { // not a column
-                    iceScrolling = false;
-                    F.projectsListColumnLongestInGroups.push(element.querySelector(".content-container").offsetHeight);
-                }
-            });
         }
-
-        // calculate the offset with track length and ice scrolling offset value
-        const trackLength = F.projectsListColumnLongestInGroups[F.projectsListColumnGroupCurrentIndex],
-              finalColumnsOffset = trackLength / iceScrollFactor - F.filtersContainerHeight / 2;
-
-        // resize value dependant on ice scrolling
-        var resize;
-        //if (iceScrolling == "column") { // columns ice scroll
-        //    resize = float(trackLength - finalColumnsOffset / 3) + 50;
-        //} else
-        if (iceScrolling) { // ice scroll
-            resize = float(trackLength - finalColumnsOffset / iceScrollFactor) + 50;
-        } else { // no ice scroll
-            resize = trackLength;
-        }
-        F.projectsListContentElements[F.projectsListColumnGroupCurrentIndex].style.height = resize +"px";
-        F.projectsListContainer.style.height = `calc(${resize}px + var(--plist-ptop) + var(--plist-pbottom)`; // to animate length changes
-    //}
 } // resize event + load event on project cards img
 
 function projectListColumnsByRatio(ColumnsNb = F.projectsListContentElements.length) {
@@ -2180,7 +2192,7 @@ function projectListColumnsByRatio(ColumnsNb = F.projectsListContentElements.len
 //#region PROJECTS FILE
 function projectFileInit(target, projectID) {
     target.addEventListener("click", (cursorEv) => {
-        // only if clicked .in
+        // only if ".in "clicked
         if (cursorEv.target !== target.querySelector(".in")) { return; }
 
         projectFileCreate(projectID, target, cursorEv);
@@ -2196,6 +2208,7 @@ function projectFileCreate(projectID, card, cursorEv) {
     var projectFile = document.createElement("div");
     projectFile.classList.add("project-files");
     projectFile.classList.add("anim-pre");
+    projectFile.classList.add("anim-pre-content");
     projectFile.setAttribute("project-id", projectID);
 
     // HTML recipients
@@ -2215,21 +2228,32 @@ function projectFileCreate(projectID, card, cursorEv) {
                (PROJECT.needBG) ? `background-color: ${(PROJECT.needBG === true) ? "var(--p-needbg-default)" : PROJECT.needBG};` : "" // background color if needed and specified
            }" ${(imgAspectRatioForce) ? `aspect-ratio="${imgAspectRatioForce}"` : ""}>
         `;
-    } else if(PROJECT.type == "yt") {
+    }
+    else if(PROJECT.type == "yt") {
         headerMainContentHTML = `
             <div class="project-main" aspect-ratio="${aspectRatio}">
                 <div class="embed-player-loading"></div>
                 <div class="embed-player-placeholder"></div>
-                <iframe width="1280" height="720" src="https://www.youtube.com/embed/${(PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id}?rel=0&color=white&loop=1" frameborder="0" allowfullscreen></iframe>
+                <iframe width="1920" height="1080" src="https://www.youtube.com/embed/${(PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id}?rel=0&color=white&loop=1" frameborder="0" allowfullscreen></iframe>
             </div>
         `;
-    } else if(PROJECT.type == "embed") {
+    }
+    else if(PROJECT.type == "embed") {
         headerMainContentHTML = `
             <div class="project-main" aspect-ratio="${aspectRatio}">
                 <div class="embed-player-loading"></div>
                 <div class="embed-player-placeholder"></div>
-                <iframe src="${((PROJECT.embed) ? PROJECT.embed : pDataDefault.embed)}" width="1920px" height="1080px" frameborder="0"></iframe>
+                <iframe src="${((PROJECT.embed) ? PROJECT.embed : pDataDefault.embed)}" width="1920px" height="1080px" frameborder="0" allowfullscreen="allowfullscreen" allow="fullscreen"></iframe>
             </div>
+        `;
+    }
+    else if (PROJECT.type == "vid") {
+        const ext = (PROJECT.ext) ? PROJECT.ext : pDataDefault.ext;
+        headerMainContentHTML = `
+            <video class="project-main" aspect-ratio="${aspectRatio}" controls loop style="pointer-events: all;" poster="./assets/medias/projects/low/${projectID}_low.jpg">
+                <source src="./assets/medias/projects/high/${projectID}.${ext}" type="video/${ext}">
+                <img fetchpriority="high" src="./assets/medias/projects/low/${projectID}_low.jpg">
+            </video>
         `;
     }
 
@@ -2244,7 +2268,7 @@ function projectFileCreate(projectID, card, cursorEv) {
             // add by type
             if (PRJADD.type == "img") {
                 headerSecondaryContentHTML += `
-                    <img class="project-secondary" src="./assets/medias/projects/high/${projectID}/${addPrj[0]}.${(PRJADD.ext) ? PRJADD.ext : pDataDefault.ext}">
+                    <img class="project-secondary" fetchpriority="high" src="./assets/medias/projects/high/${projectID}/${addPrj[0]}.${(PRJADD.ext) ? PRJADD.ext : pDataDefault.ext}">
                 `;
             }
             // add comment if exists
@@ -2265,6 +2289,7 @@ function projectFileCreate(projectID, card, cursorEv) {
             filtersHTML += generatePrjPill({ID : filter, type : "filter"});
         }
     })
+
     // contexts
     PROJECT.context.split("|").forEach((context) => { contextsHTML += generatePrjPill({ID : context, type : "context"}); })
 
@@ -2282,10 +2307,16 @@ function projectFileCreate(projectID, card, cursorEv) {
                     </svg>
                 </div>
                 <div class="change-language-button">
-
+                    <span translate-id="change-language-button">${getTextLang({type : "translate-id", id : "change-language-button"})}</span>
+                    <svg viewbox="0 0 24 12"></svg>
                 </div>
             </div>
         </div>
+    `,
+    //
+    // description
+    descriptionContentHTML = `
+        ${getProjectTextLang(projectID, "desc", true)}
     `;
 
     // final html
@@ -2295,14 +2326,14 @@ function projectFileCreate(projectID, card, cursorEv) {
             <div class="separator-line"></div>
             <div class="project-main-container">
                 ${headerMainContentHTML}
-                <div class="data-container sticky-fssb">
+                <div class="data-container sticky-fssb sticky-fssb-not-mini">
                     <div class="top">
                         <div class="filters">${filtersHTML}</div>
                         <div class="contexts">${contextsHTML}</div>
                         <div class="date"><span>${(PROJECT.date) ? PROJECT.date : pDataDefault.date}</span></div>
                     </div>
                     <div class="bottom">
-                        <div class="catchphrase">${(PROJECT.catchphrase) ? getProjectTextLang(projectID, "catchphrase") : pDataDefault.catchphrase}</div>
+                        ${(!PROJECT.catchphrase) ? `` : `<div class="catchphrase">${getProjectTextLang(projectID, "catchphrase")}</div>`}
                     </div>
                 </div>
             </div>
@@ -2310,8 +2341,8 @@ function projectFileCreate(projectID, card, cursorEv) {
                 <div class="secondary">${headerSecondaryContentHTML}</div>
             </div>
             <div class="description">
-                <!--<div class="head-top">${headHTML}</div>
-                <filler></filler>-->
+                <!--<div class="head-top">${headHTML}</div>-->
+                ${(!descriptionContentHTML) ? "" : `<div class="desc-content">${descriptionContentHTML}</div>`}
             </div>
         </div>
     `
@@ -2321,36 +2352,65 @@ function projectFileCreate(projectID, card, cursorEv) {
     document.querySelector("[project-files-container]").appendChild(projectFile);
 
     const pFileElMainC = projectFile.querySelector(".project-main-container");
-    projectFile.querySelector(".project-main-container").setAttribute("project-type", PROJECT.type);
+    pFileElMainC.setAttribute("project-type", PROJECT.type);
     projectFile.style.setProperty("--project-color-accent", (PROJECT.colorAccent) ? PROJECT.colorAccent : pDataDefault.colorAccent);
     projectFile.style.setProperty("--project-color-fill", (PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill);
 
+    // useless parts
+    const pFileElMainDataBottom = pFileElMainC.querySelector(".bottom");
+    if (pFileElMainDataBottom.children.length < 1) { pFileElMainDataBottom.classList.add("no-content"); }
+
     patternBgCreate(projectFile, {fileSrc : "./assets/medias/pattern-dot-small.png", size : 4, randomizePos : false});
+
+    const stickyEl_FSSB_All = projectFile.querySelectorAll(".sticky-fssb");
+    function checkSticky() {
+        if (isTablet) {
+            stickyEl_FSSB_All.forEach((stickyEl) => { stickyEl.classList.remove("sticky-fssb") })
+        } else {
+            stickyEl_FSSB_All.forEach((stickyEl) => { stickyEl.classList.add("sticky-fssb") })
+            StickIt_FlexSiblingsSpaceBetween();
+        }
+    }
+    checkSticky();
+    window.addEventListener("resize", checkSticky);
+
+    const languageButtons = projectFile.querySelectorAll(".change-language-button");
+    languageButtons.forEach((langBtn) => {
+        langBtn.addEventListener("click", () => { setTimeout(() => { changeLanguage(); }, 0); });
+        boomAnimInit({target : langBtn, container : projectFile, specialCase : "languageButton", eventType : "click"});
+    })
 
     // after "create" code
     // set size of project content img
-    function resizeToRatioPrjContent(elToResize, dummy, removeDummy = true) {
-        const prjHighSize = (dummy) ? [dummy.naturalWidth, dummy.naturalHeight] : [elToResize.naturalWidth, elToResize.naturalHeight];
+    function resizeToRatioPrjContent({elToCheck, elToResize, sizes, dummy, removeDummy = true}) {
+        const prjHighSize = (sizes) ? sizes : (dummy) ? [dummy.naturalWidth, dummy.naturalHeight] : [elToCheck.naturalWidth, elToCheck.naturalHeight];
         if (dummy && removeDummy) { dummy.remove(); } // not needed anymore
 
         // check which side is longer to fill correctly
-        var squarishAdd = prjHighSize[0] * 0.1;
+        var squarishAdd = prjHighSize[0] * 0.1,
+            sizeType; // return size type of img after calculations
         //if (prjHighSize[0] > prjHighSize[1] - squarishAdd && prjHighSize[0] < prjHighSize[1] + squarishAdd) { // squarish aspect ratios
         if (prjHighSize[0] < prjHighSize[1] + squarishAdd && prjHighSize[0] > prjHighSize[1] - squarishAdd) { // squarish aspect ratios
+            sizeType = "squarish";
             elToResize.style.height = "97.5vh";
         } else if (prjHighSize[1] > prjHighSize[0]) { // height >
+            sizeType = "long";
             elToResize.style.height = "95vh";
         } else { // width >
-            elToResize.style.width = "75%";
+            sizeType = "wide";
+            elToResize.style.width = "var(--width-main)"; // 75%
         }
+
+        return sizeType;
     }
     // loops for some time until it gets the size of img element, then it resizes
-    function getSizeAndResizeToRatioPrjContent({elIMG, dummyElIMG, removeDummy, intensityMs = 30, durationMs = 2000}) {
+    function getSizeAndResizeToRatioPrjContent({elIMG, elApply, dummyElIMG, removeDummy, intensityMs = 30, durationMs = 2000, tellSizeTypeTo}) {
         const elToCheck = (dummyElIMG) ? dummyElIMG : elIMG;
-        var loopLimit = (durationMs/intensityMs).toFixed(0), loopGetPrjHighRes = setInterval(function () { // loop until found
+        var sizeType, loopLimit = (durationMs/intensityMs).toFixed(0), loopGetPrjHighRes = setInterval(function () { // loop until found
             if (elToCheck.naturalWidth) {
-                resizeToRatioPrjContent(elToCheck, dummyElIMG, removeDummy); // resize
                 clearInterval(loopGetPrjHighRes); // stop loop
+                sizeType = resizeToRatioPrjContent({elToCheck : elToCheck, elToResize : (elApply) ? elApply : elToCheck, dummy : dummyElIMG, removeDummy : removeDummy}); // resize
+                if (tellSizeTypeTo) { tellSizeTypeTo.setAttribute("project-size-type", sizeType); } // if additional styling is necessary, can be used for css
             }
             loopLimit--;
             if (loopLimit < 0) { // stop loop if not found after "durationMs" ms
@@ -2358,6 +2418,7 @@ function projectFileCreate(projectID, card, cursorEv) {
                 clearInterval(loopGetPrjHighRes);
             }
         }, intensityMs);
+
     }
 
     if (PROJECT.type == "img") {
@@ -2369,10 +2430,16 @@ function projectFileCreate(projectID, card, cursorEv) {
         var prjImgHighDummy = imgReplaceWithOnceLoaded(fileMainPrjImgEl, prjImgHighSrc, { dummy : prjImgHighDummy, dummyReturn : true, customParent : projectFile });
 
         // get size of low res project img first
-        getSizeAndResizeToRatioPrjContent({elIMG : fileMainPrjImgEl, intensityMs : 20, durationMs : 12000});
+        getSizeAndResizeToRatioPrjContent({elIMG : fileMainPrjImgEl, intensityMs : 20, durationMs : 12000, tellSizeTypeTo : pFileElMainC});
 
         // get size of high res project img after to make sure it corresponds to high res one
-        getSizeAndResizeToRatioPrjContent({elIMG : fileMainPrjImgEl, dummyElIMG : prjImgHighDummy});
+        getSizeAndResizeToRatioPrjContent({elIMG : fileMainPrjImgEl, dummyElIMG : prjImgHighDummy, tellSizeTypeTo : pFileElMainC});
+    }
+    if (PROJECT.type == "vid" && !PROJECT.aspectRatio) { // fallback if aspect ration is unknown
+        var pVideo = projectFile.querySelector("video.project-main");
+        pVideo.addEventListener( "loadedmetadata", (e) => {
+            resizeToRatioPrjContent({elToResize : pVideo, sizes : [pVideo.videoWidth, pVideo.videoHeight]})
+        }, false);
     }
     // do the same for additional content, but only if specified
     if (PROJECT.additional) {
@@ -2393,6 +2460,28 @@ function projectFileCreate(projectID, card, cursorEv) {
             }
         })
     }
+    // the same as well for the description's content
+    if (PROJECT.desc) {
+        const descEl = projectFile.querySelector(".description");
+
+        // resizing
+        descEl.querySelectorAll(".img_ratio > *:first-child img").forEach((descImg) => {
+            getSizeAndResizeToRatioPrjContent({elIMG : descImg, elApply : descImg.parentElement.parentElement});
+        })
+        descEl.querySelectorAll(".desc-content > .desc-media img").forEach((descImg) => {
+            getSizeAndResizeToRatioPrjContent({elIMG : descImg});
+        })
+        // descEl.querySelectorAll(".desc-content > .desc-media img").forEach((descImg) => {
+            // getSizeAndResizeToRatioPrjContent({elIMG : descImg});
+        // })
+
+        descEl.querySelectorAll(".desc-content .desc-media[size-fill]").forEach((descImg) => {
+            if (descImg.getAttribute("size-fill") == "width") { descImg.style.width = "100%";
+            } else if (descImg.getAttribute("size-fill") == "height") { descImg.style.height = "100%";
+            } else if (descImg.getAttribute("size-fill") == "vp-height") { descImg.style.height = "95vh";
+            }
+        })
+    }
 
     // scrollbar
     var scrollbarPrjFile = OverlayScrollbars(projectFile, {
@@ -2404,7 +2493,7 @@ function projectFileCreate(projectID, card, cursorEv) {
         },
         scrollbars : {
             visibility : "auto",
-            autoHide : "scroll", // "scroll" "move" "never"
+            autoHide : "never", // "scroll" "move" "never"
             autoHideDelay : OScrHDelay
         },
         callbacks : {
@@ -2427,41 +2516,45 @@ function projectFileCreate(projectID, card, cursorEv) {
         }
 
         scrollbarPrjFile.scroll(0, 0); // make sure to be at the top
-        scrollbarMainSetShowState("hide"); // remove main page scroll
+        scrollbarSetShowState(scrollbarMain, "hide"); // remove main page scroll
 
         // animation in
         projectFile.classList.remove("anim-pre");
             // animation in content
             setTimeout(() => {
                 projectFile.classList.remove("anim-pre-content");
-            }, 600);
-    }, 100);
+            }, 400);
+    }, 0);
 
     // out
     function projectFileRemove() { // no need to have this function out of main
-        scrollbarMainSetShowState(); // restore main page scroll
+        scrollbarSetShowState(scrollbarMain); // restore main page scroll
+        scrollbarSetShowState(scrollbarPrjFile, "hide")
         cleanURL();
         window.removeEventListener("hashchange", projectFileRemove, { once:true });
+        window.removeEventListener("resize", checkSticky);
 
         // animation out
-        projectFile.classList.add("anim-clear");
+        projectFile.classList.add("anim-clear-content");
+        setTimeout(() => {
+            projectFile.classList.add("anim-clear");
+        }, 200);
         eventAtTransitionEnd(projectFile, () => {
             scrollbarPrjFile.destroy(); // remove project file's scroll instance
             projectFile.remove();
         }, {property : "opacity", once : false});
     }
 
+    // filters actions
+    pFileElMainC.querySelectorAll(".prj-pill[filter-id]").forEach((filterButton) => {
+        filterButton.addEventListener("click", (e) => {
+            projectFileRemove();
+            filtersAction({caller : e, isolate : true, delay : 400});
+        });
+    })
+
     window.addEventListener("hashchange", projectFileRemove, { once:true }); // close on history back event
     projectFile.querySelector(".close-file-button").addEventListener("click", projectFileRemove);
-}
-
-// open project file corresponding to the URL hash
-function projectFileOpenFromURLHash() {
-    const hashProject = window.location.hash.substring(1); // get hash string
-
-    if (Object.keys(pData).includes(hashProject)) {
-        projectFileCreate(hashProject);
-    }
 }
 //#endregion
 
@@ -2470,13 +2563,13 @@ function patternBgRandomizePos(patternBgEl) {
     patternBgEl.style.setProperty("--start-y", getRandomInt(-2000, 2000) +"px");
 }
 
-function patternBgCreate(container, {fileSrc = "./assets/medias/pattern-dot-average.png", size = 4, speedFactor = 0.1, randomizePos = false}) {
+function patternBgCreate(container, {fileSrc = "./assets/medias/pattern-dot-average.png", size = 5, speedFactor = 0.1, randomizePos = false}) {
     // generate
     var patternBgEl = document.createElement("div");
     patternBgEl.classList.add("pattern-bg");
     // pattern
     patternBgEl.style.backgroundImage = `url(${fileSrc})`;
-    patternBgEl.style.backgroundSize = `${size}%`;
+    patternBgEl.style.setProperty("--size", `${size}%`);
     // speed
     patternBgEl.style.setProperty("--speed-factor", speedFactor);
     // move
@@ -2486,6 +2579,25 @@ function patternBgCreate(container, {fileSrc = "./assets/medias/pattern-dot-aver
 
     // create
     container.appendChild(patternBgEl);
+}
+
+// open project file or quick video popup if corresponding to URL hash
+function projectOpenFromURLHash() {
+    const hashProject = decodeURI(window.location.hash.substring(1)).split("?"); // get hash string
+
+    // if project exists
+    if (Object.keys(pData).includes(hashProject[0])) {
+
+        // open its vid, if compatible
+        if (hashProject[1] == "vid") {
+            if (pData[hashProject[0]].type == "yt") {
+                quickPopupVideoCreate(hashProject[0]);
+                return;
+            }
+        }
+
+        projectFileCreate(hashProject[0]);
+    }
 }
 
 
@@ -2498,9 +2610,6 @@ function patternBgCreate(container, {fileSrc = "./assets/medias/pattern-dot-aver
 //}
 function scrollUpdatesEvents() {
     //updateAll();
-
-    recentProjectsTrackLength();
-    recentProjectsTrackSegments();
 }
 function scrollEvents() {
     // doc.style.setProperty("--scroll-pos-y", scrollbarMain.scroll().position.y +"px"); // using "--ice-scroll-offset" for performance reasons
@@ -2510,8 +2619,7 @@ function scrollEvents() {
     //scrollToForceStop();
     StickIt();
 
-    recentProjectsSlides();
-    recentProjectsScrollIn();
+    // recentProjectsScrollIn();
 
     filtersScrollCalcs();
 }
@@ -2522,9 +2630,6 @@ window.addEventListener("resize", () => {
     //updateAll();
 
     StickIt();
-
-    recentProjectsTrackLength();
-    recentProjectsTrackSegments();
 
     filtersScrollCalcs();
     projectListColumnsByRatio();
@@ -2537,14 +2642,13 @@ function init() {
     translatePage();
 
     // RECENT PROJECTS
-    recentProjectsCreate();
-    recentProjectsSlides();
+    // recentProjectsCreate();
 
     // FILTERS
     filtersCreateFiltersList();
 
     // PROJECT FILES
-    projectFileOpenFromURLHash()
+    projectOpenFromURLHash();
 
     // STICKY ELEMENTS
     for (let i = 0; i < 8; i++) { // for loop to make sure it's applied correctly

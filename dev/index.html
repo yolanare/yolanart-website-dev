@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google" content="notranslate" />
 
-    <meta name="theme-color" content="#101113" />
-    <meta name="msapplication-navbutton-color" content="#101113" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="msapplication-navbutton-color" content="#000000" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
@@ -31,11 +31,32 @@
         </nav>
 
         <header id="landing" class="content-sections">
-            <div class="main-title">Yolan’Art</div>
-            <div class="scroll-down-notice" translate-id="landing-scroll-down-notice"></div>
+            <div class="ylogo-container">
+                <div class="y-logo-pattern cursor-glow"></div>
+                <!-- <div class="y-logo-pattern color"></div> -->
+                <svg class="y-logo" viewBox="0 0 16.93 24">
+                    <path d="M0,0l4.9,11l2.82,13l3.99-10.38l1-2.61l4.22-11l-7.7,7.04L0,0z M4.87,6.16L7.69,8.3L6.01,8.72L4.87,6.16z M8.24,17.22l-1.2-5.54l5.13-4.69L8.24,17.22z"/>
+                </svg>
+                <div class="y-logo-bgimg cursor-glow"></div>
+                <!-- <div class="y-logo-bgimg color"></div> -->
+            </div>
+            <div class="content">
+                <div class="head">
+                    <span class="t-yolan">Yolan</span>
+                    <span class="t-art">Art</span>
+                </div>
+                <div class="scroll-down-notice">
+                    <span translate-id="landing-scroll-down-notice"></span>
+                    <div class="scroll-down-icon">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="1.73,7.69 12,16.31 22.27,7.69"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
         </header>
 
-        <section id="recent-projects" class="content-sections">
+        <!-- <section id="recent-projects" class="content-sections">
 
             <div id="intro-rp" class="col1">
                 <div class="in sticky">
@@ -47,54 +68,23 @@
                 </div>
             </div>
 
-            <div id="recent-projects-actions" class="col2">
-                <div class="in">
-                    <!-- <div project-id=PROJECT_ID" class="actions"></div> -->
-                </div>
+            <div id="recent-projects-slides" class="col2">
+
             </div>
 
-            <div id="recent-projects-slides" class="col2 sticky">
-                <!-- <div project-id="PROJECT_ID" class="recent-slides">
-                    <div class="in">
-                        <div class="thumbnail"><img src="./assets/medias/projects/low/PROJECT_ID_low.jpg"></div>
-                        <span class="project-title">PROJECT_TITLE</span>
-                        <div class="filters">
-                            <div filter-id="FILTER" class="f-pill">PROJECT_FILTER</div>
-                        </div>
-                    </div>
-                </div> -->
-            </div>
+        </section> -->
 
-        </section>
         <section id="filters" class="content-sections">
             <div id="intro-filters">
                 <div class="in sticky">
                     <div class="title-filters" translate-id="filters-title" highlight-words="true"></div>
                     <div class="filters-selector">
-                        <!-- <div class="main">
-                            <div filter-id="FILTER" class="f-pill">PROJECT_FILTER</div>
-                        </div>
-                        <div class="secondary">
-                            <div class="clear-filters-button">
-                                <svg viewBox="0 0 24 24"></svg>
-                            </div>
-                            <div class="filter-projects-number"><span anim-count>69</span><span> projects found</span></div>
-                        </div> -->
+
                     </div>
                 </div>
             </div>
             <div id="projects-list">
-                <!-- <div column-group>
-                    <div column>
-                        <div project-id="PROJECT_ID" class="project-cards">
-                            <div class="thumbnail"><img src="./assets/medias/projects/low/PROJECT_ID_low.jpg"></div>
-                            <span class="project-title">PROJECT_TITLE</span>
-                            <div class="filters">
-                                <div filter-id="FILTER" class="f-pill filter">PROJECT_FILTER</div>
-                            </div>
-                        </div>
-                    </div>
-                </div> -->
+
             </div>
         </section>
 

@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "dev": "webpack-dev-server --config ./config/webpack.dev.conf.js",
+    "dev-h": "webpack-dev-server --config ./config/webpack.dev.conf.js --port 8888 --hot --host 0.0.0.0",
     "dev-o": "webpack-dev-server --config ./config/webpack.dev.conf.js --open",
     "build": "webpack --config ./config/webpack.build.conf.js",
     "build-dev": "webpack --config ./config/webpack.build-dev.conf.js"

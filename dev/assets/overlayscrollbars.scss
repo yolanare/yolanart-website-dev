@@ -19,6 +19,7 @@
                 backdrop-filter 0.8s cubic-bezier(0.15, 0.8, 0, 1) !important;
     animation: os-opacity-in 0.8s ease;
 }
+.os-scrollbar.os-scrollbar-unusable,
 .os-scrollbar.os-scrollbar-auto-hidden,
 html.is-changing .os-scrollbar {
     opacity: 0;
@@ -49,39 +50,43 @@ html.is-changing .os-scrollbar {
 .os-scrollbar.active .os-scrollbar-track {
     background-color: rgba(236, 239, 242, 0.1) !important;
 }
-.os-scrollbar-handle:hover {
-    background-color: rgba(255, 255, 255, 0.2) !important;
-}
-.os-scrollbar-handle.active {
-    border-radius: 1em !important;
-    background-color: rgba(255, 255, 255, 0.35) !important;
-    background-color: var(--y-r1) !important;
-}
+// .os-scrollbar-handle:hover {
+//     background-color: rgba(255, 255, 255, 0.2) !important;
+// }
 .os-scrollbar-handle:hover,
 .os-scrollbar-handle.active {
-    width: 0.5em;
+    width: 0.65em;
 }
 .os-viewport.disabled {
     overflow: hidden !important;
 }
 @supports (backdrop-filter: invert(1)) {
-    .os-scrollbar {
-        mix-blend-mode: normal !important;
-        backdrop-filter: grayscale(0) contrast(1);
+html:not(.isChr) { // broken on chrome, invisible
+        .os-scrollbar {
+            mix-blend-mode: normal !important;
+            backdrop-filter: grayscale(0) contrast(1);
+        }
+        .os-scrollbar-handle {
+            background-color: transparent !important;
+            backdrop-filter: invert(1) grayscale(1) contrast(3);
+        }
+        .os-scrollbar.active .os-scrollbar-track {
+            background-color: transparent !important;
+        }
+        .os-scrollbar.active {
+            backdrop-filter: grayscale(1) contrast(0.85);
+        }
     }
-    .os-scrollbar-handle {
-        background-color: transparent !important;
-        backdrop-filter: invert(1) grayscale(1) contrast(3);
-    }
-    .os-scrollbar.active .os-scrollbar-track {
-        background-color: transparent !important;
-    }
-    .os-scrollbar.active {
-        backdrop-filter: grayscale(1) contrast(0.85);
+}
+html, html.isChr {
+    .os-scrollbar-handle.active {
+        border-radius: 1em !important;
+        background-color: rgba(255, 255, 255, 0.35) !important;
+        background-color: var(--y-r1) !important;
     }
 }
 
-@media (min-width: 961px) {
+@media (min-width: ($mini-tablet + 1)) {
     .os-scrollbar-handle {
         transition: background-color 0.8s cubic-bezier(0.15, 0.8, 0, 1),
                     opacity 0.8s cubic-bezier(0.15, 0.8, 0, 1),
@@ -99,7 +104,7 @@ html.is-changing .os-scrollbar {
     }
 }
 
-@media (max-width: 960px) {
+@media (max-width: $mini-tablet) {
     .os-scrollbar {
       font-size: 1.2em;
     }
@@ -111,9 +116,13 @@ html.is-changing .os-scrollbar {
     }
 }
 
-@media (max-width: 727px) {
+@media (max-width: $mini-mobile) {
     .os-scrollbar {
         font-size: 1em;
+    }
+}
+html.isTouch {
+    .os-scrollbar {
         pointer-events: none !important;
     }
     .os-scrollbar * {
