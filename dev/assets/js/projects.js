@@ -1050,7 +1050,7 @@ var projectsData = {
             fr : "Spot pub : \"Chacun ses Goûts\", Yogurt Glacés",
             en : "Advert: \"Chacun ses Goûts\", Yogurt Glacés"
         },
-        colorFill : "#bc4131",
+        colorFill : "#de3435",
         colorAccent : "#c9414f",
         date : "2022.09-11",
         context: "school",
@@ -1185,18 +1185,50 @@ var projectsData = {
         date : "2023.02",
         context: "school",
         filter: "motion|3D|illustration",
-        desc : {
+        /*desc : {
             fr : `
-                ${createMedia({url : "joyeux_noël_anim/plan1.png", caption : "Prototype du plan 1."})}
-                ${createMedia({url : "joyeux_noël_anim/plan2.png", caption : "Prototype du plan 2."})}
-                ${createMedia({url : "joyeux_noël_anim/plan3.png", caption : "Prototype du plan 3."})}
+                ${createDescPart({type : "even", settings : "width_fill", input : [
+                    createMedia({url : "saw_sawing_animation/saw original.jpg"}),
+                    createDescPart({type : "topbottom", text : [true, true], input : [`
+                        `, `<media-caption>"Saw, Sawing", Claes Oldenburg, (1996), Tokyo International Exhibition Center, Big Sight, Tokyo.</media-caption>`
+                    ]})
+                ]})}
+                ${createDescPart({type : "row", settings : "width_fill gallery", input : [
+                    createMedia({url : "saw_sawing_animation/original det.jpg", caption : "Détourage à partir d'une photo de côté.", settings : "stack", sizeFill : "height"}),
+                    createMedia({url : "saw_sawing_animation/3D profil.jpg", caption : "Modèle 3D réalisé sur Blender.", settings : "stack"}),
+                ]})}
+                ${createDescPart({type : "row", settings : "width_fill gallery", input : [
+                    createMedia({url : "saw_sawing_animation/image d'origine (crop).jpg", caption : `Image d'origine prise par <a href="https://twitter.com/wongthanong/status/1132931314284261377" target="_blank">@wongthanong sur Twitter</a>.`, settings : "stack"}),
+                    createMedia({url : "saw_sawing_animation/fond sans scie (upscaled).jpg", caption : "Scie retirée de l'image d'origine (agrandie).", settings : "stack", sizeFill : "height"}),
+                ]})}
+                ${createDescPart({type : "row", settings : "width_fill gallery", input : [
+                    createMedia({url : "saw_sawing_animation/3D 1.jpg", settings : "stack"}),
+                    createMedia({url : "saw_sawing_animation/3D 2.jpg", settings : "stack", sizeFill : "height"}),
+                    createMedia({url : "saw_sawing_animation/3D 3.jpg", settings : "stack", sizeFill : "height"})
+                ]})}
             `,
             en : `
-                ${createMedia({url : "joyeux_noël_anim/plan1.png", caption : "Shot 1 prototype."})}
-                ${createMedia({url : "joyeux_noël_anim/plan2.png", caption : "Shot 2 prototype."})}
-                ${createMedia({url : "joyeux_noël_anim/plan3.png", caption : "Shot 3 prototype."})}
             `,
-        }
+        }*/
+    },
+    "dépliant_bic" : {
+        type : "img", interact : "zoom",
+            ext : "png",
+        additional : {
+            "mockup1" :  { type : "img", ext : "png", sizeFill : "width" },
+            "mockup2" :  { type : "img", ext : "png", sizeFill : "width" },
+            // "dépliant_bic1" :  { type : "img", ext : "png", sizeFill : "width" },
+            // "dépliant_bic2" :  { type : "img", ext : "png", sizeFill : "width" },
+        },
+        title : {
+            fr : "Dépliant : \"Le Stylo 4 Couleurs\"",
+            en : "Brochure: \"Four-Color Pen\""
+        },
+        date : "2022.11",
+        colorFill : "#29abe2",
+        colorAccent : "#fdbb27",
+        context: "school",
+        filter: "comm|compo|layout|vector|branding|print|ad",
     },
 
 // new -----------------------------------------------------------------------

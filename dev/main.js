@@ -1140,12 +1140,26 @@ function quickPopupVideoCreate(projectID, originEl, cursorEv) { // popup video p
     popVid = document.createElement("div");
     popVid.classList.add("video-popup");
     popVid.classList.add("anim-pre");
+
+    var embed = ``;
+    if (PROJECT.type == "vid") {
+        const ext = (PROJECT.ext) ? PROJECT.ext : pDataDefault.ext;
+        embed = `
+            <video autoplay controls loop poster="./assets/medias/projects/low/${projectID}_low.jpg">
+                <source src="./assets/medias/projects/high/${projectID}.${ext}" type="video/${ext}">
+                <img fetchpriority="high" src="./assets/medias/projects/low/${projectID}_low.jpg">
+            </video>
+        `;
+    } else {
+        embed = `<iframe width="1920" height="1080" src="https://www.youtube.com/embed/${(PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id}?rel=0&color=white&loop=1&autoplay=1" frameborder="0" allowfullscreen></iframe>`;
+    }
+
     popVid.innerHTML = `
         <div class="bg"></div>
         <div class="ytplayer-c">
             <div class="ytplayer" style="background-color: ${(PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill}" aspect-ratio="${(PROJECT.aspectRatio) ? PROJECT.aspectRatio : pDataDefault.aspectRatio}">
                 <div class="embed-player-loading"></div>
-                <iframe width="1920" height="1080" src="https://www.youtube.com/embed/${(PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id}?rel=0&color=white&loop=1&autoplay=1" frameborder="0" allowfullscreen></iframe>
+                ${embed}
             </div>
         </div>
     `;
@@ -2590,7 +2604,7 @@ function projectOpenFromURLHash() {
 
         // open its vid, if compatible
         if (hashProject[1] == "vid") {
-            if (pData[hashProject[0]].type == "yt") {
+            if (["yt", "vid"].includes(pData[hashProject[0]].type)) {
                 quickPopupVideoCreate(hashProject[0]);
                 return;
             }
