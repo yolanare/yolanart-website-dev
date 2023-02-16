@@ -562,7 +562,7 @@ var projectsData = {
     "stargazing_poster1" : {
         type : "img", interact : "zoom",
         additional : {
-            "Stargazing_poster1_empty" : {
+            "stargazing_poster1_empty" : {
                 type : "img",
                 comment : {
                     fr : `
