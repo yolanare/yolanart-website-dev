@@ -1070,6 +1070,13 @@ nav.menu {
         //height: 100%;
     }
 }
+@media (max-width: $mini-tablet) {
+    :not(.ytplayer) video[aspect-ratio] {
+        position: relative;
+        padding-bottom: initial !important;
+        height: min(var(--ratio-size), 90.1vh) !important;
+    }
+}
 
 
 // REUSABLE
