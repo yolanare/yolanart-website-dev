@@ -209,8 +209,13 @@ nav.menu {
 //    background-color: rgba(0,0,255,0.1);
 //}
 .content-sections#contact {
-    background-color: rgba(0,0,0,1);
+    // background-color: rgba(0,0,0,1);
+    min-height: clamp(5rem, 10vw, 15rem);
 }
+.projects-list > * {
+    min-height: 95vh;
+}
+// TODO contact section
 
 [class*="title-"] {
     display: inline-block;
