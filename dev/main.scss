@@ -2031,9 +2031,11 @@ html.isSafari .prj-pill:not(.filter) {
                     transition: inset 0.6s cubic-bezier(0.05, 0.5, 0, 1),
                                 outline-color 0.2s ease;
 
+                    &::after, &::before {
+                        transition: opacity 0.3s cubic-bezier(0.1, 0.7, 0, 1);
+                    }
                     &::after {
                         opacity: 0.35;
-                        transition: opacity 0.3s cubic-bezier(0.1, 0.7, 0, 1);
                     }
                     &::before {
                         opacity: 0.65;
@@ -2179,15 +2181,17 @@ html.isSafari .prj-pill:not(.filter) {
 
     .project-files {
         --file-padding-topbottom: clamp(6rem, 5.5vw, 10rem);
-        --file-padding-leftright: clamp(1vw, 8vw, 7.5vw);
+        --file-padding-sides: clamp(1vw, 8vw, 7.5vw);
         --width-main: 77.5%;
         --header-ptitle-size: clamp(2.35rem, 3.5vw, 5rem);
         --header-line-height: 1.2;
         --margin-sep: clamp(1rem, 2vw, 2.25rem);
 
-        --spacing-comment: 1.2rem;
-        --margin-comment: 1.75rem;
-        --space-paragraphe: 2.25em;
+        --text-padding-topbottom: 1.2rem;
+        --text-padding-sides: 1.75rem;
+        --text-padding-sides-big: 3.5rem;
+        --paragraphe-spacing: 2.25em;
+        --text-color: var(--y-w1);
 
         --img-max-height: 95vh;
 
@@ -2247,7 +2251,7 @@ html.isSafari .prj-pill:not(.filter) {
             height: 0; // to allow scrolling
             top: 0;
             left: 0;
-            padding: 0 var(--file-padding-leftright);
+            padding: 0 var(--file-padding-sides);
 
             font-size: 1.8em;
 
@@ -2372,7 +2376,7 @@ html.isSafari .prj-pill:not(.filter) {
                 //height: calc(80vh - (var(--file-padding-topbottom) + (var(--header-ptitle-size) * var(--title-lineH)) + var(--header-ptitle-margin-bottom)));
 
                 &.has-secondary-content {
-                    margin-bottom: var(--space-paragraphe);
+                    margin-bottom: var(--paragraphe-spacing);
                 }
                 &.has-secondary-content-same-ratio {
                     .project-main {
@@ -2420,7 +2424,7 @@ html.isSafari .prj-pill:not(.filter) {
                     width: var(--width-main);
 
                     > * {
-                        padding: 0 var(--margin-comment);
+                        padding: 0 var(--text-padding-sides);
                     }
 
                     .top {
@@ -2438,7 +2442,7 @@ html.isSafari .prj-pill:not(.filter) {
                         padding-top: 1em;
 
                         &:not(.no-content) {
-                            padding-bottom: var(--spacing-comment);
+                            padding-bottom: var(--text-padding-topbottom);
                         }
                     }
 
@@ -2484,12 +2488,14 @@ html.isSafari .prj-pill:not(.filter) {
                     }
                 }
                 .comment, .desc-media > media-caption {
-                    padding: var(--spacing-comment) var(--margin-comment);
+                    padding: var(--text-padding-topbottom) var(--text-padding-sides);
                 }
                 .comment, media-caption {
+                    display: inline-block;
                     flex-shrink: 0;
                     // opacity: 0.5;
-                    color: rgba(var(--y-w1v), 0.5);
+                    --text-color: rgba(var(--y-w1v), 0.5);
+                    color: var(--text-color);
                     font-weight: 500;
                 }
             }
@@ -2520,35 +2526,13 @@ html.isSafari .prj-pill:not(.filter) {
                 .desc-content {
                     line-height: 1.4;
 
-                    .desc-media {
-                        display: flex;
-                        max-height: 90vh;
-
-                        > img {
-                            @include nice-corners();
-                        }
-                    }
-
-                    .desc-link {
-                        font-size: 1.1em;
-                        margin-top: var(--spacing-comment);
+                    * {
+                        color: var(--text-color);
                     }
 
                     > * {
                         box-sizing: border-box;
-                        margin-bottom: var(--space-paragraphe);
-                    }
-                    p + .desc-media {
-                        margin-top: var(--space-paragraphe);
-                    }
-
-                    //> h2, > h3, > p,
-                    > *:not(.width_fill):not([size-fill]), .width_main {
-                        max-width: var(--width-main);
-                    }
-                    > *.width_fill {
-                        width: 100%;
-                        max-width: 100%;
+                        margin-bottom: var(--paragraphe-spacing);
                     }
 
                     h2, h3 {
@@ -2573,66 +2557,59 @@ html.isSafari .prj-pill:not(.filter) {
                     p {
                         margin-bottom: 0.6em;
                         // white-space: pre-line;
+
+                        & + .desc-media {
+                            margin-top: var(--paragraphe-spacing);
+                        }
                     }
 
-                    [text-part="true"] {
-                        padding: var(--spacing-comment) var(--margin-comment);
+                    a {
+                        color: var(--project-color-accent);
+                        background-color: #000000;
+                        text-decoration: underline;
+                        text-decoration-color: var(--text-color, var(--y-w1));
+
+                        &:hover {
+                            color: var(--y-w1);
+                            background-color: var(--project-color-fill);
+                            text-decoration: none;
+                        }
+                    }
+                    .desc-link {
+                        font-size: 1.1em;
+                        margin-top: var(--text-padding-topbottom);
                     }
 
-                    row {
+                    // [text-part="true"] {
+                    //     padding: var(--text-padding-topbottom) var(--text-padding-sides);
+                    // }
+
+                    > *:not(.width_fill):not([size-fill]), .width_main {
+                        max-width: var(--width-main);
+                    }
+                    > *.width_fill {
+                        width: 100%;
+                        max-width: 100%;
+                    }
+                    > *.width_ignore {
+                        width: initial;
+                        max-width: 100%;
+                    }
+
+                    .desc-media {
                         display: flex;
-                        flex-direction: row;
+                        max-height: 95vh;
 
-                        > * {
-                            &:not(:first-child) { margin-left: 2em; }
-
-                            .desc-media {
-                                media-caption {
-                                    padding-left: 0;
-                                }
-                            }
-                        }
-
-                        &.even {
-                            flex: 1;
-                        }
-                        &.center {
-                            h2 {
-                                transform: translateY(-0.1em);
-                            }
-                            align-items: center;
-                        }
-                        .gallery {
-                            > * {
-                                &:not(:first-child) { margin-left: var(--margin-comment); }
-                            }
+                        > img {
+                            @include nice-corners();
                         }
                     }
 
-                    even {
+                    .even, .row {
                         position: relative;
                         display: flex;
                         flex-direction: row;
 
-                        > * {
-                            position: relative;
-                            flex: 1;
-
-                            img {
-                                width: 100%;
-                            }
-                        }
-
-                        &.row {
-                            > * {
-                                &:not(:last-child) { > * { padding-right: 3.5rem; } }
-
-                                padding-right: var(--margin-comment);
-                                padding-left: var(--margin-comment);
-                                &:first-child { padding-left: 0; }
-                                &:last-child { padding-right: 0; }
-                            }
-                        }
                         &.img_ratio {
                             > *:first-child {
                                 flex: initial;
@@ -2641,7 +2618,18 @@ html.isSafari .prj-pill:not(.filter) {
                         }
 
                     }
-                    topbottom {
+                    .even {
+                        > * {
+                            position: relative;
+                            flex: 1;
+
+                            img {
+                                width: 100%;
+                            }
+                        }
+                    }
+
+                    .topbottom {
                         display: flex;
                         flex-direction: column;
                         justify-content: space-between;
@@ -2649,19 +2637,52 @@ html.isSafari .prj-pill:not(.filter) {
 
                         > *:first-child {
                             top: 0;
+
+                            > *:not(.desc-media):first-child {
+                                padding-top: var(--text-padding-topbottom);
+                            }
                         }
                         > *:last-child {
                             bottom: 0;
+
+                            > *:not(.desc-media):last-child {
+                                padding-bottom: var(--text-padding-topbottom);
+                            }
+                        }
+
+                        &:last-child > * {
+                            padding-left: var(--text-padding-sides);
+                        }
+                        &:first-child > * {
+                            padding-right: var(--text-padding-sides);
                         }
                     }
 
-                    stack, .stack {
+                    .stack {
                         display: flex;
                         flex-direction: column;
 
-                        media-caption {
+                        > * {
                             padding-left: 0;
                         }
+                    }
+
+                    .gap, .row {
+                        > * {
+                            &:not(:last-child) { margin-right: var(--text-padding-sides); }
+                        }
+                    }
+                    .gap_big {
+                        > * {
+                            &:not(:last-child) { margin-right: var(--text-padding-sides-big); }
+                        }
+                    }
+
+                    .center {
+                        h2 {
+                            transform: translateY(-0.1em);
+                        }
+                        align-items: center;
                     }
                 }
             }
@@ -2711,7 +2732,7 @@ html.isSafari .prj-pill:not(.filter) {
 
         @media (max-width: $mini-tablet) {
             --width-main: 100%;
-            --file-padding-leftright: var(--plist-p2);
+            --file-padding-sides: var(--plist-p2);
 
             --img-max-height: 85vh;
 
@@ -2740,7 +2761,7 @@ html.isSafari .prj-pill:not(.filter) {
                         }
                         .top {
                             padding-top: 0;
-                            padding-bottom: var(--spacing-comment);
+                            padding-bottom: var(--text-padding-topbottom);
                         }
                     }
                 }
@@ -2758,7 +2779,7 @@ html.isSafari .prj-pill:not(.filter) {
             }
         }
         @media (max-width: $mini-mobile) {
-            --file-padding-leftright: var(--plist-p);
+            --file-padding-sides: var(--plist-p);
 
             .file {
                 .head-buttons {
@@ -2771,15 +2792,45 @@ html.isSafari .prj-pill:not(.filter) {
                         padding-left: 0 !important;
                     }
 
-                    even, row {
+                    .even, .row {
                         flex-direction: column !important;
 
                         &.center {
                             align-items: flex-start !important;
                         }
                     }
-                    topbottom.end-caption {
+                    .gap, .row {
+                        > * {
+                            &:not(:last-child) {
+                                margin-right: 0 !important;
+                                margin-bottom: var(--text-padding-sides);
+                            }
+                        }
+                    }
+                    .gap_big {
+                        > * {
+                            &:not(:last-child) {
+                                margin-right: 0 !important;
+                                margin-bottom: var(--text-padding-sides-big);
+                            }
+                        }
+                    }
+                    .topbottom.end-caption {
                         flex-direction: column-reverse !important;
+
+                        > *:first-child {
+                            > *:not(.desc-media):last-child {
+                                padding-bottom: var(--text-padding-topbottom);
+                            }
+                        }
+                        > *:last-child {
+                            > *:not(.desc-media):last-child {
+                                padding-bottom: 0;
+                            }
+                            > *:not(.desc-media):first-child {
+                                padding-top: var(--text-padding-topbottom);
+                            }
+                        }
                     }
                 }
             }

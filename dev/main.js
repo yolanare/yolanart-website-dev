@@ -110,8 +110,12 @@ function divideArrayByChunks(array, itemsPerChunks = 4) {
 // })();
 
 // clean url hash, and if specified after separator
-function cleanURL(sep = undefined) {
-    history.replaceState({}, "", (!sep) ? window.location.pathname : window.location.hash.split(sep)[0]);
+function cleanURL(sep = undefined, push) {
+    if (push) {
+        history.pushState({}, "", (!sep) ? window.location.pathname : window.location.hash.split(sep)[0]);
+    } else {
+        history.replaceState({}, "", (!sep) ? window.location.pathname : window.location.hash.split(sep)[0]);
+    }
 }
 
 // push string to url hash, and if specified after separator, default: "#"
@@ -459,6 +463,9 @@ function translatePage() {
             }
 
             projectFilesDesc.innerHTML = getProjectTextLang(pID, "desc", true);
+            if (projectFilesDesc) {
+                projectFileResizeDescImgs(toTranslateEl);
+            }
         }
     })
 
@@ -506,7 +513,8 @@ var L = {
     toLoad : {
         "image" : {
             "./assets/medias/" : [
-                "pattern-dot-average.png",
+                "cursor-glow.png",
+                // "pattern-dot-average.png",
                 "pattern-dot-small.png",
                 "highlight-words-pattern.png"
             ]
@@ -2398,46 +2406,6 @@ function projectFileCreate(projectID, card, cursorEv) {
     })
 
     // after "create" code
-    // set size of project content img
-    function resizeToRatioPrjContent({elToCheck, elToResize, sizes, dummy, removeDummy = true}) {
-        const prjHighSize = (sizes) ? sizes : (dummy) ? [dummy.naturalWidth, dummy.naturalHeight] : [elToCheck.naturalWidth, elToCheck.naturalHeight];
-        if (dummy && removeDummy) { dummy.remove(); } // not needed anymore
-
-        // check which side is longer to fill correctly
-        var squarishAdd = prjHighSize[0] * 0.1,
-            sizeType; // return size type of img after calculations
-        //if (prjHighSize[0] > prjHighSize[1] - squarishAdd && prjHighSize[0] < prjHighSize[1] + squarishAdd) { // squarish aspect ratios
-        if (prjHighSize[0] < prjHighSize[1] + squarishAdd && prjHighSize[0] > prjHighSize[1] - squarishAdd) { // squarish aspect ratios
-            sizeType = "squarish";
-            elToResize.style.height = "97.5vh";
-        } else if (prjHighSize[1] > prjHighSize[0]) { // height >
-            sizeType = "long";
-            elToResize.style.height = "95vh";
-        } else { // width >
-            sizeType = "wide";
-            elToResize.style.width = "var(--width-main)"; // 75%
-        }
-
-        return sizeType;
-    }
-    // loops for some time until it gets the size of img element, then it resizes
-    function getSizeAndResizeToRatioPrjContent({elIMG, elApply, dummyElIMG, removeDummy, intensityMs = 30, durationMs = 2000, tellSizeTypeTo}) {
-        const elToCheck = (dummyElIMG) ? dummyElIMG : elIMG;
-        var sizeType, loopLimit = (durationMs/intensityMs).toFixed(0), loopGetPrjHighRes = setInterval(function () { // loop until found
-            if (elToCheck.naturalWidth) {
-                clearInterval(loopGetPrjHighRes); // stop loop
-                sizeType = resizeToRatioPrjContent({elToCheck : elToCheck, elToResize : (elApply) ? elApply : elToCheck, dummy : dummyElIMG, removeDummy : removeDummy}); // resize
-                if (tellSizeTypeTo) { tellSizeTypeTo.setAttribute("project-size-type", sizeType); } // if additional styling is necessary, can be used for css
-            }
-            loopLimit--;
-            if (loopLimit < 0) { // stop loop if not found after "durationMs" ms
-                console.error(`(project file) <img src> not found "${elToCheck.src}".`);
-                clearInterval(loopGetPrjHighRes);
-            }
-        }, intensityMs);
-
-    }
-
     if (PROJECT.type == "img") {
         const fileMainPrjImgEl = projectFile.querySelector("img.project-main"),
               prjImgHighSrc = `./assets/medias/projects/high/${projectID}.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}`;
@@ -2454,7 +2422,7 @@ function projectFileCreate(projectID, card, cursorEv) {
     }
     if (PROJECT.type == "vid" && !PROJECT.aspectRatio) { // fallback if aspect ration is unknown
         var pVideo = projectFile.querySelector("video.project-main");
-        pVideo.addEventListener( "loadedmetadata", (e) => {
+        pVideo.addEventListener( "loadedmetadata", () => {
             resizeToRatioPrjContent({elToResize : pVideo, sizes : [pVideo.videoWidth, pVideo.videoHeight]})
         }, false);
     }
@@ -2479,25 +2447,7 @@ function projectFileCreate(projectID, card, cursorEv) {
     }
     // the same as well for the description's content
     if (PROJECT.desc) {
-        const descEl = projectFile.querySelector(".description");
-
-        // resizing
-        descEl.querySelectorAll(".img_ratio > *:first-child img").forEach((descImg) => {
-            getSizeAndResizeToRatioPrjContent({elIMG : descImg, elApply : descImg.parentElement.parentElement});
-        })
-        descEl.querySelectorAll(".desc-content > .desc-media img").forEach((descImg) => {
-            getSizeAndResizeToRatioPrjContent({elIMG : descImg});
-        })
-        // descEl.querySelectorAll(".desc-content > .desc-media img").forEach((descImg) => {
-            // getSizeAndResizeToRatioPrjContent({elIMG : descImg});
-        // })
-
-        descEl.querySelectorAll(".desc-content .desc-media[size-fill]").forEach((descImg) => {
-            if (descImg.getAttribute("size-fill") == "width") { descImg.style.width = "100%";
-            } else if (descImg.getAttribute("size-fill") == "height") { descImg.style.height = "100%";
-            } else if (descImg.getAttribute("size-fill") == "vp-height") { descImg.style.height = "95vh";
-            }
-        })
+        projectFileResizeDescImgs(projectFile); // in a function to be reused when translating
     }
 
     // scrollbar
@@ -2572,6 +2522,71 @@ function projectFileCreate(projectID, card, cursorEv) {
 
     window.addEventListener("hashchange", projectFileRemove, { once:true }); // close on history back event
     projectFile.querySelector(".close-file-button").addEventListener("click", projectFileRemove);
+}
+
+// set size of project content img
+function resizeToRatioPrjContent({elToCheck, elToResize, sizes, dummy, removeDummy = true}) {
+    const prjHighSize = (sizes) ? sizes : (dummy) ? [dummy.naturalWidth, dummy.naturalHeight] : [elToCheck.naturalWidth, elToCheck.naturalHeight];
+    if (dummy && removeDummy) { dummy.remove(); } // not needed anymore
+
+    // check which side is longer to fill correctly
+    var squarishAdd = prjHighSize[0] * 0.1,
+        sizeType; // return size type of img after calculations
+    //if (prjHighSize[0] > prjHighSize[1] - squarishAdd && prjHighSize[0] < prjHighSize[1] + squarishAdd) { // squarish aspect ratios
+    if (prjHighSize[0] < prjHighSize[1] + squarishAdd && prjHighSize[0] > prjHighSize[1] - squarishAdd) { // squarish aspect ratios
+        sizeType = "squarish";
+        elToResize.style.height = "97.5vh";
+    } else if (prjHighSize[1] > prjHighSize[0]) { // height >
+        sizeType = "long";
+        elToResize.style.height = "95vh";
+    } else { // width >
+        sizeType = "wide";
+        elToResize.style.width = "var(--width-main)"; // 75%
+    }
+
+    return sizeType;
+}
+// loops for some time until it gets the size of img element, then it resizes
+function getSizeAndResizeToRatioPrjContent({elIMG, elApply, dummyElIMG, removeDummy, intensityMs = 30, durationMs = 2000, tellSizeTypeTo}) {
+    const elToCheck = (dummyElIMG) ? dummyElIMG : elIMG;
+    var sizeType, loopLimit = (durationMs/intensityMs).toFixed(0), loopGetPrjHighRes = setInterval(function () { // loop until found
+        if (elToCheck.naturalWidth) {
+            clearInterval(loopGetPrjHighRes); // stop loop
+            sizeType = resizeToRatioPrjContent({elToCheck : elToCheck, elToResize : (elApply) ? elApply : elToCheck, dummy : dummyElIMG, removeDummy : removeDummy}); // resize
+            if (tellSizeTypeTo) { tellSizeTypeTo.setAttribute("project-size-type", sizeType); } // if additional styling is necessary, can be used for css
+        }
+        loopLimit--;
+        if (loopLimit < 0) { // stop loop if not found after "durationMs" ms
+            console.error(`(project file) <img src> not found "${elToCheck.src}".`);
+            clearInterval(loopGetPrjHighRes);
+        }
+    }, intensityMs);
+
+}
+// for project files description's medias
+function projectFileResizeDescImgs(projectFile) {
+    const descEl = projectFile.querySelector(".description");
+
+    // resizing
+    descEl.querySelectorAll(".img_ratio > *:first-child img").forEach((descImg) => {
+        getSizeAndResizeToRatioPrjContent({elIMG : descImg, elApply : descImg.parentElement.parentElement});
+    })
+    descEl.querySelectorAll(".img_ratio > img").forEach((descImg) => {
+        getSizeAndResizeToRatioPrjContent({elIMG : descImg});
+    })
+    descEl.querySelectorAll(".desc-content > .desc-media img").forEach((descImg) => {
+        getSizeAndResizeToRatioPrjContent({elIMG : descImg});
+    })
+    // descEl.querySelectorAll(".desc-content > .desc-media img").forEach((descImg) => {
+        // getSizeAndResizeToRatioPrjContent({elIMG : descImg});
+    // })
+
+    descEl.querySelectorAll(".desc-content .desc-media[size-fill]").forEach((descImg) => {
+        if (descImg.getAttribute("size-fill") == "width") { descImg.style.width = "100%";
+        } else if (descImg.getAttribute("size-fill") == "height") { descImg.style.height = "100%";
+        } else if (descImg.getAttribute("size-fill") == "vp-height") { descImg.style.height = "95vh";
+        }
+    })
 }
 //#endregion
 
@@ -2666,6 +2681,7 @@ function init() {
 
     // PROJECT FILES
     projectOpenFromURLHash();
+    window.addEventListener("hashchange", () => { console.log("t"); projectOpenFromURLHash(); }); // open with history forward
 
     // STICKY ELEMENTS
     for (let i = 0; i < 8; i++) { // for loop to make sure it's applied correctly

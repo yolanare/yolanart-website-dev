@@ -64,54 +64,42 @@ function createLink({url, label}) {
         </a>
     `;
 }
-function createDescPart({
-    type = "", // select description part type
-    settings = "", // special cases, used as classes so can be separated by spaces " "
-    // "img_ratio" : will be resized depending on the img's aspect ratio
-    // "width_main" : will be resized to var(--width_main) (wide size type)
-    // "row"
-    // "stack"
-    // "center"
 
-    // put inside array the same way of input a boolean telling if it is text or not
-    text = [false, false, false, false, false, false, false, false],
+function createDescPart({
+    settings = "", // special cases, used as classes so can be separated by spaces " "
+    // "width_main" : will be resized to var(--width_main) (wide size type)
+    // even : split in even partitions, if screen get's thinner they will be stacked in one column
+    // "row" : put text blocks next to each other
+    // stack : puts in a column
+    // topbottom : make a flex with space-between, will fit any heights
+    // "center"
+    // "img_ratio" : will be resized depending on the img's aspect ratio
 
     input = ["", ""] // input depends on type
 }) {
     var elements = ``, // recipient
-        detectSpecial = "";
+        detectSpecialItem = "", // get specificities of input as class
+        detectSpecialPart = ""; // get specificities of input and applied to part as class
 
-    // put text blocks next to each other
-    if (type == "row") {
-        input.forEach((i) => { elements += `<div>${i}</div>`; })
-    }
-    // make a flex with space-between, will fit any heights
-    else if (type == "topbottom") {
-        elements = `
-            <top text-part="${text[0]}">${input[0]}</top>
-            <bottom text-part="${text[1]}">${input[1]}</bottom>
+    for (let i = 0; i < input.length; i++) {
+        detectSpecialItem = "";
+
+        if (input[i].match(/^(<media-caption>)/)) { detectSpecialPart += " end-caption"; }
+
+        elements += `
+            <div ${(detectSpecialItem) ? `class="${detectSpecialItem}"` : ""}>
+                ${input[i]}
+            </div>
         `;
-
-        if (input[1].match("<media-caption>")) {
-            detectSpecial += " end-caption";
-        }
-    }
-    // even : split in even partitions, if screen get's thinner they will be stacked in one column
-    // stack : puts in a column
-    else {
-        for (let i = 0; i < input.length; i++) {
-            elements += `<div text-part="${text[i]}">${input[i]}</div>`;
-        }
     }
 
     // final export
     return `
-        <${type} class="${settings} ${detectSpecial}">
+        <desc-part class="${settings} ${detectSpecialPart}">
             ${elements}
-        </${type}>
+        </desc-part>
     `
 }
-
 
 
 // DATA
@@ -298,20 +286,20 @@ var projectsData = {
         },
         desc : {
             fr : `
-                ${createDescPart({type : "row", settings : "", input : [
+                ${createDescPart({settings : "row gap_big", input : [
                     `<h2>sujet</h2>`,
                     `<p>Le sujet était de représenter la ville sans évoquer ses plus gros clichés.</p>
                     `,`<p>J’ai choisi de représenter son manque de personnalité en mettant en avant sa hauteur et sa répétitivité depuis le point de vue d’un piéton à travers le temps.</p>`
                 ]})}
-                ${createDescPart({type : "stack", settings : "", input : [
+                ${createDescPart({settings : "stack", input : [
                     `<h2>création</h2>`,
-                    createDescPart({type : "even", settings : "row", input : [
+                    createDescPart({settings : "even row gap_big", input : [
                         `<p>Je l'ai créé en 3D sur Cinema 4D. Je voulais donner du volume et de la profondeur à ma ville.
                         <br>J’ai placé des cubes et une caméra dans un carrefour.</p>`,
                         `<p>J’ai modifié beaucoup de paramètres pour donner une impression vertigineuse : le point de fuite est déplacé dans le croisement des bâtiments et le champ de vision est étiré.</p>`
                     ]})
                 ]})}
-                ${createDescPart({type : "row", settings : "width_fill", input : [
+                ${createDescPart({settings : "row gap_big width_fill", input : [
                     createMedia({url : "white_city/02 pts de vues 3D.jpg", caption : "Vues de la scène en 3D sur 4 points de vue.", settings : "stack"}),
                     createMedia({url : "white_city/01 camera 3D.jpg", caption : "Paramètres de la caméra.", settings : "stack", sizeFill : "height"})
                 ]})}
@@ -321,20 +309,20 @@ var projectsData = {
                 ${createMedia({url : "white_city/04 montage en gros.jpg", caption : "Montage des effets vidéos.", sizeFill : "width"})}
             `,
             en : `
-                ${createDescPart({type : "row", settings : "", input : [
+                ${createDescPart({settings : "row gap_big", input : [
                     `<h2>topic</h2>`,
                     `<p>The aim was to represent the city without bringing up its biggest clichés.</p>
                     `,`<p>I chose to depict its lack of character by emphasizing its height and repetitiveness from the point of view of a pedestrian across time.</p>`
                 ]})}
-                ${createDescPart({type : "stack", settings : "", input : [
+                ${createDescPart({settings : "stack", input : [
                     `<h2>creation</h2>`,
-                    createDescPart({type : "even", settings : "row", input : [
+                    createDescPart({settings : "even row gap_big", input : [
                         `<p>I created it entirely in 3D using Cinema 4D. I wanted to give volume and depth to my city.
                         <br>I placed cubes and a camera in an intersection.</p>`,
                         `<p>I adjusted a lot of the camera's settings to give it a dizzying effect: the vanishing point is shifted in the crossing of the buildings in the sky and the field of view is stretched.</p>`
                     ]})
                 ]})}
-                ${createDescPart({type : "row", settings : "width_fill", input : [
+                ${createDescPart({settings : "row gap_big width_fill", input : [
                     createMedia({url : "white_city/02 pts de vues 3D.jpg", caption : "Scene overview on 4 points of view.", settings : "stack"}),
                     createMedia({url : "white_city/01 camera 3D.jpg", caption : "Camera settings.", settings : "stack", sizeFill : "height"})
                 ]})}
@@ -359,17 +347,17 @@ var projectsData = {
         },
         desc : {
             fr : `
-                ${createDescPart({type : "row", settings : "center", input : [`<h2>sujet</h2>`, `<p>Le sujet consistait à incruster une peinture sur un support mural afin de créer un lien spécifique entre eux.</p>`]})}
-                ${createDescPart({type : "even", settings : "", input : [
+                ${createDescPart({settings : "row gap_big center", input : [`<h2>sujet</h2>`, `<p>Le sujet consistait à incruster une peinture sur un support mural afin de créer un lien spécifique entre eux.</p>`]})}
+                ${createDescPart({settings : "even", input : [
                     createMedia({url : "foresaken_dove/05 colombe Banksy.jpg"}),
-                    createDescPart({type : "topbottom", text : [true, true], input : [`
+                    createDescPart({settings : "topbottom", input : [`
                             <h2>inspiration</h2>
                             <p>L'œuvre “The Armoured Dove” de Banksy, un célèbre street-artiste britannique, m’a inspiré dans la réalisation de ce projet.</p>
                             <p>Sa colombe a été peinte en 2005 sur un mur séparant Israël et la Palestine. Pour lui ce mur est une tentative absurde pour mettre fin au conflit. La colombe étant un symbole de pureté et de paix, Banksy l'a totalement exposée à la violence. Un pointeur vise son cœur.</p>
                         `, `<media-caption>"The Armoured Dove", Banksy (2005).</media-caption>`
                     ]})
                 ]})}
-                ${createDescPart({type : "even", settings : "row", input : [`
+                ${createDescPart({settings : "even row gap_big", input : [`
                             <h2>l'abandonée</h2>
                             <p>Dans mon projet, j’ai choisi de faire de même en l’abandonnant dans un lieu sale et délaissé.
                             <br>Je n’avais pas de lieu de ce genre donc j’ai peint la colombe à l’aquarelle sur une feuille, et je l’ai incrustée numériquement sur un mur.</p>
@@ -379,24 +367,24 @@ var projectsData = {
                 ${createMedia({url : "foresaken_dove/01 colombe originale.jpg", caption : "Colombe peinte à l'aquarelle."})}
             `,
             en : `
-                ${createDescPart({type : "row", settings : "center", input : [`<h2>topic</h2>`, `<p>The aim was to create a specific link between a painting and a wall support.</p>`]})}
-                ${createDescPart({type : "even", settings : "width_fill", input : [
+                ${createDescPart({settings : "row gap_big center", input : [`<h2>topic</h2>`, `<p>The aim was to create a specific link between a painting and a wall support.</p>`]})}
+                ${createDescPart({settings : "even", input : [
                     createMedia({url : "foresaken_dove/05 colombe Banksy.jpg"}),
-                    createDescPart({type : "topbottom", text : [true, true], input : [`
+                    createDescPart({settings : "topbottom", input : [`
                             <h2>inspiration</h2>
                             <p>The work "The Armoured Dove" by Banksy, a famous British street-artist, inspired me to make this project.</p>
                             <p>His dove was painted in 2005 on a wall separating Israel and Palestine. For him, this wall is an absurd attempt to end the conflict. The dove being a symbol of purity and peace, Banksy has totally exposed it to violence. A pointer is aiming at its heart.</p>
                         `, `<media-caption>"The Armoured Dove", Banksy (2005).</media-caption>`
                     ]})
                 ]})}
-                ${createDescPart({type : "even", settings : "width_fill row", input : [`
+                ${createDescPart({settings : "even row gap_big", input : [`
                             <h2>the forsaken one</h2>
                             <p>In my project, I chose to do likewise by abandoning it in a dirty and neglected place.
                             <br>I didn't know where to find such a place so I painted the dove on paper and digitally overlaid it on a wall.</p>
                             `,`<p>Then I put a cage in front of it. It is trapped in this place. Panicked, the beak open and the wings spread. The colours are very dull and dark to give an impression of despair.</p>
                         `
                 ]})}
-                ${createMedia({url : "foresaken_dove/01 colombe originale.jpg", caption : "Painted dove with watercolours.", attributes : `size-fill="width"`})}
+                ${createMedia({url : "foresaken_dove/01 colombe originale.jpg", caption : "Painted dove with watercolours."})}
             `
         }
     },
@@ -1119,14 +1107,14 @@ var projectsData = {
         filter: "3D|illustration|experiment|compo",
         desc : {
             fr : `
-                ${createDescPart({type : "row", settings : "width_fill gallery", input : [
+                ${createDescPart({settings : "row width_fill", input : [
                     createMedia({url : "ice_crime/blender_in.jpg", caption : "Scène réalisée avec Blender.", settings : "stack"}),
                     createMedia({url : "ice_crime/depth.jpg", caption : "Découpage de chaque personnage en fonction de sa profondeur.", settings : "stack", sizeFill : "height"}),
                     createMedia({url : "ice_crime/ice_crime.jpg", caption : "Rendu final, dessin numérique.", settings : "stack", sizeFill : "height"})
                 ]})}
-                ${createDescPart({type : "even", settings : "", input : [
+                ${createDescPart({settings : "even", input : [
                     createMedia({url : "ice_crime/blender_out.jpg"}),
-                    createDescPart({type : "topbottom", text : [true, true], input : [`
+                    createDescPart({settings : "topbottom", input : [`
                         <p>Dans le processus de réalisation de ce projet, j'ai d'abord créé la scène en 3D pour ensuite redessiner par-dessus.</p>
                         <p>Cela m'a permis de garder les bonnes proportions pour chaque personnage, ainsi que de cadrer avec la scène comme je l'imaginais.</p>
                     `, `<media-caption>Scène vue d'un autre point de vue.</media-caption>`
@@ -1134,14 +1122,14 @@ var projectsData = {
                 ]})}
             `,
             en : `
-                ${createDescPart({type : "row", settings : "width_fill gallery", input : [
+                ${createDescPart({settings : "row width_fill", input : [
                     createMedia({url : "ice_crime/blender_in.jpg", caption : "Scene made with Blender.", settings : "stack"}),
                     createMedia({url : "ice_crime/depth.jpg", caption : "Each character cut out by depth.", settings : "stack", sizeFill : "height"}),
                     createMedia({url : "ice_crime/ice_crime.jpg", caption : "Final result, digital drawing.", settings : "stack", sizeFill : "height"})
                 ]})}
-                ${createDescPart({type : "even", settings : "", input : [
+                ${createDescPart({settings : "even", input : [
                     createMedia({url : "ice_crime/blender_out.jpg"}),
-                    createDescPart({type : "topbottom", text : [true, true], input : [`
+                    createDescPart({settings : "topbottom", input : [`
                         <p>In the process of making this project, I first created the scene in 3D to then draw over it.</p>
                         <p>This allowed me to keep the right proportions for each character, as well as to frame the scene as I imagined it.</p>
                         `, `<media-caption>Scene from a different point of view.</media-caption>`
@@ -1185,31 +1173,46 @@ var projectsData = {
         date : "2023.02",
         context: "school",
         filter: "motion|3D|illustration",
-        /*desc : {
+        desc : {
             fr : `
-                ${createDescPart({type : "even", settings : "width_fill", input : [
+                ${createDescPart({settings : "even width_fill", input : [
                     createMedia({url : "saw_sawing_animation/saw original.jpg"}),
-                    createDescPart({type : "topbottom", text : [true, true], input : [`
-                        `, `<media-caption>"Saw, Sawing", Claes Oldenburg, (1996), Tokyo International Exhibition Center, Big Sight, Tokyo.</media-caption>`
+                    createDescPart({settings : "topbottom", input : [`
+                        `, `<media-caption>"Saw, Sawing", Claes Oldenburg, (1996), Tokyo Big Sight.</media-caption>`
                     ]})
                 ]})}
-                ${createDescPart({type : "row", settings : "width_fill gallery", input : [
-                    createMedia({url : "saw_sawing_animation/original det.jpg", caption : "Détourage à partir d'une photo de côté.", settings : "stack", sizeFill : "height"}),
-                    createMedia({url : "saw_sawing_animation/3D profil.jpg", caption : "Modèle 3D réalisé sur Blender.", settings : "stack"}),
+                ${createDescPart({settings : "row even gap_big width_fill", input : [
+                    createMedia({url : "saw_sawing_animation/image d'origine (crop).jpg", caption : `Image d'origine prise par <a href="https://twitter.com/wongthanong/status/1132931314284261377" target="_blank">@wongthanong sur Twitter</a>.`, settings : "stack", sizeFill : "height"}),
+                    createMedia({url : "saw_sawing_animation/fond sans scie (upscaled).jpg", caption : "Scie retirée de l'image d'origine (et agrandie avec une IA).", settings : "stack", sizeFill : "height"}),
                 ]})}
-                ${createDescPart({type : "row", settings : "width_fill gallery", input : [
-                    createMedia({url : "saw_sawing_animation/image d'origine (crop).jpg", caption : `Image d'origine prise par <a href="https://twitter.com/wongthanong/status/1132931314284261377" target="_blank">@wongthanong sur Twitter</a>.`, settings : "stack"}),
-                    createMedia({url : "saw_sawing_animation/fond sans scie (upscaled).jpg", caption : "Scie retirée de l'image d'origine (agrandie).", settings : "stack", sizeFill : "height"}),
-                ]})}
-                ${createDescPart({type : "row", settings : "width_fill gallery", input : [
-                    createMedia({url : "saw_sawing_animation/3D 1.jpg", settings : "stack"}),
+                ${createDescPart({settings : "row even gap_big width_fill", input : [
+                    createMedia({url : "saw_sawing_animation/3D 1.jpg", settings : "stack", sizeFill : "height"}),
                     createMedia({url : "saw_sawing_animation/3D 2.jpg", settings : "stack", sizeFill : "height"}),
                     createMedia({url : "saw_sawing_animation/3D 3.jpg", settings : "stack", sizeFill : "height"})
                 ]})}
             `,
             en : `
+                ${createDescPart({settings : "even width_fill", input : [
+                    createMedia({url : "saw_sawing_animation/saw original.jpg"}),
+                    createDescPart({settings : "topbottom", input : [`
+                        `, `<media-caption>"Saw, Sawing", Claes Oldenburg, (1996), Tokyo Big Sight.</media-caption>`
+                    ]})
+                ]})}
+                ${createDescPart({settings : "row even gap_big width_fill", input : [
+                    createMedia({url : "saw_sawing_animation/image d'origine (crop).jpg", caption : `Original photo taken by <a href="https://twitter.com/wongthanong/status/1132931314284261377" target="_blank">@wongthanong on Twitter</a>.`, settings : "stack", sizeFill : "height"}),
+                    createMedia({url : "saw_sawing_animation/fond sans scie (upscaled).jpg", caption : "Saw removed from the photo (and IA upscaled).", settings : "stack", sizeFill : "height"}),
+                ]})}
+                ${createDescPart({settings : "row even gap_big width_fill", input : [
+                    createMedia({url : "saw_sawing_animation/3D 1.jpg", settings : "stack", sizeFill : "height"}),
+                    createMedia({url : "saw_sawing_animation/3D 2.jpg", settings : "stack", sizeFill : "height"}),
+                    createMedia({url : "saw_sawing_animation/3D 3.jpg", settings : "stack", sizeFill : "height"})
+                ]})}
             `,
-        }*/
+            // ${createDescPart({settings : "row gap_big width_ignore", input : [
+            //     createMedia({url : "saw_sawing_animation/original det.jpg", caption : "Détourage à partir d'une photo de côté.", settings : "stack"}),
+            //     createMedia({url : "saw_sawing_animation/3D profil.jpg", caption : "Modèle 3D réalisé sur Blender.", settings : "stack", sizeFill : "height"}),
+            // ]})}
+        }
     },
     "dépliant_bic" : {
         type : "img", interact : "zoom",
