@@ -327,6 +327,15 @@ nav.menu {
     --outline-weight: 2px;
     transform: rotateZ(0.01deg) scale(1);
 
+    html.isSafari & {
+        outline: none !important;
+        border: var(--outline-weight) solid transparent;
+
+        &[state="true"] {
+            border: var(--outline-weight) solid rgba(var(--pill-bg-rgb), 0.85);
+        }
+    }
+
     cursor: pointer;
     user-select: none;
 
@@ -509,6 +518,9 @@ nav.menu {
             transform: scale(1.2);
         }
     }
+}
+html.isSafari .prj-pill:not(.filter) {
+    border: var(--outline-weight) solid var(--accent, var(--y-w1));
 }
 
 

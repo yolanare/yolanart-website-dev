@@ -34,6 +34,9 @@ checkWinSize(); window.addEventListener("resize", checkWinSize);
 //#region - CSS HELPERS -
 // is browser chromium based
 if (!!window.chrome) { document.querySelector("html").classList.add("isChr"); }
+// is browser safari
+if (navigator.vendor.match(/apple/i) && !navigator.userAgent.match(/crios/i) && !navigator.userAgent.match(/fxios/i) && !navigator.userAgent.match(/Opera|OPT\//))
+    { document.querySelector("html").classList.add("isSafari"); }
 // is touch device
 if (isTouchDevice) { document.querySelector("html").classList.add("isTouch"); }
 //#endregion
