@@ -518,6 +518,16 @@ var L = {
                 "pattern-dot-small.png",
                 "highlight-words-pattern.png"
             ]
+        },
+        "font" : {
+            "./assets/fonts/" : [
+                ["Montserrat", "Montserrat.ttf"],
+                ["Montserrat", "Montserrat-Italic.ttf"],
+                ["Plus Jakarta Sans", "PlusJakartaSans.ttf"],
+                ["Plus Jakarta Sans", "PlusJakartaSans-Italic.ttf"],
+                ["Chivo Mono", "ChivoMono.ttf"],
+                // ["Chivo Mono", "ChivoMono-Italic.ttf"],
+            ]
         }
         // TODO "video" (later when needed)
     },
@@ -601,7 +611,7 @@ function loadingScreenDisplay(type) {
             // most of the assets are loaded
             if (L.assetsLoaded > L.assetsAmountNb * L.assetsLoadMajorityThreshold) { L.loaded.assetsMajority = true; }
             // all assets are loaded
-            if (L.assetsLoaded >= L.assetsAmountNb) { L.loaded.assetsAll = true; }
+            if (L.assetsLoaded >= L.assetsAmountNb) { L.loaded.assetsAll = true; loadingLogger({ log : "All assets loaded." }); }
 
             // majority of needed things are loaded (page & most of assets)
             if (L.loaded.necessary && L.loaded.assetsMajority) { L.loaded.majority = true; }
@@ -710,7 +720,7 @@ function loadAsset({url, type = "image", callbackWhenLoaded}) {
         document.body.appendChild(loaderAssets);
     }
 
-    if (type = "image") {
+    if (type == "image") {
         var assetEl = document.createElement("img");
         assetEl.setAttribute("src", url);
     }
@@ -760,18 +770,33 @@ function loadMainAssets() {
     var differChunkLoading = 0;
     Object.entries(L.toLoad).forEach((toLoadType) => { // [type, {directories}]
         Object.entries(toLoadType[1]).forEach((toLoadDir) => { // [directory, [assets]]
-            // divide by chunks with delay for perfomance reasons
-            const toLoadAssetChunks = divideArrayByChunks(toLoadDir[1], 8);
+            if (toLoadType[0] == "font") { // fonts
+                Object.values(toLoadDir[1]).forEach((toLoadAsset) => {
+                    const loadFont = new FontFace(toLoadAsset[0], "url("+ toLoadDir[0] + toLoadAsset[1] +")");
+                    document.fonts.add(loadFont);
+                    loadFont.load().then(
+                        () => {
+                            L.assetsLoaded++
+                        },
+                        (err) => {
+                            console.error(err);
+                        }
+                    );
+                });
+            }
+            else { // normal media
+                // divide by chunks with delay for perfomance reasons
+                const toLoadAssetChunks = divideArrayByChunks(toLoadDir[1], 8);
 
-            toLoadAssetChunks.forEach((toLoadAssets) => {
-                setTimeout(() => {
-                    toLoadAssets.forEach((assetFileName) => {
-                        loadAsset({url : toLoadDir[0] + assetFileName, type : toLoadType[0], callbackWhenLoaded : () => { L.assetsLoaded++; }})
-                    });
-                }, differChunkLoading);
-                differChunkLoading += 100;
-            });
-
+                toLoadAssetChunks.forEach((toLoadAssets) => {
+                    setTimeout(() => {
+                        toLoadAssets.forEach((assetFileName) => {
+                            loadAsset({url : toLoadDir[0] + assetFileName, type : toLoadType[0], callbackWhenLoaded : () => { L.assetsLoaded++; }});
+                        });
+                    }, differChunkLoading);
+                    differChunkLoading += 100;
+                });
+            }
         });
     });
 
@@ -2405,6 +2430,31 @@ function projectFileCreate(projectID, card, cursorEv) {
         boomAnimInit({target : langBtn, container : projectFile, specialCase : "languageButton", eventType : "click"});
     })
 
+    // scrollbar
+    var scrollbarPrjFile = OverlayScrollbars(projectFile, {
+        autoUpdate : o1[0],
+        autoUpdateInterval : o1[1],
+        overflowBehavior : {
+            x : "hidden",
+            y : "scroll"
+        },
+        scrollbars : {
+            visibility : "auto",
+            autoHide : "never", // "scroll" "move" "never"
+            autoHideDelay : OScrHDelay
+        },
+        callbacks : {
+            onScrollStart : () => { if (scrollbarPrjFile) { scrollbarPrjFile.update(true); } },
+            onScroll : scrollPrjFileEvents,
+        }
+    });
+    function scrollPrjFileEvents() {
+        projectFile.style.setProperty("--scroll-pos-y", scrollbarPrjFile.scroll().position.y +"px");
+
+        //StickIt();
+        StickIt_FlexSiblingsSpaceBetween();
+    }
+
     // after "create" code
     if (PROJECT.type == "img") {
         const fileMainPrjImgEl = projectFile.querySelector("img.project-main"),
@@ -2415,10 +2465,10 @@ function projectFileCreate(projectID, card, cursorEv) {
         var prjImgHighDummy = imgReplaceWithOnceLoaded(fileMainPrjImgEl, prjImgHighSrc, { dummy : prjImgHighDummy, dummyReturn : true, customParent : projectFile });
 
         // get size of low res project img first
-        getSizeAndResizeToRatioPrjContent({elIMG : fileMainPrjImgEl, intensityMs : 20, durationMs : 12000, tellSizeTypeTo : pFileElMainC});
+        getSizeAndResizeToRatioPrjContent({elIMG : fileMainPrjImgEl, intensityMs : 20, durationMs : 12000, tellSizeTypeTo : pFileElMainC, callback : () => { scrollbarPrjFile.update(true) }});
 
         // get size of high res project img after to make sure it corresponds to high res one
-        getSizeAndResizeToRatioPrjContent({elIMG : fileMainPrjImgEl, dummyElIMG : prjImgHighDummy, tellSizeTypeTo : pFileElMainC});
+        getSizeAndResizeToRatioPrjContent({elIMG : fileMainPrjImgEl, dummyElIMG : prjImgHighDummy, tellSizeTypeTo : pFileElMainC, callback : () => { scrollbarPrjFile.update(true) }});
     }
     if (PROJECT.type == "vid" && !PROJECT.aspectRatio) { // fallback if aspect ration is unknown
         var pVideo = projectFile.querySelector("video.project-main");
@@ -2440,38 +2490,14 @@ function projectFileCreate(projectID, card, cursorEv) {
             else if (PRJADD.sizeFill == "height") { fileSecondPrjEl.style.height = "95vh"; }
 
             if (PRJADD.type == "img" && !["width", "height"].includes(PRJADD.sizeFill)) {
-                getSizeAndResizeToRatioPrjContent({elIMG : fileSecondPrjEl});
+                getSizeAndResizeToRatioPrjContent({elIMG : fileSecondPrjEl, callback : () => { scrollbarPrjFile.update(true) }});
                 pFileElMainC.classList.add("has-secondary-content-same-ratio");
             }
         })
     }
     // the same as well for the description's content
     if (PROJECT.desc) {
-        projectFileResizeDescImgs(projectFile); // in a function to be reused when translating
-    }
-
-    // scrollbar
-    var scrollbarPrjFile = OverlayScrollbars(projectFile, {
-        autoUpdate : o1[0],
-        autoUpdateInterval : o1[1],
-        overflowBehavior : {
-            x : "hidden",
-            y : "scroll"
-        },
-        scrollbars : {
-            visibility : "auto",
-            autoHide : "never", // "scroll" "move" "never"
-            autoHideDelay : OScrHDelay
-        },
-        callbacks : {
-            onScroll : scrollPrjFileEvents,
-        }
-    });
-    function scrollPrjFileEvents() {
-        projectFile.style.setProperty("--scroll-pos-y", scrollbarPrjFile.scroll().position.y +"px");
-
-        //StickIt();
-        StickIt_FlexSiblingsSpaceBetween();
+        projectFileResizeDescImgs(projectFile, () => { scrollbarPrjFile.update(true) }); // in a function to be reused when translating
     }
 
     // in
@@ -2479,6 +2505,7 @@ function projectFileCreate(projectID, card, cursorEv) {
         for (let i = 0; i < 8; i++) { // for loop to make sure it's applied correctly
             setTimeout(() => {
                 StickIt_FlexSiblingsSpaceBetween();
+                scrollbarPrjFile.update(true)
             }, 400 * i);
         }
 
@@ -2547,13 +2574,14 @@ function resizeToRatioPrjContent({elToCheck, elToResize, sizes, dummy, removeDum
     return sizeType;
 }
 // loops for some time until it gets the size of img element, then it resizes
-function getSizeAndResizeToRatioPrjContent({elIMG, elApply, dummyElIMG, removeDummy, intensityMs = 30, durationMs = 2000, tellSizeTypeTo}) {
+function getSizeAndResizeToRatioPrjContent({elIMG, elApply, dummyElIMG, removeDummy, intensityMs = 30, durationMs = 2000, tellSizeTypeTo, callback}) {
     const elToCheck = (dummyElIMG) ? dummyElIMG : elIMG;
     var sizeType, loopLimit = (durationMs/intensityMs).toFixed(0), loopGetPrjHighRes = setInterval(function () { // loop until found
         if (elToCheck.naturalWidth) {
             clearInterval(loopGetPrjHighRes); // stop loop
             sizeType = resizeToRatioPrjContent({elToCheck : elToCheck, elToResize : (elApply) ? elApply : elToCheck, dummy : dummyElIMG, removeDummy : removeDummy}); // resize
             if (tellSizeTypeTo) { tellSizeTypeTo.setAttribute("project-size-type", sizeType); } // if additional styling is necessary, can be used for css
+            if (callback) { setTimeout(() => { callback(); }, 500);  }
         }
         loopLimit--;
         if (loopLimit < 0) { // stop loop if not found after "durationMs" ms
@@ -2564,21 +2592,21 @@ function getSizeAndResizeToRatioPrjContent({elIMG, elApply, dummyElIMG, removeDu
 
 }
 // for project files description's medias
-function projectFileResizeDescImgs(projectFile) {
+function projectFileResizeDescImgs(projectFile, callback) {
     const descEl = projectFile.querySelector(".description");
 
     // resizing
     descEl.querySelectorAll(".img_ratio > *:first-child img").forEach((descImg) => {
-        getSizeAndResizeToRatioPrjContent({elIMG : descImg, elApply : descImg.parentElement.parentElement});
+        getSizeAndResizeToRatioPrjContent({elIMG : descImg, elApply : descImg.parentElement.parentElement, callback : callback});
     })
     descEl.querySelectorAll(".img_ratio > img").forEach((descImg) => {
-        getSizeAndResizeToRatioPrjContent({elIMG : descImg});
+        getSizeAndResizeToRatioPrjContent({elIMG : descImg, callback : callback});
     })
     descEl.querySelectorAll(".desc-content > .desc-media img").forEach((descImg) => {
-        getSizeAndResizeToRatioPrjContent({elIMG : descImg});
+        getSizeAndResizeToRatioPrjContent({elIMG : descImg, callback : callback});
     })
     // descEl.querySelectorAll(".desc-content > .desc-media img").forEach((descImg) => {
-        // getSizeAndResizeToRatioPrjContent({elIMG : descImg});
+        // getSizeAndResizeToRatioPrjContent({elIMG : descImg, callback : callback});
     // })
 
     descEl.querySelectorAll(".desc-content .desc-media[size-fill]").forEach((descImg) => {
