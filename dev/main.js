@@ -2444,7 +2444,7 @@ function projectFileCreate(projectID, card, cursorEv) {
             autoHideDelay : OScrHDelay
         },
         callbacks : {
-            onScrollStart : () => { if (scrollbarPrjFile) { scrollbarPrjFile.update(true); } },
+            // onScrollStart : () => { if (scrollbarPrjFile) { scrollbarPrjFile.update(true); } }, // flashing with video player, TODO better later
             onScroll : scrollPrjFileEvents,
         }
     });
@@ -2465,10 +2465,10 @@ function projectFileCreate(projectID, card, cursorEv) {
         var prjImgHighDummy = imgReplaceWithOnceLoaded(fileMainPrjImgEl, prjImgHighSrc, { dummy : prjImgHighDummy, dummyReturn : true, customParent : projectFile });
 
         // get size of low res project img first
-        getSizeAndResizeToRatioPrjContent({elIMG : fileMainPrjImgEl, intensityMs : 20, durationMs : 12000, tellSizeTypeTo : pFileElMainC, callback : () => { scrollbarPrjFile.update(true) }});
+        getSizeAndResizeToRatioPrjContent({elIMG : fileMainPrjImgEl, intensityMs : 20, durationMs : 12000, tellSizeTypeTo : pFileElMainC/*, callback : () => { scrollbarPrjFile.update(true) }*/});
 
         // get size of high res project img after to make sure it corresponds to high res one
-        getSizeAndResizeToRatioPrjContent({elIMG : fileMainPrjImgEl, dummyElIMG : prjImgHighDummy, tellSizeTypeTo : pFileElMainC, callback : () => { scrollbarPrjFile.update(true) }});
+        getSizeAndResizeToRatioPrjContent({elIMG : fileMainPrjImgEl, dummyElIMG : prjImgHighDummy, tellSizeTypeTo : pFileElMainC/*, callback : () => { scrollbarPrjFile.update(true) }*/});
     }
     if (PROJECT.type == "vid" && !PROJECT.aspectRatio) { // fallback if aspect ration is unknown
         var pVideo = projectFile.querySelector("video.project-main");
@@ -2490,14 +2490,14 @@ function projectFileCreate(projectID, card, cursorEv) {
             else if (PRJADD.sizeFill == "height") { fileSecondPrjEl.style.height = "95vh"; }
 
             if (PRJADD.type == "img" && !["width", "height"].includes(PRJADD.sizeFill)) {
-                getSizeAndResizeToRatioPrjContent({elIMG : fileSecondPrjEl, callback : () => { scrollbarPrjFile.update(true) }});
+                getSizeAndResizeToRatioPrjContent({elIMG : fileSecondPrjEl/*, callback : () => { scrollbarPrjFile.update(true) }*/});
                 pFileElMainC.classList.add("has-secondary-content-same-ratio");
             }
         })
     }
     // the same as well for the description's content
     if (PROJECT.desc) {
-        projectFileResizeDescImgs(projectFile, () => { scrollbarPrjFile.update(true) }); // in a function to be reused when translating
+    projectFileResizeDescImgs(projectFile/*, () => { scrollbarPrjFile.update(true) }*/); // in a function to be reused when translating
     }
 
     // in
@@ -2505,7 +2505,7 @@ function projectFileCreate(projectID, card, cursorEv) {
         for (let i = 0; i < 8; i++) { // for loop to make sure it's applied correctly
             setTimeout(() => {
                 StickIt_FlexSiblingsSpaceBetween();
-                scrollbarPrjFile.update(true)
+                // scrollbarPrjFile.update(true);
             }, 400 * i);
         }
 
