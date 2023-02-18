@@ -611,7 +611,7 @@ function loadingScreenDisplay(type) {
             // most of the assets are loaded
             if (L.assetsLoaded > L.assetsAmountNb * L.assetsLoadMajorityThreshold) { L.loaded.assetsMajority = true; }
             // all assets are loaded
-            if (L.assetsLoaded >= L.assetsAmountNb) { L.loaded.assetsAll = true; loadingLogger({ log : "All assets loaded." }); }
+            if (L.assetsLoaded >= L.assetsAmountNb && !L.loaded.assetsAll) { L.loaded.assetsAll = true; loadingLogger({ log : "All assets loaded." }); }
 
             // majority of needed things are loaded (page & most of assets)
             if (L.loaded.necessary && L.loaded.assetsMajority) { L.loaded.majority = true; }
