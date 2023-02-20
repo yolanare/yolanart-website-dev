@@ -1,0 +1,24 @@
+//- CUSTOM DEFAULTS -
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 10px;
+}
+
+img,
+audio,
+video {
+  max-width: 100%;
+  height: auto;
+}
+iframe {
+  border: 0;
+}
+
+
+//- CUSTOM CLASSES -
+.untouchable {
+  user-select: none;
+  pointer-events: none;
+}

@@ -7,11 +7,11 @@ const TerserPlugin = require('terser-webpack-plugin');
 
 const DIR = {
   dev: "dev",
-  public: "yolanare.github.io"
+  public: "../../yolanare.github.io/old/v1.7"
 };
 const specialFilesToCopy = [
-  ["CNAME", "./"],
-  [".nojekyll", "./"]
+  // ["CNAME", "./"],
+  // [".nojekyll", "./"]
 ];
 
 // CONFIG
@@ -27,7 +27,7 @@ const buildWebpackConfig = merge(baseWebpackConfig, {
 
   plugins: [
     new CleanWebpackPlugin({
-      cleanOnceBeforeBuildPatterns: ["**/*", "!.git/**", "!dev/**", "!old/**"],
+      cleanOnceBeforeBuildPatterns: ["**/*", "!.git/**"],
       verbose: true,
       dry: false
     }),
@@ -41,14 +41,14 @@ const buildWebpackConfig = merge(baseWebpackConfig, {
         ]
       })
     ),
-    new CopyWebpackPlugin({
-      patterns: [
-        {
-          from: DIR.dev+"/assets/medias",
-          to: "assets/medias"
-        }
-      ]
-    })
+    // new CopyWebpackPlugin({
+    //   patterns: [
+    //     {
+    //       from: DIR.dev+"/assets/medias",
+    //       to: "assets/medias"
+    //     }
+    //   ]
+    // })
   ]
 });
 
