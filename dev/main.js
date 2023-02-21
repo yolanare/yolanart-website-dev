@@ -522,9 +522,9 @@ var L = {
         "font" : {
             "./assets/fonts/" : [
                 ["Montserrat", "Montserrat.ttf"],
-                ["Montserrat", "Montserrat-Italic.ttf"],
+                // ["Montserrat", "Montserrat-Italic.ttf"],
                 ["Plus Jakarta Sans", "PlusJakartaSans.ttf"],
-                ["Plus Jakarta Sans", "PlusJakartaSans-Italic.ttf"],
+                // ["Plus Jakarta Sans", "PlusJakartaSans-Italic.ttf"],
                 ["Chivo Mono", "ChivoMono.ttf"],
                 // ["Chivo Mono", "ChivoMono-Italic.ttf"],
             ]
