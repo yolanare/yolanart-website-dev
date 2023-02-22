@@ -33,12 +33,12 @@ checkWinSize(); window.addEventListener("resize", checkWinSize);
 
 //#region - CSS HELPERS -
 // is browser chromium based
-if (!!window.chrome) { document.querySelector("html").classList.add("isChr"); }
+if (!!window.chrome) { doc.classList.add("isChr"); }
 // is browser safari
 if (navigator.vendor.match(/apple/i) && !navigator.userAgent.match(/crios/i) && !navigator.userAgent.match(/fxios/i) && !navigator.userAgent.match(/Opera|OPT\//))
-    { document.querySelector("html").classList.add("isSafari"); }
+    { doc.classList.add("isSafari"); }
 // is touch device
-if (isTouchDevice) { document.querySelector("html").classList.add("isTouch"); }
+if (isTouchDevice) { doc.classList.add("isTouch"); }
 //#endregion
 
 //#region - HELPER FUNCTIONS -
@@ -173,9 +173,37 @@ function imgReplaceWithOnceLoaded(elem, newImgSrc, { dummy, dummyReturn = false,
     // in case the dummy element is needed for other purposes
     if (dummyReturn) { return dummy; }
 };
+
+// get the next element in a array from the specified one, will loop back to first one if at the end
+function getNextOneInArray(array, current) {
+    const currentIndex = array.indexOf(current);
+    return (currentIndex >= 0 && currentIndex + 1 <= array.length - 1) ? array[currentIndex + 1] : array[0];
+}
 //#endregion
 
 // - Modules -
+//#region THEMES
+var THEMES = {
+    list : ["light", "dark"],
+    current : ""
+}
+
+// switch themes
+function themeSwitch(forceTheme) {
+    THEMES.current = (forceTheme) ? forceTheme : getNextOneInArray(THEMES.list, THEMES.current);
+
+    // set new theme
+    doc.setAttribute("theme", THEMES.current)
+}
+
+// set the current theme to the first one in the list
+THEMES.current = (!THEMES.current) ? THEMES.list[0] : THEMES.current;
+themeSwitch(THEMES.list[0]);
+
+// document.querySelector("main").addEventListener("click", (cursorEv) => { themeSwitch(); });
+//#endregion
+
+
 //#region PROJECTS (const shortcuts)
 const pDataDefault = Prj.projectsDataSample.default,
       pContexts = Lang.contexts,
@@ -458,7 +486,10 @@ function translatePage() {
 
             if (secondaryProjects) {
                 secondaryProjects.forEach((secondary) => {
-                    secondary.querySelector(".comment").innerText = getTextLang({type : "project-id", id : pID, langDB : "project", langDBNesting : ["additional", secondary.getAttribute("project-secondary-id"), "comment"], leaveEmpty : true});
+                    const commentEl = secondary.querySelector(".comment");
+                    if (commentEl) {
+                        commentEl.innerText = getTextLang({type : "project-id", id : pID, langDB : "project", langDBNesting : ["additional", secondary.getAttribute("project-secondary-id"), "comment"], leaveEmpty : true});
+                    }
                 })
             }
 
@@ -513,7 +544,8 @@ var L = {
     toLoad : {
         "image" : {
             "./assets/medias/" : [
-                "cursor-glow.png",
+                "cursor-glow-onbright.png",
+                "cursor-glow-ondark.png",
                 // "pattern-dot-average.png",
                 "pattern-dot-small.png",
                 "highlight-words-pattern.png"
@@ -1741,7 +1773,7 @@ function filtersGenerateProjectsList() {
             const projectCardHTML = `
                 <div project-id="${projectID}" list-nb="${spIndex}" class="project-cards" style="transition: none; --project-color-accent: ${(PROJECT.colorAccent) ? PROJECT.colorAccent : pDataDefault.colorAccent}; --project-color-fill: ${(PROJECT.colorFill) ? PROJECT.colorFill : pDataDefault.colorFill}">
                     <div class="in">
-                        <div class="thumbnail">${thumbnail}</div>
+                        <div class="thumbnail" ${(PROJECT.monochrome) ? `invert="${PROJECT.monochrome}"` : ""}>${thumbnail}</div>
                         <div class="header">
                             <span class="project-title">${getProjectTextLang(projectID)}</span>
                             ${(["yt", "vid"].includes((PROJECT.type) ? PROJECT.type : pDataDefault.type)) // if video : add popup button to see the video without leaving the page
@@ -2267,7 +2299,8 @@ function projectFileCreate(projectID, card, cursorEv) {
 
     // project main content
     const aspectRatio = (PROJECT.aspectRatio) ? PROJECT.aspectRatio : pDataDefault.aspectRatio,
-          imgAspectRatioForce = (PROJECT.aspectRatio) ? aspectRatio : false;
+          imgAspectRatioForce = (PROJECT.aspectRatio) ? aspectRatio : false,
+          prjMonochrome = `${(PROJECT.monochrome) ? `invert="${PROJECT.monochrome}"` : ""}`;
 
     if(PROJECT.type == "img") {
         // by default, put the thumbnail as a placeholder for the hd project image (they generally have the same aspect ratio so it's fine)
@@ -2276,12 +2309,12 @@ function projectFileCreate(projectID, card, cursorEv) {
         headerMainContentHTML = `
            <img class="project-main" src="${prjImgLowSrc}" style="background-image: url(${prjImgLowSrc}); ${
                (PROJECT.needBG) ? `background-color: ${(PROJECT.needBG === true) ? "var(--p-needbg-default)" : PROJECT.needBG};` : "" // background color if needed and specified
-           }" ${(imgAspectRatioForce) ? `aspect-ratio="${imgAspectRatioForce}"` : ""}>
+           }" ${(imgAspectRatioForce) ? `aspect-ratio="${imgAspectRatioForce}"` : ""}  ${prjMonochrome}>
         `;
     }
     else if(PROJECT.type == "yt") {
         headerMainContentHTML = `
-            <div class="project-main" aspect-ratio="${aspectRatio}">
+            <div class="project-main" aspect-ratio="${aspectRatio}" ${prjMonochrome}>
                 <div class="embed-player-loading"></div>
                 <div class="embed-player-placeholder"></div>
                 <iframe width="1920" height="1080" src="https://www.youtube.com/embed/${(PROJECT.url_id) ? PROJECT.url_id : pDataDefault.url_id}?rel=0&color=white&loop=1" frameborder="0" allowfullscreen></iframe>
@@ -2290,7 +2323,7 @@ function projectFileCreate(projectID, card, cursorEv) {
     }
     else if(PROJECT.type == "embed") {
         headerMainContentHTML = `
-            <div class="project-main" aspect-ratio="${aspectRatio}">
+            <div class="project-main" aspect-ratio="${aspectRatio}" ${prjMonochrome}>
                 <div class="embed-player-loading"></div>
                 <div class="embed-player-placeholder"></div>
                 <iframe src="${((PROJECT.embed) ? PROJECT.embed : pDataDefault.embed)}" width="1920px" height="1080px" frameborder="0" allowfullscreen="allowfullscreen" allow="fullscreen"></iframe>
@@ -2300,7 +2333,7 @@ function projectFileCreate(projectID, card, cursorEv) {
     else if (PROJECT.type == "vid") {
         const ext = (PROJECT.ext) ? PROJECT.ext : pDataDefault.ext;
         headerMainContentHTML = `
-            <video class="project-main" aspect-ratio="${aspectRatio}" controls loop style="pointer-events: all;" poster="./assets/medias/projects/low/${projectID}_low.jpg">
+            <video class="project-main" aspect-ratio="${aspectRatio}" ${prjMonochrome} controls loop style="pointer-events: all;" poster="./assets/medias/projects/low/${projectID}_low.jpg">
                 <source src="./assets/medias/projects/high/${projectID}.${ext}" type="video/${ext}">
                 <img fetchpriority="high" src="./assets/medias/projects/low/${projectID}_low.jpg">
             </video>
@@ -2356,7 +2389,7 @@ function projectFileCreate(projectID, card, cursorEv) {
                         <line x1="24" y1="0" y2="24" />
                     </svg>
                 </div>
-                <div class="change-language-button">
+                <div class="change-language-button" translate-bubble-id="change-language-button" tip="${getTextLang({type : "translate-bubble-id", id : "change-language-button"})}">
                     <span translate-id="change-language-button">${getTextLang({type : "translate-id", id : "change-language-button"})}</span>
                     <svg viewbox="0 0 24 12"></svg>
                 </div>
@@ -2428,6 +2461,7 @@ function projectFileCreate(projectID, card, cursorEv) {
     languageButtons.forEach((langBtn) => {
         langBtn.addEventListener("click", () => { setTimeout(() => { changeLanguage(); }, 0); });
         boomAnimInit({target : langBtn, container : projectFile, specialCase : "languageButton", eventType : "click"});
+        bubbleTipInit({target : langBtn});
     })
 
     // scrollbar
@@ -2709,7 +2743,7 @@ function init() {
 
     // PROJECT FILES
     projectOpenFromURLHash();
-    window.addEventListener("hashchange", () => { console.log("t"); projectOpenFromURLHash(); }); // open with history forward
+    window.addEventListener("hashchange", () => { projectOpenFromURLHash(); }); // open with history forward
 
     // STICKY ELEMENTS
     for (let i = 0; i < 8; i++) { // for loop to make sure it's applied correctly

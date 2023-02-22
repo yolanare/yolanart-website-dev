@@ -36,7 +36,7 @@ const translations = {
     },
     "translate-bubble-id" : {
         en : {
-            "change-language-button": "Language",
+            "change-language-button": "Change language",
 
             "filters-date-false": "Most Recent",
             "filters-date-true": "Oldest",
@@ -44,7 +44,7 @@ const translations = {
             "plist-video-quick-popup-btn": "Open the video (pop-up)",
         },
         fr : {
-            "change-language-button": "Langue",
+            "change-language-button": "Changer la langue",
 
             "filters-date-false": "Plus récent",
             "filters-date-true": "Plus vieux",
@@ -90,7 +90,7 @@ const filters = {
             "branding" : "Branding",
             "experiment" : "Experiments",
 
-            "compo" : "Compositions",
+            "compo" : "Composition",
             "print" : "Prints",
             "poster" : "Posters",
             "ad" : "Advertising",
@@ -132,7 +132,7 @@ const filters = {
             "branding" : "Branding",
             "experiment" : "Expérimentations",
 
-            "compo" : "Compositions",
+            "compo" : "Composition",
             "print" : "Prints",
             "poster" : "Affiches",
             "ad" : "Publicités",

@@ -8,8 +8,8 @@ loading-screen {
     width: 100%;
     height: 100%;
     opacity: 1;
-    color: var(--y-w1, #ffffff);
-    background-color: var(--y-b1, #000000);
+    color: var(--y-txt-main, #ffffff);
+    background-color: var(--y-fill-main, #000000);
     transition: none;
 
     span {
@@ -99,7 +99,7 @@ loading-screen {
                     width: var(--percent, 0%);
                     height: 30%;
                     transition: 0.2s;
-                    background-color: var(--y-w1, #ffffff);
+                    background-color: var(--y-txt-main, #ffffff);
                 }
 
                 @keyframes flash-1-anim {

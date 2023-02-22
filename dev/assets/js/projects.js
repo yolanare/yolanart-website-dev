@@ -110,14 +110,15 @@ const projectsDataSample = {
         type : "img", interact : "zoom",
                 ext : "jpg",
                 needBG : false,
+                monochrome : false,
             url_id : "D2_r4q2imnQ",
             embed : "https://yolan.art/",
             aspectRatio : "16:9",
         additional : false, // defaults are the same as main project
         title : "",
         date : "----.--",
-        colorFill : "var(--y-g1)",
-        colorAccent : "var(--y-g1)",
+        colorFill : "var(--y-accent-neutral)",
+        colorAccent : "var(--y-accent-neutral)",
         context: "",
         filter: "",
         catchphrase : "",
@@ -132,6 +133,7 @@ const projectsDataSample = {
         type : "img|yt|g_pdf|embed", interact : "zoom|off",
                 ext : "jpg|png",
                 needBG : false|true|"000000"|"var(--y-b1)",
+                monochrome : "white|black",
             url_id : "URL_ID",
             embed : "FULL_URL",
             aspectRatio : "16:9|1:1",
@@ -179,6 +181,7 @@ const projectsDataSample = {
         type : "img|yt|g_pdf|embed",
                 ext : "jpg|png", // IF TYPE: "img" : if anything other than "jpg" file | DEFAULT: "jpg"
                 needBG : false|true|"000000"|"var(--y-b1)", // useful for monochrome logos | you can specify the color of choice, CAN BE CSS variable | "true" is default dark | DEFAULT: false
+                monochrome : "white|black", // inverts the project depending on theme (if monochrome white, will be turned black on white backgrounds)
             url_id : "URL_ID", // FOR TYPE: "yt|g_pdf"
             embed : "FULL_URL",
             aspectRatio : "16:9|1:1",
@@ -452,6 +455,7 @@ var projectsData = {
     "retrosaturn_sticker" : {
         type : "img", interact : "zoom",
                 ext : "png",
+                monochrome : "white",
         title : "Retrosaturn sticker",
         date : "2019.01",
         context: "retrosaturn",
@@ -498,6 +502,7 @@ var projectsData = {
         filter: "vector|type|branding|logo",
     },
     "rezartilo" : {
+        hidden: true,
         type : "img", interact : "zoom",
         title : "Rezartilo",
         colorFill : "#002fa6",
@@ -509,6 +514,7 @@ var projectsData = {
     "jethro" : {
         type : "img", interact : "zoom",
                 ext : "png",
+                monochrome : "white",
         title : "Jethro",
         date : "2018.12",
         context: "order",
@@ -562,12 +568,18 @@ var projectsData = {
                 }
             },
         },
-        title : "Stargazing poster",
+        title : {
+            fr : "Affiche Stargazing",
+            en : "Stargazing poster"
+        },
         colorAccent : "#0e2160",
         date : "2018.10",
         context: "retrosaturn",
         filter: "comm|compo|illustration|type|experiment|poster",
-        catchphrase : "Disrupting the stars when they sleep.",
+        catchphrase : {
+            fr : "Perturbent les étoiles quand elles dorment.",
+            en : "Disrupting the stars when they sleep."
+        },
         desc : {
             fr : `
                 <h2>contexte</h2>

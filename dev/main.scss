@@ -9,22 +9,48 @@ $breakpoint--qvp: 1000px;
 @import './assets/error-frame.scss';
 @import './assets/loading-screen.scss';
 
-:root {
-    --y-w1v: 236, 239, 242;
-    --y-w1: rgb(var(--y-w1v));
-    --y-w2: rgb(250, 253, 255);
-    --y-g1: hsl(345, 6%, 25%);
-    --y-b2: rgb(37, 35, 36);
-    --y-b1: rgb(15, 15, 15);
-    --y-r1v: 218, 43, 73;
-    --y-r1: rgb(var(--y-r1v));
+html {
+    --y-white-v: 236, 239, 242;
+    --y-black-v: 15, 15, 15;
+    --y-white: rgb(var(--y-white-v));
+    --y-black: rgb(var(--y-black-v));
 
-    --p-needbg-default: var(--y-b1);
+    &[theme="light"], & {
+        --bw-theme: #ffffff;
+        --y-txt-main-v: var(--y-black-v);
+        --y-txt-secondary: rgb(37, 35, 36);
+        --y-fill-main-v: var(--y-white-v);
+        --y-fill-secondary: rgb(250, 253, 255);
+        --y-accent-neutral: hsl(345, 6%, 65%);
+
+        --global-type-weight: 500;
+        --global-letter-spacing: -0.1px;
+    }
+    &[theme="dark"] {
+        --bw-theme: #000000;
+        --y-txt-main-v: var(--y-white-v);
+        --y-txt-secondary: rgb(250, 253, 255);
+        --y-fill-main-v: var(--y-black-v);
+        --y-fill-secondary: rgb(37, 35, 36);
+        --y-accent-neutral: hsl(345, 6%, 25%);
+
+        --global-type-weight: 425;
+        --global-letter-spacing: 0px;
+    }
+
+    --y-txt-main: rgb(var(--y-txt-main-v));
+    --y-fill-main: rgb(var(--y-fill-main-v));
+    --y-accent-red-v: 218, 43, 73;
+    --y-accent-red: rgb(var(--y-accent-red-v));
+    --y-neutral: hsl(345, 6%, 25%);
+}
+:root {
+    --p-needbg-default: var(--y-fill-main);
 
     --title-weight: 650;
     --title-lineH: 1;
 
-    --pill_bg: var(var(--y-b2));
+    --pill_bg: var(var(--y-fill-secondary));
     --global-border-radius: 0.65rem;
 
     --plist-p: clamp(2.5rem, 3vw, 6rem);
@@ -50,8 +76,8 @@ html {
 
 ::selection {
     color: white;
-    background-color: rgba(var(--y-r1v), 1);
-    //background-color: var(--y-b1);
+    background-color: rgba(var(--y-accent-red-v), 1);
+    //background-color: var(--y-fill-main);
 }
 html {
     overflow: hidden;
@@ -63,11 +89,10 @@ html {
 }
 body {
     margin: 0;
-    background-color: var(--y-b1) !important;
-    color: var(--y-w1);
+    background-color: var(--y-fill-main) !important;
+    color: var(--y-txt-main);
     font-family: "Montserrat", "Plus Jakarta Sans", sans-serif;
     font-size: clamp(8px, 0.85vw, 10px);
-    font-weight: 450;
     line-height: 1;
     -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
@@ -131,8 +156,9 @@ nav.menu {
         min-height: 3rem;
         top: 0;
         right: 1px;
-        font-weight: 450;
-        outline: var(--y-w1) 1px solid;
+        font-weight: var(--global-type-weight);
+        letter-spacing: var(--global-letter-spacing);
+        outline: var(--y-txt-main) 1px solid;
         outline-offset: -1px;
         background-color: transparent;
         cursor: pointer;
@@ -155,7 +181,7 @@ nav.menu {
         font-weight: 200;
         line-height: 1;
         letter-spacing: -1px;
-        color: var(--y-w1);
+        color: var(--y-txt-main);
         transform: rotateZ(0.01deg) scale(1);
         transition: font-weight 0.6s cubic-bezier(0.1, 0.6, 0, 1),
                     color 0.5s ease,
@@ -225,10 +251,19 @@ nav.menu {
     pointer-events: none;
 }
 
+html[theme="light"] [invert="white"],
+html[theme="dark"] [invert="black"],
+.invert {
+    filter: invert(1) hue-rotate(180deg);
+}
+
 // HIGHLIGHT WORDS
 // all the text should be in a <p> and the highlights ones in <h>
 [highlight-words="true"] {
     h {
+        --fill: var(--bw-theme, #ffffff);
+        --fill: var(--y-fill-main);
+        --outline: var(--y-accent-red);
         --bg-scroll-speed: 1;
         // &:nth-child(2) { --bg-scroll-speed: 0.25; }
         // &:nth-child(3) { --bg-scroll-speed: 0.15; }
@@ -243,7 +278,7 @@ nav.menu {
         box-decoration-break: clone;
         font-weight: inherit;
         color: #ffffff;
-        background-color: var(--y-r1);
+        background-color: var(--y-accent-red);
         background-image: url("./assets/medias/highlight-words-pattern.png");
         background-size: 200%;
         background-position-x: calc(var(--scroll-pos-y) * var(--bg-scroll-speed));
@@ -259,14 +294,13 @@ nav.menu {
         & {
             background-clip: text;
             color: transparent;
-            background-color: var(--y-b1);
-            --outline-color: rgba(var(--y-w1v), 1);
+            background-color: var(--fill);
             $stroke-size-p:  1px;
             $stroke-size-n: -1px;
-            filter: drop-shadow($stroke-size-n $stroke-size-n 0px var(--outline-color))
-                    drop-shadow($stroke-size-n $stroke-size-p 0px var(--outline-color))
-                    drop-shadow($stroke-size-p $stroke-size-n 0px var(--outline-color))
-                    drop-shadow($stroke-size-p $stroke-size-p 0px var(--outline-color));
+            filter: drop-shadow($stroke-size-n $stroke-size-n 0px var(--outline))
+                    drop-shadow($stroke-size-n $stroke-size-p 0px var(--outline))
+                    drop-shadow($stroke-size-p $stroke-size-n 0px var(--outline))
+                    drop-shadow($stroke-size-p $stroke-size-p 0px var(--outline));
         }
     }
 }
@@ -275,9 +309,9 @@ nav.menu {
 // FILTER PILLS
 // defaults
 .prj-pill {
-    --pill-c: var(--y-w1);
-    --pill-bg: var(--y-b2);
-    --pill-bg-rgb: var(--y-r1v);
+    --pill-c: var(--y-txt-main);
+    --pill-bg: var(--y-fill-secondary);
+    --pill-bg-rgb: var(--y-accent-red-v);
 }
 
 [filter-id="comm"] { --pill-bg-rgb: 255, 32, 32; }
@@ -321,13 +355,16 @@ nav.menu {
 
     border-radius: 99em;
     font-size: 1em;
-    font-weight: 450;
-    letter-spacing: -0.25px;
+    font-weight: var(--global-type-weight);
+    letter-spacing: calc(var(--global-letter-spacing) - 0.25px);
     text-decoration: none;
     white-space: nowrap;
 
     color: var(--pill-c);
     background-color: var(--pill-bg);
+    --bg-hover-v: var(--y-accent-red-v);
+    html[theme="dark"] & { --bg-hover-v: var(--y-txt-main-v); }
+
     outline: 0px solid transparent;
     --outline-weight: 2px;
     transform: rotateZ(0.01deg) scale(1);
@@ -469,9 +506,9 @@ nav.menu {
     --tr-outline-hover: outline 0s linear;
 
     &:hover, &[state="true"] {
-        color: var(--y-w1);
+        color: var(--y-txt-main);
         background-color: rgba(var(--pill-bg-rgb), 0.6);
-        outline: 0px solid var(--y-w1);
+        outline: 0px solid var(--y-txt-main);
     }
     &[state="true"] {
         background-color: transparent;
@@ -479,13 +516,13 @@ nav.menu {
         --tr-outline-hover: outline 0s linear, outline-color 0.6s 0.1s ease;
 
         &:hover {
-            background-color: rgba(var(--y-w1v), 0.1);
+            background-color: rgba(var(--bg-hover-v), 0.15);
         }
     }
 }
 .prj-pill.date {
     background-color: transparent;
-    outline: var(--outline-weight) solid var(--y-w1);
+    outline: var(--outline-weight) solid var(--y-txt-main);
 
     & > svg {
         bottom: 0;
@@ -496,27 +533,27 @@ nav.menu {
         transform: rotateZ(900deg);
     }
     &:hover {
-        background-color: rgba(var(--y-w1v), 0.125);
+        background-color: rgba(var(--bg-hover-v), 0.15);
     }
 }
 
 .prj-pill {
     &[context-id], &.desc-link {
-        --accent: var(--y-r1);
-        color: var(--y-w1);
+        --accent: var(--y-accent-red);
+        color: var(--y-txt-main);
         background-color: transparent;
         outline: var(--outline-weight) solid var(--accent);
         border-radius: 0.35em;
 
         &:hover, &[state="true"] {
-            --accent: var(--y-r1);
-            background-color: rgba(var(--y-w1v), 0.125);
-            outline-color: var(--y-w1);
+            --accent: var(--y-accent-red);
+            background-color: rgba(var(--bg-hover-v), 0.15);
+            outline-color: var(--y-txt-main);
         }
     }
     &.desc-link {
         &:hover {
-            background-color: rgba(var(--y-w1v), 0.075);
+            background-color: rgba(var(--bg-hover-v), 0.1);
         }
 
         svg {
@@ -525,7 +562,7 @@ nav.menu {
     }
 }
 html.isSafari .prj-pill:not(.filter) {
-    border: var(--outline-weight) solid var(--accent, var(--y-w1));
+    border: var(--outline-weight) solid var(--accent, var(--y-txt-main));
 }
 
 
@@ -534,7 +571,8 @@ html.isSafari .prj-pill:not(.filter) {
     position: fixed;
     inset: 0;
     font-size: clamp(0.45rem, 0.65vw, 1rem);
-    opacity: 0.15;
+    opacity: 0.375;
+    html[theme="dark"] & { opacity: 0.3; }
     background-repeat: repeat;
     background-position: center;
     transition: opacity 0.4s ease,
@@ -614,9 +652,9 @@ html.isSafari .prj-pill:not(.filter) {
         --tr-boom-color: 0.65s 0.125s cubic-bezier(0.5, 0.7, 0, 1);
 
         opacity: 0.3;
-        background-color: var(--y-r1);
+        background-color: var(--y-accent-red);
         &.final-style {
-            background-color: var(--y-w1);
+            background-color: var(--y-txt-main);
 
             transition: width var(--tr-boom-grow), height var(--tr-boom-grow),
                         opacity var(--boom-fadeout-time) ease-in-out,
@@ -627,10 +665,10 @@ html.isSafari .prj-pill:not(.filter) {
     &.languageButton {
         .circle {
             opacity: 0.25;
-            background-color: var(--project-color-accent, var(--y-w1));
+            background-color: var(--project-color-accent, var(--y-txt-main));
             --tr-boom-color: 1s cubic-bezier(0, 0.7, 0, 1);
             &.final-style {
-                background-color: var(--project-color-accent, var(--y-w1));
+                background-color: var(--project-color-accent, var(--y-txt-main));
             }
         }
     }
@@ -716,9 +754,9 @@ html.isSafari .prj-pill:not(.filter) {
         }
     }
 
-    color: var(--y-b1);
+    color: var(--y-fill-main);
     .point, .content .bg {
-        background-color: var(--y-w1);
+        background-color: var(--y-txt-main);
     }
 
     &.anim-pre {
@@ -778,7 +816,7 @@ html.isSafari .prj-pill:not(.filter) {
     transform: translate(-50%, -50%) scale(0);
     width: 3.3rem;
     height: 3.3rem;
-    stroke: var(--y-w1);
+    stroke: var(--y-white);
     stroke-width: 0;
     opacity: 0;
     transition: transform 0.6s cubic-bezier(0.2, 0.75, 0, 1),
@@ -799,7 +837,7 @@ html.isSafari .prj-pill:not(.filter) {
     }
 
     &.hover:not(.hidden) {
-        stroke-width: 2.75;
+        stroke-width: 3.5;
         opacity: 1;
         transform: translate(-50%, -50%) scale(1.325);
         transition: transform 0.4s cubic-bezier(0.5, 0.7, 0, 1),
@@ -814,7 +852,7 @@ html.isSafari .prj-pill:not(.filter) {
 
     &.click {
         & svg {
-            stroke-width: 4.5 !important;
+            stroke-width: 6 !important;
             transform: scale(1.25);
             transition: transform 0.4s cubic-bezier(0, 0.7, 0, 1),
                         stroke-width 0.4s cubic-bezier(0, 0.7, 0, 1);
@@ -825,7 +863,8 @@ html.isSafari .prj-pill:not(.filter) {
 
 // CURSOR GLOW
 .cursor-glow, .cursor-glow-before::before, .cursor-glow-after::after {
-    background-image: url("./assets/medias/cursor-glow.png");
+    background-image: url("./assets/medias/cursor-glow-onbright.png");
+    html[theme="dark"] & { background-image: url("./assets/medias/cursor-glow-ondark.png"); }
     background-repeat: no-repeat;
     background-position: var(--cglow-x, 0) var(--cglow-y, 0);
     background-size: var(--cglow-size, 0);
@@ -893,7 +932,7 @@ html.isSafari .prj-pill:not(.filter) {
                         transform var(--tr-transform);
 
             .ytplayer {
-                background-color: var(--y-b1);
+                background-color: var(--y-fill-main);
                 overflow: hidden;
 
                 & > iframe {
@@ -1131,11 +1170,11 @@ html.isSafari .prj-pill:not(.filter) {
         animation: embedLoading 1s cubic-bezier(0.85, 0.05, 0.15, 0.95) alternate infinite;
     }
     &::before {
-        background-color: var(--y-w1);
+        background-color: var(--y-txt-main);
         animation-name: embedLoadingLow;
     }
     &::after {
-        background-color: var(--y-w1);
+        background-color: var(--y-txt-main);
         animation-name: embedLoading;
     }
 }
@@ -1220,7 +1259,7 @@ html.isSafari .prj-pill:not(.filter) {
     }
 
     .scroll-down-notice {
-        --color: var(--y-w1);
+        --color: var(--y-txt-main);
         display: flex;
         flex-direction: column;
         align-items: flex-end;
@@ -1231,8 +1270,8 @@ html.isSafari .prj-pill:not(.filter) {
 
         span {
             color: var(--color);
-            letter-spacing: 0.5px;
-            font-weight: 400;
+            letter-spacing: calc(var(--global-letter-spacing) + 0.5px);
+            font-weight: var(--global-type-weight);
             transition: font-weight 0.5s ease,
                         letter-spacing 0.5s ease,
                         color 0.5s ease;
@@ -1260,11 +1299,11 @@ html.isSafari .prj-pill:not(.filter) {
 
         &:hover {
             span {
-                letter-spacing: 0px;
+                letter-spacing: var(--global-letter-spacing);
                 font-weight: 750;
                 transition: font-weight 0.2s ease,
                             letter-spacing 0.2s ease,
-                            color 0.2s ease;
+                            color 0.5s ease;
             }
 
             .scroll-down-icon {
@@ -1273,15 +1312,15 @@ html.isSafari .prj-pill:not(.filter) {
                     transform: scaleX(1.2) scaleY(0.9);
                     transition: stroke-width 0.2s ease,
                                 transform 0.2s ease,
-                                stroke 0.2s ease;
+                                stroke 0.5s ease;
                 }
             }
         }
         &:active {
-            --color: var(--y-r1);
+            --color: var(--y-accent-red);
 
             span {
-                letter-spacing: 0px;
+                letter-spacing: var(--global-letter-spacing);
                 font-weight: 750;
                 transition: font-weight 0.2s cubic-bezier(0, 0.8, 0, 1),
                             letter-spacing 0.2s cubic-bezier(0, 0.8, 0, 1),
@@ -1305,7 +1344,7 @@ html.isSafari .prj-pill:not(.filter) {
         line-height: 0.8;
     }
     .t-yolan {
-        color: var(--y-r1);
+        color: var(--y-accent-red);
 
         &::after {
             content: "’";
@@ -1324,6 +1363,12 @@ html.isSafari .prj-pill:not(.filter) {
             rgba(0,0,0, 0.3) 80%,
             rgba(0,0,0, 0.15) 85%,
             rgba(0,0,0, 0) 97.5%);
+        mask: linear-gradient(180deg,
+            rgba(0,0,0, 1) 45%,
+            rgba(0,0,0, 0.8) 57.5%,
+            rgba(0,0,0, 0.2) 75%,
+            rgba(0,0,0, 0.075) 80%,
+            rgba(0,0,0, 0) 90%);
     }
 
     .ylogo-container,
@@ -1336,19 +1381,21 @@ html.isSafari .prj-pill:not(.filter) {
     }
     .y-logo {
         padding-left: 35%;
-        // fill: rgb(var(--y-r1v), 0.5);
+        // fill: rgb(var(--y-accent-red-v), 0.5);
         fill: rgb(50, 50, 50);
+        fill: var(--y-accent-red);
+        opacity: 0.25;
     }
     .y-logo-bgimg,
     .y-logo-pattern {
-        background-color: var(--y-r1);
+        background-color: var(--y-accent-red);
         background-color: transparent;
 
         opacity: 0;
         transition: opacity 0.6s cubic-bezier(0.4, 0.7, 0, 1);
 
         &.color {
-            background-color: rgba(var(--y-r1v), 0.075);
+            background-color: rgba(var(--y-accent-red-v), 0.075);
             opacity: 1 !important;
             pointer-events: none;
         }
@@ -1369,6 +1416,7 @@ html.isSafari .prj-pill:not(.filter) {
 
         &:hover {
             opacity: 0.2;
+            html[theme="light"] & { opacity: 0.5; }
 
             & ~ .y-logo-bgimg {
                 opacity: 1;
@@ -1409,7 +1457,7 @@ html.isSafari .prj-pill:not(.filter) {
     html.isTouch & {
         .y-logo-pattern {
             background-image: none !important;
-            background-color: var(--y-w1) !important;
+            background-color: var(--y-txt-main) !important;
             opacity: 0.035 !important;
         }
     }
@@ -1491,8 +1539,8 @@ html.isSafari .prj-pill:not(.filter) {
             align-items: center;
             margin-top: 2.5em;
             font-size: 0.9em;
-            font-weight: 450;
-            letter-spacing: 0px;
+            font-weight: var(--global-type-weight);
+            letter-spacing: var(--global-letter-spacing);
             cursor: pointer;
             user-select: none;
             transition: font-weight 0.6s cubic-bezier(0.35, 0.5, 0, 1),
@@ -1505,14 +1553,14 @@ html.isSafari .prj-pill:not(.filter) {
                 height: 0.85em;
                 fill: none;
                 stroke-width: 2.6;
-                stroke: var(--y-w1);
+                stroke: var(--y-txt-main);
                 transition: stroke-width 0.6s cubic-bezier(0.3, 0.6, 0, 1),
                             transform 0.55s cubic-bezier(0.3, 0.7, 0, 1);
             }
 
             &:hover {
                 font-weight: 800;
-                letter-spacing: -0.4px;
+                letter-spacing: calc(var(--global-letter-spacing) - 0.4px);
                 transition: font-weight 0.4s cubic-bezier(0.35, 0.4, 0, 1),
                             letter-spacing 0.4s cubic-bezier(0.4, 0.4, 0, 1);
 
@@ -1736,15 +1784,15 @@ html.isSafari .prj-pill:not(.filter) {
                 }
 
                 .clear-filters-button {
-                    --pill-bg: var(--y-w1);
-                    --pill-c: var(--y-b2);
+                    --pill-bg: var(--y-txt-main);
+                    --pill-c: var(--y-fill-secondary);
                 }
 
                 .filter-projects-number {
                     margin-left: 0.25em;
                     font-size: 1em;
-                    font-weight: 325;
-                    letter-spacing: -0.1px;
+                    font-weight: var(--global-type-weight);
+                    letter-spacing: calc(var(--global-letter-spacing) - 0.1px);
                     pointer-events: none;
                     & > * {
                         opacity: 0.5;
@@ -1753,7 +1801,7 @@ html.isSafari .prj-pill:not(.filter) {
                     [anim-count] {
                         display: inline-block;
                         font-feature-settings: "tnum"; // mono-space numbers
-                        letter-spacing: -1.5px;
+                        letter-spacing: calc(var(--global-letter-spacing) - 1.5px);
                         margin-right: 0;
                         padding-right: 0.3em; // space
 
@@ -1767,10 +1815,11 @@ html.isSafari .prj-pill:not(.filter) {
                             margin-right: 0.15em;
                             font-weight: 600;
                             opacity: 1;
-                            color: var(--y-r1);
-                            color: var(--y-w1);
+                            color: var(--y-accent-red);
+                            color: var(--y-txt-main);
                             transition: opacity 0.5s ease, color 0.5s ease,
                                         font-weight 0.4s cubic-bezier(0.35, 0.4, 0, 1),
+                                        letter-spacing 0.4s cubic-bezier(0.35, 0.4, 0, 1),
                                         margin-right 0.5s cubic-bezier(0.2, 0.6, 0, 1);
                         }
                         &.none {
@@ -1788,13 +1837,15 @@ html.isSafari .prj-pill:not(.filter) {
                             transform: translateX(0);
                             margin-right: 0.06em;
                             font-weight: 550;
+                            letter-spacing: var(--global-letter-spacing);
                             opacity: 0.75;
 
                             &, & ~ * {
                                 color: #ff2727;
                             }
                             & ~ * {
-                                font-weight: 400;
+                                font-weight: 550;
+                                letter-spacing: calc(var(--global-letter-spacing) - 0.25px);
                             }
                         }
                     }
@@ -1932,7 +1983,7 @@ html.isSafari .prj-pill:not(.filter) {
 
             .project-title {
                 font-size: 1em;
-                font-weight: 585;
+                font-weight: 650;
                 line-height: 1.25;
                 position: relative;
                 display: inline-block;
@@ -1972,11 +2023,11 @@ html.isSafari .prj-pill:not(.filter) {
                     }
 
                     .bg {
-                        background-color: var(--y-w1);
+                        background-color: var(--y-txt-main);
                     }
 
                     .arrow {
-                        fill: var(--y-b1);
+                        fill: var(--y-fill-main);
                         transform: scale(0.5);
                         transition: transform 0.8s cubic-bezier(0.5, 0.7, 0, 1);
                     }
@@ -1988,7 +2039,7 @@ html.isSafari .prj-pill:not(.filter) {
                         top: 50%;
                         left: 50%;
                         border-radius: 50%;
-                        background-color: var(--y-b1);
+                        background-color: var(--y-fill-main);
                         transform: translate(-50%, -50%) scale(0);
                         transform-origin: 40% 50%;
                         transition: transform 0.8s cubic-bezier(0.1, 0.7, 0, 1);
@@ -2027,7 +2078,7 @@ html.isSafari .prj-pill:not(.filter) {
                 ~ .bg-card {
                     transform: rotateZ(0deg);
                     inset: -0.8em;
-                    outline-color: var(--project-color-accent, var(--y-w1));
+                    outline-color: var(--project-color-accent, var(--y-txt-main));
                     transition: inset 0.6s cubic-bezier(0.05, 0.5, 0, 1),
                                 outline-color 0.2s ease;
 
@@ -2055,7 +2106,7 @@ html.isSafari .prj-pill:not(.filter) {
             .in:active {
                 ~ .bg-card {
                     inset: -0.5em;
-                    outline-color: var(--project-color-accent, var(--y-w1));
+                    outline-color: var(--project-color-accent, var(--y-txt-main));
 
                     &::after {
                         opacity: 0.2;
@@ -2071,7 +2122,7 @@ html.isSafari .prj-pill:not(.filter) {
             .in:hover:active {
                 ~ .bg-card {
                     inset: -1em;
-                    outline-color: var(--y-w1);
+                    outline-color: var(--y-txt-main);
                     transition: inset 0.1s cubic-bezier(0, 0.6, 0, 1),
                                 outline-color 0s linear;
 
@@ -2094,6 +2145,8 @@ html.isSafari .prj-pill:not(.filter) {
         .nothing-found {
             user-select: none;
             pointer-events: none;
+            font-weight: var(--global-type-weight);
+            letter-spacing: var(--global-letter-spacing);
             opacity: 0.4;
             transition: opacity 2s cubic-bezier(0.4, 0.4, 0, 1),
                         transform var(--scroll-plist);
@@ -2104,8 +2157,8 @@ html.isSafari .prj-pill:not(.filter) {
 
             .title {
                 display: inline-block;
-                font-weight: 400;
                 font-size: 5em;
+                font-weight: inherit;
                 margin-bottom: 0.4em;
                 opacity: 1;
                 transform: translate(0);
@@ -2117,7 +2170,6 @@ html.isSafari .prj-pill:not(.filter) {
 
             .txt {
                 font-size: 2em;
-                font-weight: 450;
                 line-height: 1.25;
 
                 .words {
@@ -2152,7 +2204,7 @@ html.isSafari .prj-pill:not(.filter) {
                 }
                 .title {
                     font-weight: 999;
-                    color: var(--y-r1);
+                    color: var(--y-accent-red);
                 }
             }
         }
@@ -2191,7 +2243,7 @@ html.isSafari .prj-pill:not(.filter) {
         --text-padding-sides: 1.75rem;
         --text-padding-sides-big: 3.5rem;
         --paragraphe-spacing: 2.25em;
-        --text-color: var(--y-w1);
+        --text-color: var(--y-txt-main);
 
         --img-max-height: 95vh;
 
@@ -2200,16 +2252,12 @@ html.isSafari .prj-pill:not(.filter) {
         left: 0;
         min-height: 100vh;
         width: 100vw;
-        background-color: var(--y-b1);
+        background-color: var(--y-fill-main);
         pointer-events: all;
 
         ::selection {
             color: white;
             background-color: var(--project-color-accent);
-        }
-
-        .os-scrollbar-handle.active {
-            background-color: var(--project-color-accent) !important;
         }
 
         [boom-container] {
@@ -2296,7 +2344,7 @@ html.isSafari .prj-pill:not(.filter) {
                     height: var(--buttons-scale);
                     fill: none;
                     stroke-width: 1.75;
-                    stroke: var(--y-w1);
+                    stroke: var(--y-txt-main);
                     transform: rotateZ(0.01deg) scale(1);
                     transition: stroke-width 0.6s cubic-bezier(0.1, 0.6, 0, 1),
                                 stroke 0.5s ease,
@@ -2451,13 +2499,13 @@ html.isSafari .prj-pill:not(.filter) {
                     }
 
                     .date, .catchphrase {
-                        font-weight: 400;
+                        font-weight: var(--global-type-weight);
+                        letter-spacing: var(--global-letter-spacing);
                     }
                     .date {
                         // opacity: 0.6;
-                        color: rgba(var(--y-w1v), 0.6);
-                        font-weight: 450;
-                        letter-spacing: -1px;
+                        color: rgba(var(--y-txt-main-v), 0.6);
+                        letter-spacing: calc(var(--global-letter-spacing) - 1px);
                         font-feature-settings: "tnum";
                         padding-top: .15em;
                         // user-select: none;
@@ -2494,7 +2542,7 @@ html.isSafari .prj-pill:not(.filter) {
                     display: inline-block;
                     flex-shrink: 0;
                     // opacity: 0.5;
-                    --text-color: rgba(var(--y-w1v), 0.5);
+                    --text-color: rgba(var(--y-txt-main-v), 0.5);
                     color: var(--text-color);
                     font-weight: 500;
                 }
@@ -2502,6 +2550,8 @@ html.isSafari .prj-pill:not(.filter) {
 
             .description {
                 padding-top: clamp(5rem, 6vw, 8rem);
+                font-weight: var(--global-type-weight);
+                letter-spacing: var(--global-letter-spacing);
 
                 filler {
                     display: block;
@@ -2567,10 +2617,10 @@ html.isSafari .prj-pill:not(.filter) {
                         color: var(--project-color-accent);
                         background-color: #000000;
                         text-decoration: underline;
-                        text-decoration-color: var(--text-color, var(--y-w1));
+                        text-decoration-color: var(--text-color, var(--y-txt-main));
 
                         &:hover {
-                            color: var(--y-w1);
+                            color: var(--y-txt-main);
                             background-color: var(--project-color-fill);
                             text-decoration: none;
                         }
