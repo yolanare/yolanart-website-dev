@@ -1971,7 +1971,7 @@ html.isSafari .prj-pill:not(.filter) {
 
             .thumbnail {
                 > * {
-                    border-radius: 2px;
+                    border-radius: var(--global-border-radius);
                     transform: scale(1);
                     opacity: 1;
                     transition: transform 0.8s cubic-bezier(0.1, 0.65, 0, 1),
