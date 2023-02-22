@@ -2619,15 +2619,15 @@ html.isSafari .prj-pill:not(.filter) {
                         }
                     }
 
-                    a {
+                    a:not(.desc-link) {
                         color: var(--project-color-accent);
-                        background-color: #000000;
+                        // background-color: var(--bw-theme);
                         text-decoration: underline;
                         text-decoration-color: var(--text-color, var(--y-txt-main));
 
                         &:hover {
-                            color: var(--y-txt-main);
-                            background-color: var(--project-color-fill);
+                            color: var(--y-white);
+                            background-color: var(--project-color-accent);
                             text-decoration: none;
                         }
                     }
