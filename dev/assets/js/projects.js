@@ -499,7 +499,7 @@ var projectsData = {
         colorAccent : "#ff3875",
         date : "2018.10",
         context: "order|ppm",
-        filter: "vector|type|branding|logo",
+        filter: "vector|branding|logo",
     },
     "rezartilo" : {
         hidden: true,
