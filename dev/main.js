@@ -601,7 +601,7 @@ function loadingScreenDisplay(type) {
             <div class="loading-animation-container">
                 <div class="head">
                     <span>Loading...</span>
-                    <div class="loading-idle-animation"></div>
+                    <div class="loading-idle-animation" invert="white"></div>
                 </div>
 
                 <div class="loading-percent">
