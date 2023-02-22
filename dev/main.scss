@@ -552,12 +552,18 @@ html[theme="dark"] [invert="black"],
         }
     }
     &.desc-link {
+        > * {
+            white-space: initial;
+            word-break: break-word;
+        }
+
         &:hover {
             background-color: rgba(var(--bg-hover-v), 0.1);
         }
 
         svg {
             transform: scale(1.2);
+            flex-shrink: 0;
         }
     }
 }
@@ -2473,6 +2479,10 @@ html.isSafari .prj-pill:not(.filter) {
 
                     > * {
                         padding: 0 var(--text-padding-sides);
+
+                        > *:not(:first-child) {
+                            margin-top: 0.5em;
+                        }
                     }
 
                     .top {
@@ -2480,10 +2490,6 @@ html.isSafari .prj-pill:not(.filter) {
                         right: 0;
                         width: 100%;
                         padding-top: 0.75rem;
-
-                        > *:not(:first-child) {
-                            margin-top: 0.5em;
-                        }
                     }
                     .bottom {
                         bottom: 0;

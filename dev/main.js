@@ -2416,6 +2416,7 @@ function projectFileCreate(projectID, card, cursorEv) {
                         <div class="date"><span>${(PROJECT.date) ? PROJECT.date : pDataDefault.date}</span></div>
                     </div>
                     <div class="bottom">
+                        ${(!PROJECT.embed) ? `` : Prj.createLink({url : PROJECT.embed, label : PROJECT.embed.replace("https://", "")})}
                         ${(!PROJECT.catchphrase) ? `` : `<div class="catchphrase">${getProjectTextLang(projectID, "catchphrase")}</div>`}
                     </div>
                 </div>

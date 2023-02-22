@@ -16,6 +16,8 @@ const translations = {
             "filters-clear-filters" : "Clear filters",
             "plist-projects-found" : "projects found",
             "plist-projects-found-singular" : "project found",
+
+            "access" : "Access",
         },
         fr : {
             "change-language-button": "FR",
@@ -32,6 +34,8 @@ const translations = {
             "filters-clear-filters" : "Réinitialiser les filtres",
             "plist-projects-found" : "projets trouvés",
             "plist-projects-found-singular" : "projet trouvé",
+
+            "access" : "Accéder",
         }
     },
     "translate-bubble-id" : {
