@@ -314,6 +314,7 @@ html[theme="dark"] [invert="black"],
     --pill-bg-rgb: var(--y-accent-red-v);
 }
 
+/*
 [filter-id="comm"] { --pill-bg-rgb: 255, 32, 32; }
 [filter-id="compo"] { --pill-bg-rgb: 255, 85, 68; }
 [filter-id="layout"] { --pill-bg-rgb: 255, 85, 68; }
@@ -328,6 +329,11 @@ html[theme="dark"] [invert="black"],
 
 [filter-id="ad"] { --pill-bg-rgb: 255, 189, 64; }
 [filter-id="print"] { --pill-bg-rgb: 255, 155, 83; }
+*/
+
+[filter-id] { --pill-bg-rgb: 128, 128, 128; }
+
+[filter-id="anim"], [filter-id="web"], [filter-id="layout"] { --pill-bg-rgb: var(--y-accent-red-v); }
 
 
 .prj-pill {
@@ -506,7 +512,6 @@ html[theme="dark"] [invert="black"],
     --tr-outline-hover: outline 0s linear;
 
     &:hover, &[state="true"] {
-        color: var(--y-txt-main);
         background-color: rgba(var(--pill-bg-rgb), 0.6);
         outline: 0px solid var(--y-txt-main);
     }
@@ -540,7 +545,6 @@ html[theme="dark"] [invert="black"],
 .prj-pill {
     &[context-id], &.desc-link {
         --accent: var(--y-accent-red);
-        color: var(--y-txt-main);
         background-color: transparent;
         outline: var(--outline-weight) solid var(--accent);
         border-radius: 0.35em;

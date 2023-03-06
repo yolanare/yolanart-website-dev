@@ -160,7 +160,7 @@ const projectsDataSample = {
         colorFill : "COLOR_FILL",
         colorAccent : "COLOR_ACCENT",
         context: "personal|fun|order|school|sc|ppm|retrosaturn|pti",
-        filter: "comm|compo|layout|motion|photo|3D|illustration|vector|type|branding|experiment|print|poster|ad|logo",
+        filter: "comm|compo|layout|web|uiux|motion|anim|photo|3D|illustration|vector|type|branding|experiment|print|poster|ad|logo",
         catchphrase : "QUICK_CATCHPHRASE",
         catchphrase : {
             fr : `FRENCH_CATCHPHRASE`,
@@ -224,7 +224,9 @@ const projectsDataSample = {
             `
         }
     },
-    filtersValid : "comm|compo|motion|photo|3D|illustration|vector|type|branding|experiment", // filters that will be used, in order, unused: |layout|poster|print|logo|ad
+    // filters that will be used, in order
+    // |compo|comm|poster|logo|ad|uiux|motion|vector
+    filtersValid : "|anim|layout|web|photo|3D|illustration|print|branding|type|experiment",
     descSamples : `
         <h2>BigTitle</h2>
 
@@ -282,7 +284,7 @@ var projectsData = {
         colorFill : "#3e4148",
         colorAccent : "#7e8482",
         context: "school",
-        filter: "3D|motion|compo",
+        filter: "3D|compo",
         catchphrase : {
             fr : `Le temps s'ennuie.`,
             en : `Time gets bored.`
@@ -666,7 +668,7 @@ var projectsData = {
         colorAccent : "#4e2b2c",
         date : "2021.01",
         context: "order|ppm",
-        filter: "motion|compo|3D",
+        filter: "anim|compo|3D",
         desc : {
             fr : `
                 <h2>contexte</h2>
@@ -698,7 +700,7 @@ var projectsData = {
         colorFill : "#fe670e",
         colorAccent : "#fe670e",
         context: "sc",
-        filter: "comm|motion|compo|ad|layout",
+        filter: "comm|motion|anim|compo|ad|layout",
         desc : {
             fr : `
                 <h2>contexte</h2>
@@ -735,7 +737,7 @@ var projectsData = {
         colorAccent : "#770113",
         date : "2018.09",
         context: "personal|retrosaturn",
-        filter: "comm|motion|branding|experiment",
+        filter: "comm|motion|anim|branding|experiment",
         catchphrase : "Synthwave into the darkest place of the grid!",
         desc : {
             fr : `
@@ -768,7 +770,7 @@ var projectsData = {
         colorAccent : "#cb0101",
         date : "2017.12",
         context: "order",
-        filter: "comm|motion|vector|type|branding|experiment",
+        filter: "comm|motion|anim|vector|type|branding|experiment",
         desc : {
             fr : `
                 <h2>contexte</h2>
@@ -791,7 +793,7 @@ var projectsData = {
         colorFill : "#c0c1c5",
         date : "2017.09",
         context: "personal",
-        filter: "comm|motion|vector|branding|experiment",
+        filter: "comm|motion|anim|vector|branding|experiment",
     },
     "yolan_clément_intro" : {
         hidden: true,
@@ -802,7 +804,7 @@ var projectsData = {
         colorFill : "#d0d0d0",
         date : "2017.01",
         context: "personal",
-        filter: "comm|motion|3D|vector|branding",
+        filter: "comm|motion|anim|3D|vector|branding",
     },
     "quad_page_portfolio" : {
         type : "embed", interact : "off",
@@ -812,7 +814,7 @@ var projectsData = {
         colorAccent : "#4b4b4b",
         date : "2020.10-2021.01",
         context: "personal|order",
-        filter: "comm|motion|compo|vector|branding|experiment|layout",
+        filter: "comm|web|uiux|compo|vector|branding|experiment|layout",
         desc : {
             fr : `
                 <h2>contexte</h2>
@@ -1054,7 +1056,7 @@ var projectsData = {
         colorAccent : "#c9414f",
         date : "2022.09-11",
         context: "school",
-        filter: "comm|layout|motion|3D|vector|branding|compo|ad",
+        filter: "comm|layout|motion|anim|3D|vector|branding|compo|ad",
         desc : {
             fr : `
                 ${createMedia({type : "embed", url : "https:&#x2F;&#x2F;www.canva.com&#x2F;design&#x2F;DAFSzKsnkzo&#x2F;view?embed", aspectRatio : "16:9"})}
@@ -1078,7 +1080,7 @@ var projectsData = {
         colorAccent : "#ae8f23",
         date : "2022.11",
         context: "school",
-        filter: "motion|3D|compo",
+        filter: "anim|3D|compo",
     },
     "joyeux_noël_anim" : {
         type : "yt", interact : "off",
@@ -1092,7 +1094,7 @@ var projectsData = {
         colorAccent : "#ffab00",
         date : "2022.12",
         context: "school",
-        filter: "comm|motion|3D|compo",
+        filter: "comm|motion|anim|compo",
         desc : {
             fr : `
                 ${createMedia({url : "joyeux_noël_anim/plan1.png", caption : "Prototype du plan 1."})}
@@ -1184,7 +1186,7 @@ var projectsData = {
         colorAccent : "#e43d35",
         date : "2023.02",
         context: "school",
-        filter: "motion|3D|illustration",
+        filter: "anim|3D",
         desc : {
             fr : `
                 ${createDescPart({settings : "even width_fill", input : [

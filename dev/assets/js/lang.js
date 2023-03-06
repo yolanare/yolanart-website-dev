@@ -75,10 +75,14 @@ const filters = {
             "experiment" : "Experiment",
 
             "compo" : "Composition",
-            "print" : "Prints",
+            "print" : "Print",
             "poster" : "Poster",
             "ad" : "Advertising",
             "logo" : "Logo",
+
+            "anim" : "Animated",
+            "web" : "Webdesign",
+            "uiux" : "UI/UX",
 
             "date" : "Date",
         },
@@ -100,6 +104,10 @@ const filters = {
             "ad" : "Advertising",
             "logo" : "Logos",
 
+            "anim" : "Animated",
+            "web" : "Webdesigns",
+            "uiux" : "UI/UX",
+
             "date" : "Dates",
         }
     },
@@ -117,10 +125,14 @@ const filters = {
             "experiment" : "Expérimentation",
 
             "compo" : "Composition",
-            "print" : "Print",
+            "print" : "Imprimable",
             "poster" : "Affiche",
             "ad" : "Publicité",
             "logo" : "Logo",
+
+            "anim" : "Animé",
+            "web" : "Webdesign",
+            "uiux" : "UI/UX",
 
             "date" : "Date",
         },
@@ -137,10 +149,14 @@ const filters = {
             "experiment" : "Expérimentations",
 
             "compo" : "Composition",
-            "print" : "Prints",
+            "print" : "Imprimables",
             "poster" : "Affiches",
             "ad" : "Publicités",
             "logo" : "Logos",
+
+            "anim" : "Animés",
+            "web" : "Webdesigns",
+            "uiux" : "UI/UX",
 
             "date" : "Dates",
         }
