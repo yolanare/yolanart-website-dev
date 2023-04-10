@@ -1250,11 +1250,11 @@ var projectsData = {
         context: "school",
         filter: "comm|compo|layout|vector|branding|print|ad",
     },
-    "line_mathis_pti" : {
+    "line_insane_bassist" : {
         type : "vid", interact : "off",
             ext : "mp4",
             aspectRatio : "9:16",
-        title : "Line Animation : Bass",
+        title : "Line Animation : Insane Bassist",
         colorFill : "#e39144",
         colorAccent : "#e39144",
         date : "2023.04",
