@@ -174,7 +174,7 @@ const contexts = {
             "sc" : "Service Civique",
             "ppm" : "Pamplemousse",
             "retrosaturn" : "Retrosaturn",
-            "pti" : "Psychoid: the Industriax"
+            "pti" : "Psychoid: The Industriax"
         },
         plural : {
             "personal": "Personal Projects",
@@ -184,7 +184,7 @@ const contexts = {
             "sc" : "Service Civique",
             "ppm" : "Pamplemousse",
             "retrosaturn" : "Retrosaturn",
-            "pti" : "Psychoid: the Industriax"
+            "pti" : "Psychoid: The Industriax"
         }
     },
     fr : {

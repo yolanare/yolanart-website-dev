@@ -540,8 +540,8 @@ function languageButtonCreate() {
 //#region LOADING
 var L = {
     delayBeforeDisplay : 500,
-    // load essential assets
-    toLoad : {
+    toLoadProjectsThumbnailsThreshold : 0.875, // <= 1
+    toLoad : { // load essential assets
         "image" : {
             "./assets/medias/" : [
                 "cursor-glow-onbright.png",
@@ -570,22 +570,27 @@ var L = {
         assetsAll : false, // true if all assets loaded
         everything : false, // true if "assetsAll" and "necessary" are true
     },
-    assetsLoadMajorityThreshold : 0.66, // should not be higher than 1
+    assetsLoadMajorityThreshold : 0.6, // <= 1
     assetsLoaded : 0, // current amount of assets loaded
-    assetsAmountNb : 0, // amount of assets to load
+    assetsToLoadAmt : 0, // amount of assets to load
 }
 
 // add projects thumbnails to assets to load list (considering they all have thumbnail images (they should))
 var projectsFileName = [];
-projectsSortedDate.forEach((p) => { // using sorted list to load the most recent ones first
+/*projectsSortedDate.forEach((p) => { // using sorted list to load the most recent ones first
     const PROJECT = pData[p[0]];
     if (PROJECT.hidden != true) {
         if (PROJECT.type != "vid") {
-        projectsFileName.push(p[0] +"_low."+ ((PROJECT.ext) ? PROJECT.ext : pDataDefault.ext));
+            projectsFileName.push(p[0] +"_low."+ ((PROJECT.ext) ? PROJECT.ext : pDataDefault.ext));
         }
     }
-
-});
+});*/
+for (let i = 0; i < projectsSortedDate.length * L.toLoadProjectsThumbnailsThreshold; i++) {
+    const p = projectsSortedDate[i], PROJECT = pData[p[0]];
+    if (PROJECT.hidden != true && PROJECT.type != "vid") {
+        projectsFileName.push(p[0] +"_low."+ ((PROJECT.ext) ? PROJECT.ext : pDataDefault.ext));
+    }
+}
 L.toLoad.image["./assets/medias/projects/low/"] = projectsFileName;
 
 // initialize loading screen
@@ -641,9 +646,9 @@ function loadingScreenDisplay(type) {
         // separating both "checks" and "validation" loops because I want "checks" to finish on its own
         var loadCheckMain = setInterval(() => {
             // most of the assets are loaded
-            if (L.assetsLoaded > L.assetsAmountNb * L.assetsLoadMajorityThreshold) { L.loaded.assetsMajority = true; }
+            if (L.assetsLoaded > L.assetsToLoadAmt * L.assetsLoadMajorityThreshold) { L.loaded.assetsMajority = true; }
             // all assets are loaded
-            if (L.assetsLoaded >= L.assetsAmountNb && !L.loaded.assetsAll) { L.loaded.assetsAll = true; loadingLogger({ log : "All assets loaded." }); }
+            if (L.assetsLoaded >= L.assetsToLoadAmt && !L.loaded.assetsAll) { L.loaded.assetsAll = true; loadingLogger({ log : "All assets loaded." }); }
 
             // majority of needed things are loaded (page & most of assets)
             if (L.loaded.necessary && L.loaded.assetsMajority) { L.loaded.majority = true; }
@@ -660,7 +665,7 @@ function loadingScreenDisplay(type) {
         const validationStepsTiming = [1000, 5000, 15000, 30000]; // ["everything", "majority", "necessary", "fail"]
         var loadValidMain = setInterval(() => {
             // display current state
-            const progressionPercent = ((L.assetsLoaded / L.assetsAmountNb) * 100).toFixed(0) + "%";
+            const progressionPercent = ((L.assetsLoaded / L.assetsToLoadAmt) * 100).toFixed(0) + "%";
             loadingScreenEl.style.setProperty("--percent", progressionPercent)
             loadingScreenEl.querySelector(".loading-percent .percent").innerHTML = progressionPercent;
 
@@ -838,7 +843,7 @@ function loadMainAssets() {
 // get total amount of assets to load
 Object.entries(L.toLoad).forEach((toLoadType) => {
     Object.entries(toLoadType[1]).forEach((toLoadDir) => {
-        L.assetsAmountNb += toLoadDir[1].length;
+        L.assetsToLoadAmt += toLoadDir[1].length;
     });
 });
 
@@ -1761,10 +1766,13 @@ function filtersGenerateProjectsList() {
             if (PROJECT.type == "vid") {
                 const ext = (PROJECT.ext) ? PROJECT.ext : pDataDefault.ext;
                 thumbnail = `
-                    <video loop muted poster="./assets/medias/projects/low/${projectID}_low.jpg">
-                        <source src="./assets/medias/projects/high/${projectID}.${ext}" type="video/${ext}">
-                        <img fetchpriority="high" src="./assets/medias/projects/low/${projectID}_low.jpg">
-                    </video>
+                    <div>
+                        <video loop muted poster="./assets/medias/projects/low/${projectID}_low.jpg">
+                            <source src="./assets/medias/projects/high/${projectID}.${ext}" type="video/${ext}">
+                            <img fetchpriority="high" src="./assets/medias/projects/low/${projectID}_low.jpg">
+                        </video>
+                        <div class="vid-thumb-hover" style="background-image: url('./assets/medias/projects/low/${projectID}_low.jpg');"></div>
+                    </div>
                 `;
             } else {
                 thumbnail = `<img src="./assets/medias/projects/low/${projectID}_low.${(PROJECT.ext) ? PROJECT.ext : pDataDefault.ext}">`;
@@ -2383,13 +2391,13 @@ function projectFileCreate(projectID, card, cursorEv) {
                 <div class="project-title">${getProjectTextLang(projectID)}</div>
             </div>
             <div class="head-buttons">
-                <div class="close-file-button">
+                <div class="close-file-button settings-btn-hover">
                     <svg viewBox="0 0 24 24">
                         <line x1="0" y1="0" x2="24" y2="24" />
                         <line x1="24" y1="0" y2="24" />
                     </svg>
                 </div>
-                <div class="change-language-button" translate-bubble-id="change-language-button" tip="${getTextLang({type : "translate-bubble-id", id : "change-language-button"})}">
+                <div class="change-language-button settings-btn-hover" translate-bubble-id="change-language-button" tip="${getTextLang({type : "translate-bubble-id", id : "change-language-button"})}">
                     <span translate-id="change-language-button">${getTextLang({type : "translate-id", id : "change-language-button"})}</span>
                     <svg viewbox="0 0 24 12"></svg>
                 </div>
@@ -2521,13 +2529,16 @@ function projectFileCreate(projectID, card, cursorEv) {
             const PRJADD = addPrj[1], // data
                   fileSecondPrjEl = projectFile.querySelector("[project-secondary-id='"+ addPrj[0] +"'] img.project-secondary");
 
-            if (PRJADD.sizeFill == "width") { fileSecondPrjEl.style.width = "100%"; }
-            else if (PRJADD.sizeFill == "height") { fileSecondPrjEl.style.height = "95vh"; }
+            const sizeFillValue = PRJADD.sizeFill.split("-")[1];
+            if (PRJADD.sizeFill.match(/^(width)/)) { console.log(PRJADD, sizeFillValue); fileSecondPrjEl.style.width = (sizeFillValue) ? sizeFillValue : "100%"; }
+            else if (PRJADD.sizeFill.match(/^(height)/)) { fileSecondPrjEl.style.height = (sizeFillValue) ? sizeFillValue : "95vh"; }
 
-            if (PRJADD.type == "img" && !["width", "height"].includes(PRJADD.sizeFill)) {
+            if (PRJADD.type == "img" && !PRJADD.sizeFill.match(/^(width)|(height)/)) {
                 getSizeAndResizeToRatioPrjContent({elIMG : fileSecondPrjEl/*, callback : () => { scrollbarPrjFile.update(true) }*/});
                 pFileElMainC.classList.add("has-secondary-content-same-ratio");
             }
+
+            if (PRJADD.spaceAfter) { projectFile.querySelector("[project-secondary-id='"+ addPrj[0] +"']").classList.add("spaceAfter"); }
         })
     }
     // the same as well for the description's content

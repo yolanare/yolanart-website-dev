@@ -144,7 +144,8 @@ const projectsDataSample = {
                     url_id : "URL_ID",
                     embed : "FULL_URL",
                     aspectRatio : "16:9|1:1",
-                    sizeFill : "width|height",
+                    sizeFill : "width|height|width-X|height-X",
+                    spaceAfter : false|true,
                 comment : {
                     fr : `FRENCH_COMMENT`,
                     en : `ENGLISH_COMMENT`
@@ -192,6 +193,8 @@ const projectsDataSample = {
                     url_id : "URL_ID", // FOR TYPE: "yt|g_pdf"
                     embed : "FULL_URL",
                     aspectRatio : "16:9|1:1", // IF TYPE: "vid|embed"
+                    sizeFill : "width|height|width-X|height-X", // fills either selected, or use specified value (CSS) after "-"
+                    spaceAfter : false|true, // adds spacing after to separate from the next one
                 comment : { // CAN BE: empty
                     fr : `FRENCH_COMMENT`,
                     en : `ENGLISH_COMMENT`
@@ -226,7 +229,7 @@ const projectsDataSample = {
     },
     // filters that will be used, in order
     // |compo|comm|poster|logo|ad|uiux|motion|vector
-    filtersValid : "|anim|layout|web|photo|3D|illustration|print|branding|type|experiment",
+    filtersValid : "|anim|layout|3D|photo|illustration|print|web|branding|type|experiment",
     descSamples : `
         <h2>BigTitle</h2>
 
@@ -1022,8 +1025,8 @@ var projectsData = {
         excludeRecent : true,
         type : "img", interact : "zoom",
         title : {
-            fr : "Affiche : Conférence \"Être parent ou éducateur aujourd'hui, mission impossible ?\"",
-            en : "Poster: Conference \"Psycho-affective development of the child to the adolescent\""
+            fr : "Affiche : Conférence \"Être parent ou éducateur aujourd'hui, Mission Impossible ?\"",
+            en : "Poster: Conference \"Being a parent or an educator today, Mission: Impossible?\""
         },
         date : "2022.07",
         colorFill : "#4c539c",
@@ -1056,7 +1059,7 @@ var projectsData = {
         colorAccent : "#c9414f",
         date : "2022.09-11",
         context: "school",
-        filter: "comm|layout|motion|anim|3D|vector|branding|compo|ad",
+        filter: "comm|motion|anim|3D|vector|branding|compo|ad",
         desc : {
             fr : `
                 ${createMedia({type : "embed", url : "https:&#x2F;&#x2F;www.canva.com&#x2F;design&#x2F;DAFSzKsnkzo&#x2F;view?embed", aspectRatio : "16:9"})}
@@ -1157,15 +1160,15 @@ var projectsData = {
             ext : "png",
         additional : {
             // "p1" :  { type : "img", ext : "png", sizeFill : "width" },
-            "p2" :  { type : "img", ext : "png", sizeFill : "width" },
-            "p2" :  { type : "img", ext : "png", sizeFill : "width" },
-            "p3" :  { type : "img", ext : "png", sizeFill : "width" },
-            "p4" :  { type : "img", ext : "png", sizeFill : "width" },
-            "p5" :  { type : "img", ext : "png", sizeFill : "width" },
-            "p6" :  { type : "img", ext : "png", sizeFill : "width" },
-            "p7" :  { type : "img", ext : "png", sizeFill : "width" },
-            "p8" :  { type : "img", sizeFill : "width" },
-            "p9" :  { type : "img", ext : "png", sizeFill : "width" },
+            "p2" :  { type : "img", ext : "png", sizeFill : "width", spaceAfter : true },
+            "p2" :  { type : "img", ext : "png", sizeFill : "width", spaceAfter : true },
+            "p3" :  { type : "img", ext : "png", sizeFill : "width", spaceAfter : true },
+            "p4" :  { type : "img", ext : "png", sizeFill : "width", spaceAfter : true },
+            "p5" :  { type : "img", ext : "png", sizeFill : "width", spaceAfter : true },
+            "p6" :  { type : "img", ext : "png", sizeFill : "width", spaceAfter : true },
+            "p7" :  { type : "img", ext : "png", sizeFill : "width", spaceAfter : true },
+            "p8" :  { type : "img",              sizeFill : "width", spaceAfter : true },
+            "p9" :  { type : "img", ext : "png", sizeFill : "width-50%", spaceAfter : true },
         },
         title : {
             fr : "Charte graphique : Logo \"Cycl'of Course\"",
@@ -1214,7 +1217,7 @@ var projectsData = {
                 ]})}
                 ${createDescPart({settings : "row even gap_big width_fill", input : [
                     createMedia({url : "saw_sawing_animation/image d'origine (crop).jpg", caption : `Original photo taken by <a href="https://twitter.com/wongthanong/status/1132931314284261377" target="_blank">@wongthanong on Twitter</a>.`, settings : "stack", sizeFill : "height"}),
-                    createMedia({url : "saw_sawing_animation/fond sans scie (upscaled).jpg", caption : "Saw removed from the photo (and IA upscaled).", settings : "stack", sizeFill : "height"}),
+                    createMedia({url : "saw_sawing_animation/fond sans scie (upscaled).jpg", caption : "Saw removed from the photo (and AI upscaled).", settings : "stack", sizeFill : "height"}),
                 ]})}
                 ${createDescPart({settings : "row even gap_big width_fill", input : [
                     createMedia({url : "saw_sawing_animation/3D 1.jpg", settings : "stack", sizeFill : "height"}),
@@ -1246,6 +1249,29 @@ var projectsData = {
         colorAccent : "#fdbb27",
         context: "school",
         filter: "comm|compo|layout|vector|branding|print|ad",
+    },
+    "line_mathis_pti" : {
+        type : "vid", interact : "off",
+            ext : "mp4",
+            aspectRatio : "9:16",
+        title : "Line Animation : Bass",
+        colorFill : "#e39144",
+        colorAccent : "#e39144",
+        date : "2023.04",
+        context: "school|pti",
+        filter: "compo|motion|anim|photo|illustration|vector",
+    },
+    "line_spider_shadow" : {
+        hidden: true,
+        type : "vid", interact : "off",
+            ext : "mp4",
+            aspectRatio : "9:16",
+        title : "Line Animation : Spider Shadow",
+        colorFill : "#11041b",
+        colorAccent : "#ff3808",
+        date : "2023.04",
+        context: "school",
+        filter: "compo|motion|anim|photo|illustration|vector",
     },
 
 // new -----------------------------------------------------------------------
