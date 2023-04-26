@@ -2529,11 +2529,16 @@ function projectFileCreate(projectID, card, cursorEv) {
             const PRJADD = addPrj[1], // data
                   fileSecondPrjEl = projectFile.querySelector("[project-secondary-id='"+ addPrj[0] +"'] img.project-secondary");
 
-            const sizeFillValue = PRJADD.sizeFill.split("-")[1];
-            if (PRJADD.sizeFill.match(/^(width)/)) { console.log(PRJADD, sizeFillValue); fileSecondPrjEl.style.width = (sizeFillValue) ? sizeFillValue : "100%"; }
-            else if (PRJADD.sizeFill.match(/^(height)/)) { fileSecondPrjEl.style.height = (sizeFillValue) ? sizeFillValue : "95vh"; }
+            var sizeFillTypeCheck = true;
+            if (PRJADD.sizeFill) {
+                const sizeFillValue = PRJADD.sizeFill.split("-")[1];
+                sizeFillTypeCheck = !PRJADD.sizeFill.match(/^(width)|(height)/);
 
-            if (PRJADD.type == "img" && !PRJADD.sizeFill.match(/^(width)|(height)/)) {
+                if (PRJADD.sizeFill.match(/^(width)/)) { console.log(PRJADD, sizeFillValue); fileSecondPrjEl.style.width = (sizeFillValue) ? sizeFillValue : "100%"; }
+                else if (PRJADD.sizeFill.match(/^(height)/)) { fileSecondPrjEl.style.height = (sizeFillValue) ? sizeFillValue : "95vh"; }
+            }
+
+            if (PRJADD.type == "img" && sizeFillTypeCheck) {
                 getSizeAndResizeToRatioPrjContent({elIMG : fileSecondPrjEl/*, callback : () => { scrollbarPrjFile.update(true) }*/});
                 pFileElMainC.classList.add("has-secondary-content-same-ratio");
             }
